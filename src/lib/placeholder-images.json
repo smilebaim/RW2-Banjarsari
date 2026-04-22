@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-community",
+      "description": "Banjarsari community gathering",
+      "imageUrl": "https://picsum.photos/seed/banjarsari-1/1200/600",
+      "imageHint": "community gathering"
+    },
+    {
+      "id": "news-event-1",
+      "description": "Local neighborhood cleaning activity",
+      "imageUrl": "https://picsum.photos/seed/event-1/600/400",
+      "imageHint": "neighborhood cleanup"
+    },
+    {
+      "id": "news-event-2",
+      "description": "Monthly RW meeting",
+      "imageUrl": "https://picsum.photos/seed/event-2/600/400",
+      "imageHint": "community meeting"
+    },
+    {
+      "id": "news-event-3",
+      "description": "Youth sports tournament",
+      "imageUrl": "https://picsum.photos/seed/event-3/600/400",
+      "imageHint": "community sports"
+    },
+    {
+      "id": "member-1",
+      "description": "Chairperson of RW 2",
+      "imageUrl": "https://picsum.photos/seed/member-1/200/200",
+      "imageHint": "professional man"
+    },
+    {
+      "id": "member-2",
+      "description": "Secretary of RW 2",
+      "imageUrl": "https://picsum.photos/seed/member-2/200/200",
+      "imageHint": "professional woman"
+    },
+    {
+      "id": "member-3",
+      "description": "Treasurer of RW 2",
+      "imageUrl": "https://picsum.photos/seed/member-3/200/200",
+      "imageHint": "business man"
+    }
+  ]
 }
