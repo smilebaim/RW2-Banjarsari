@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Newspaper, Users, MessageSquare, Phone, ArrowRight, Star } from 'lucide-react';
+import { Newspaper, Users, MessageSquare, Phone, ArrowRight, Star, MapPin } from 'lucide-react';
 
 const features = [
   { title: 'Berita & Pengumuman', desc: 'Dapatkan informasi terbaru mengenai kegiatan RW.', icon: Newspaper, href: '/news', color: 'bg-green-100' },
@@ -129,6 +129,40 @@ export default function Home() {
                 </Card>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Map Section */}
+        <section className="py-24 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-primary mb-4 flex items-center justify-center gap-3">
+                <MapPin className="w-8 h-8 text-accent-foreground" />
+                Lokasi Wilayah RW 2
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Terletak strategis di Banjarsari, Metro Utara. Klik peta di bawah untuk petunjuk arah yang lebih detail.
+              </p>
+            </div>
+            <Card className="overflow-hidden border-none shadow-2xl h-[450px] relative group">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15893.606406325567!2d105.3023!3d-5.0931!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40bf6c30e79603%3A0x4039147e0996840!2sBanjarsari%2C%20North%20Metro%2C%20Metro%20City%2C%20Lampung!5e0!3m2!1sen!2sid!4v1716550000000!5m2!1sen!2sid"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
+              ></iframe>
+              <div className="absolute bottom-4 right-4 flex gap-2">
+                <Button size="sm" className="bg-white/90 backdrop-blur text-primary hover:bg-white shadow-lg border-none" asChild>
+                  <a href="https://maps.app.goo.gl/toqRf3dxK6E3uawg8" target="_blank" rel="noopener noreferrer">
+                    Buka di Google Maps
+                  </a>
+                </Button>
+              </div>
+            </Card>
           </div>
         </section>
       </main>
