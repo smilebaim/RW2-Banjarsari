@@ -28,7 +28,7 @@ export default function Home() {
         {/* Map Hero Section */}
         <section className="relative h-[650px] w-full overflow-hidden border-b border-border shadow-inner">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15893.606406325567!2d105.3023!3d-5.0931!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40bf6c30e79603%3A0x4039147e0996840!2sBanjarsari%2C%20North%20Metro%2C%20Metro%20City%2C%20Lampung!5e0!3m2!1sen!2sid!4v1716550000000!5m2!1sen!2sid"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3973.402432857502!2d105.3002621758955!3d-5.094553594882352!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40bf6c30e79603%3A0x4039147e0996840!2sKantor%20RW%2002%20Kelurahan%20Banjarsari!5e0!3m2!1sid!2sid!4v1716550000000!5m2!1sid!2sid"
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -43,7 +43,7 @@ export default function Home() {
               <CardHeader className="pb-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent rounded-full text-accent-foreground text-xs font-bold mb-3 w-fit">
                   <MapPin className="w-3 h-3" />
-                  <span>WILAYAH RW 2</span>
+                  <span>LOKASI KANTOR RW 2</span>
                 </div>
                 <CardTitle className="text-3xl font-bold text-primary leading-tight">
                   Selamat Datang di <span className="text-accent-foreground">Banjarsari Connect</span>
