@@ -1,9 +1,7 @@
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
 
 const management = [
   { name: 'H. Sutrisno, S.E.', role: 'Ketua RW 02', photo: PlaceHolderImages[4].imageUrl, bio: 'Menjabat sejak 2022, berkomitmen pada transparansi pengelolaan dana RW.' },
@@ -16,47 +14,46 @@ const management = [
 
 export default function DirectoryPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
+    <div className="flex flex-col min-h-screen pb-32">
       <main className="flex-1 bg-background">
         <section className="bg-primary/5 py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl font-bold text-primary mb-6">Struktur Pengurus RW 2</h1>
-              <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                Temui tim yang berdedikasi mengelola dan melayani kebutuhan warga di RW 2 Banjarsari, Metro Utara. Kami hadir untuk membantu setiap urusan warga.
+            <div className="max-w-3xl mb-12">
+              <h1 className="text-5xl font-black text-primary mb-6 uppercase tracking-tighter">Struktur Pengurus</h1>
+              <p className="text-muted-foreground text-lg leading-relaxed font-medium">
+                Tim yang berdedikasi melayani dan mengelola aspirasi warga RW 2 Banjarsari. Kami ada untuk kemajuan bersama.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {management.map((person, idx) => (
-                <Card key={idx} className="overflow-hidden hover:shadow-lg transition-all group border-border/50">
-                  <div className="relative h-64 w-full overflow-hidden">
+                <Card key={idx} className="overflow-hidden border-none shadow-xl group rounded-[2.5rem] bg-white">
+                  <div className="relative h-72 w-full overflow-hidden">
                     <Image
                       src={person.photo}
                       alt={person.name}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end p-8">
                       <div className="flex gap-4">
-                        <div className="p-2 bg-white/20 backdrop-blur rounded-full text-white cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
-                          <Phone className="w-4 h-4" />
+                        <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl text-white cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
+                          <Phone className="w-5 h-5" />
                         </div>
-                        <div className="p-2 bg-white/20 backdrop-blur rounded-full text-white cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
-                          <Mail className="w-4 h-4" />
+                        <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl text-white cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
+                          <Mail className="w-5 h-5" />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <CardHeader className="text-center pb-2">
-                    <div className="text-xs font-bold text-accent-foreground bg-accent/20 px-3 py-1 rounded-full w-fit mx-auto mb-2 uppercase tracking-widest">
+                  <CardHeader className="text-center pt-8 pb-2">
+                    <div className="text-[10px] font-black text-accent-foreground bg-accent rounded-full px-4 py-1 w-fit mx-auto mb-3 uppercase tracking-widest shadow-md">
                       {person.role}
                     </div>
-                    <CardTitle className="text-xl text-primary">{person.name}</CardTitle>
+                    <CardTitle className="text-2xl font-black text-primary">{person.name}</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-center pb-6">
-                    <p className="text-sm text-muted-foreground italic">"{person.bio}"</p>
+                  <CardContent className="text-center pb-8 px-8">
+                    <p className="text-sm text-muted-foreground font-medium italic">"{person.bio}"</p>
                   </CardContent>
                 </Card>
               ))}
@@ -64,7 +61,6 @@ export default function DirectoryPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }
