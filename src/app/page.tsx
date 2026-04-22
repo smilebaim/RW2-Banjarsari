@@ -9,7 +9,7 @@ import { Newspaper, Users, MessageSquare, Phone, ArrowRight, MapPin, Navigation 
 
 const features = [
   { title: 'Berita & Pengumuman', desc: 'Dapatkan informasi terbaru mengenai kegiatan RW.', icon: Newspaper, href: '/news', color: 'bg-green-100' },
-  { title: 'Daftar Pengurus', desc: 'Kenali sosok di balik pengelolaan lingkungan kita.', icon: Users, href: '/directory', color: 'bg-blue-100' },
+  { title: 'Daftar Pengurus', desc: 'Kenali sosok di balik pengelolaan lingkungan kita.', icon: Users, href: '/directory', iconColor: 'text-blue-600', color: 'bg-blue-100' },
   { title: 'Aspirasi Warga', desc: 'Sampaikan saran dan masukan untuk kemajuan bersama.', icon: MessageSquare, href: '/feedback', color: 'bg-yellow-100' },
   { title: 'Kontak Penting', desc: 'Akses cepat ke nomor darurat dan layanan publik.', icon: Phone, href: '/contacts', color: 'bg-red-100' },
 ];
@@ -57,7 +57,7 @@ export default function Home() {
                   <Link href="/news">Lihat Kegiatan</Link>
                 </Button>
                 <Button variant="outline" className="border-primary text-primary" asChild>
-                  <a href="https://maps.app.goo.gl/EeYm7243xHy7GjeG9" target="_blank" rel="noopener noreferrer">
+                  <a href="https://maps.app.goo.gl/e96s6tRQxeCDnLdAA" target="_blank" rel="noopener noreferrer">
                     <Navigation className="w-4 h-4 mr-2" />
                     Buka Rute
                   </a>
@@ -118,18 +118,19 @@ export default function Home() {
                       alt={news.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      data-ai-hint="news coverage"
                     />
                   </div>
                   <CardHeader>
                     <div className="text-xs font-semibold text-primary mb-2 uppercase tracking-wider">{news.date}</div>
                     <CardTitle className="text-2xl hover:text-primary transition-colors cursor-pointer">
-                      <Link href={`/news/${news.id}`}>{news.title}</Link>
+                      <Link href={`/news`}>{news.title}</Link>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-6 line-clamp-2">{news.summary}</p>
                     <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white" asChild>
-                      <Link href={`/news/${news.id}`}>Baca Selengkapnya</Link>
+                      <Link href={`/news`}>Baca Selengkapnya</Link>
                     </Button>
                   </CardContent>
                 </Card>
