@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Newspaper, Users, MessageSquare, Phone, ArrowRight, Star, MapPin } from 'lucide-react';
+import { Newspaper, Users, MessageSquare, Phone, ArrowRight, Star, MapPin, Navigation } from 'lucide-react';
 
 const features = [
   { title: 'Berita & Pengumuman', desc: 'Dapatkan informasi terbaru mengenai kegiatan RW.', icon: Newspaper, href: '/news', color: 'bg-green-100' },
@@ -20,44 +20,50 @@ const featuredNews = [
 ];
 
 export default function Home() {
-  const heroImg = PlaceHolderImages[0];
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative h-[600px] flex items-center overflow-hidden">
-          <Image
-            src={heroImg.imageUrl}
-            alt={heroImg.description}
-            fill
-            className="object-cover brightness-[0.4]"
-            priority
-            data-ai-hint="community gathering"
-          />
-          <div className="container mx-auto px-4 relative z-10 text-white">
-            <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent rounded-full text-accent-foreground text-xs font-bold mb-6">
-                <Star className="w-3 h-3 fill-current" />
-                <span>RW 2 BANJARSARI TERBAIK</span>
-              </div>
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                Membangun Komunitas <span className="text-accent underline decoration-4 underline-offset-8">Lebih Dekat</span>
-              </h1>
-              <p className="text-xl mb-10 text-gray-200">
-                Portal resmi warga Banjarsari untuk informasi terkini, layanan aspirasi, dan koneksi komunitas yang lebih kuat.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8" asChild>
-                  <Link href="/news">Lihat Pengumuman</Link>
+        {/* Map Hero Section */}
+        <section className="relative h-[650px] w-full overflow-hidden border-b border-border shadow-inner">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15893.606406325567!2d105.3023!3d-5.0931!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40bf6c30e79603%3A0x4039147e0996840!2sBanjarsari%2C%20North%20Metro%2C%20Metro%20City%2C%20Lampung!5e0!3m2!1sen!2sid!4v1716550000000!5m2!1sen!2sid"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="w-full h-full"
+          ></iframe>
+          
+          <div className="absolute top-8 left-4 md:left-8 z-10 max-w-md pointer-events-none">
+            <Card className="bg-white/95 backdrop-blur shadow-2xl border-primary/20 pointer-events-auto animate-in fade-in slide-in-from-left-8 duration-700">
+              <CardHeader className="pb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent rounded-full text-accent-foreground text-xs font-bold mb-3 w-fit">
+                  <MapPin className="w-3 h-3" />
+                  <span>WILAYAH RW 2</span>
+                </div>
+                <CardTitle className="text-3xl font-bold text-primary leading-tight">
+                  Selamat Datang di <span className="text-accent-foreground">Banjarsari Connect</span>
+                </CardTitle>
+                <CardDescription className="text-base mt-2">
+                  Portal warga untuk informasi, aspirasi, dan kolaborasi lingkungan RW 2 Banjarsari, Metro Utara.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
+                <Button className="bg-primary hover:bg-primary/90 text-white" asChild>
+                  <Link href="/news">Lihat Kegiatan</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur border-white/20 text-white hover:bg-white/20" asChild>
-                  <Link href="/feedback">Kirim Aspirasi</Link>
+                <Button variant="outline" className="border-primary text-primary" asChild>
+                  <a href="https://maps.app.goo.gl/toqRf3dxK6E3uawg8" target="_blank" rel="noopener noreferrer">
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Buka Rute
+                  </a>
                 </Button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
@@ -129,40 +135,6 @@ export default function Home() {
                 </Card>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Map Section */}
-        <section className="py-24 bg-background">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-primary mb-4 flex items-center justify-center gap-3">
-                <MapPin className="w-8 h-8 text-accent-foreground" />
-                Lokasi Wilayah RW 2
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Terletak strategis di Banjarsari, Metro Utara. Klik peta di bawah untuk petunjuk arah yang lebih detail.
-              </p>
-            </div>
-            <Card className="overflow-hidden border-none shadow-2xl h-[450px] relative group">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15893.606406325567!2d105.3023!3d-5.0931!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40bf6c30e79603%3A0x4039147e0996840!2sBanjarsari%2C%20North%20Metro%2C%20Metro%20City%2C%20Lampung!5e0!3m2!1sen!2sid!4v1716550000000!5m2!1sen!2sid"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
-              ></iframe>
-              <div className="absolute bottom-4 right-4 flex gap-2">
-                <Button size="sm" className="bg-white/90 backdrop-blur text-primary hover:bg-white shadow-lg border-none" asChild>
-                  <a href="https://maps.app.goo.gl/toqRf3dxK6E3uawg8" target="_blank" rel="noopener noreferrer">
-                    Buka di Google Maps
-                  </a>
-                </Button>
-              </div>
-            </Card>
           </div>
         </section>
       </main>
