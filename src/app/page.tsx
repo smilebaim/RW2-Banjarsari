@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Newspaper, Users, MessageSquare, Phone, ArrowRight, Star, MapPin, Navigation } from 'lucide-react';
+import { Newspaper, Users, MessageSquare, Phone, ArrowRight, MapPin, Navigation } from 'lucide-react';
 
 const features = [
   { title: 'Berita & Pengumuman', desc: 'Dapatkan informasi terbaru mengenai kegiatan RW.', icon: Newspaper, href: '/news', color: 'bg-green-100' },
@@ -57,7 +57,7 @@ export default function Home() {
                   <Link href="/news">Lihat Kegiatan</Link>
                 </Button>
                 <Button variant="outline" className="border-primary text-primary" asChild>
-                  <a href="https://maps.app.goo.gl/toqRf3dxK6E3uawg8" target="_blank" rel="noopener noreferrer">
+                  <a href="https://maps.app.goo.gl/EeYm7243xHy7GjeG9" target="_blank" rel="noopener noreferrer">
                     <Navigation className="w-4 h-4 mr-2" />
                     Buka Rute
                   </a>
