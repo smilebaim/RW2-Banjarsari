@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Newspaper, Users, MessageSquare, Phone, ShieldCheck } from 'lucide-react';
@@ -22,6 +23,15 @@ const navItems = [
 
 export function Dock() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] sm:w-fit">
