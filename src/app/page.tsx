@@ -1,6 +1,13 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Navigation, Layers, Compass, Info } from 'lucide-react';
+import { MapPin, Navigation, Layers, Compass, Info, Newspaper } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -19,7 +26,7 @@ export default function Home() {
         ></iframe>
       </div>
 
-      {/* Top Identity Dock - Unified Ultra-Glassmorphism for Mobile & Desktop */}
+      {/* Top Identity Dock - Unified Ultra-Glassmorphism */}
       <div className="absolute top-6 inset-x-0 z-10 flex justify-center px-4">
         <div className="w-full max-w-xl bg-white/5 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/10 rounded-[2.5rem] p-2 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4 pl-2">
@@ -32,36 +39,35 @@ export default function Home() {
             </div>
           </div>
           <div className="flex gap-2 pr-1">
-             <Button size="icon" variant="ghost" className="rounded-2xl w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
-                <a href="https://maps.app.goo.gl/acYJX9R7R7HXbv618" target="_blank" rel="noopener noreferrer">
-                   <Navigation className="w-5 h-5" />
-                </a>
-             </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon" variant="ghost" className="rounded-2xl w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
+                    <Link href="/news">
+                      <Newspaper className="w-5 h-5" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest mb-2 px-4 py-2 rounded-xl">
+                  Informasi Utama
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="icon" variant="ghost" className="rounded-2xl w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
+                    <a href="https://maps.app.goo.gl/acYJX9R7R7HXbv618" target="_blank" rel="noopener noreferrer">
+                      <Navigation className="w-5 h-5" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest mb-2 px-4 py-2 rounded-xl">
+                  Buka Rute
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
-      </div>
-
-      {/* Desktop Feature Info - Minimalist Card with Ultra-Glassmorphism */}
-      <div className="absolute bottom-32 left-8 z-10 max-w-[320px] hidden md:block animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <Card className="bg-white/5 backdrop-blur-3xl shadow-[0_20px_60px_-12px_rgba(0,0,0,0.5)] border border-white/10 rounded-[2rem] overflow-hidden">
-           <CardHeader className="pb-3 pt-6 px-6">
-             <div className="flex items-center gap-2 mb-2">
-               <span className="w-6 h-1 bg-accent rounded-full"></span>
-               <span className="text-[10px] font-black text-primary uppercase tracking-widest">Informasi Utama</span>
-             </div>
-             <CardTitle className="text-2xl font-black text-primary leading-tight tracking-tighter drop-shadow-md">
-               Portal Warga <span className="text-accent-foreground">RW 02</span>
-             </CardTitle>
-           </CardHeader>
-           <CardContent className="px-6 pb-6">
-             <p className="text-xs font-semibold text-primary/80 leading-relaxed mb-4">
-               Akses cepat layanan pengaduan, berita terkini, dan kontak pengurus lingkungan dalam satu aplikasi.
-             </p>
-             <Button variant="outline" className="w-full border-primary/20 bg-primary/10 hover:bg-primary hover:text-white rounded-xl h-10 text-xs font-black uppercase tracking-widest transition-all" asChild>
-               <a href="/news">Lihat Update Terbaru</a>
-             </Button>
-           </CardContent>
-        </Card>
       </div>
 
       {/* Right Floating Actions with Ultra-Glassmorphism */}
