@@ -70,8 +70,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Right Floating Actions with Ultra-Glassmorphism */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
+      {/* Left Floating Actions with Ultra-Glassmorphism */}
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
         <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
           <Layers className="w-5 h-5" />
         </Button>
