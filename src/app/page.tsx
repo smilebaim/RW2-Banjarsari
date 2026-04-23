@@ -5,7 +5,7 @@ import { MapPin, Navigation, Compass, Layers } from 'lucide-react';
 export default function Home() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Background Map - Full Screen Satellite View centered on the provided location */}
+      {/* Background Map - Full Screen Satellite View centered on Masjid Al-Hidayah */}
       <div className="absolute inset-0 z-0">
         <iframe
           src="https://maps.google.com/maps?ll=-5.094194,105.300143&t=k&z=19&ie=UTF8&iwloc=&output=embed"
@@ -21,8 +21,8 @@ export default function Home() {
 
       {/* Desktop Floating UI - Ultra Transparent Glassmorphism */}
       <div className="absolute top-8 left-8 z-10 hidden md:block">
-        <div className="flex items-center gap-4 p-3 pr-6 bg-white/5 backdrop-blur-2xl shadow-2xl rounded-3xl border border-white/10">
-          <div className="w-12 h-12 bg-primary/90 rounded-2xl flex items-center justify-center shadow-lg">
+        <div className="flex items-center gap-4 p-3 pr-6 bg-white/5 backdrop-blur-3xl shadow-2xl rounded-3xl border border-white/10">
+          <div className="w-12 h-12 bg-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
              <MapPin className="text-white w-6 h-6" />
           </div>
           <div>
@@ -35,7 +35,7 @@ export default function Home() {
       {/* Desktop Feature Card - Ultra Transparent Glassmorphism */}
       <div className="absolute top-32 left-8 z-10 max-w-[360px] hidden md:block animate-in fade-in slide-in-from-left-8 duration-1000">
         <Card className="bg-white/5 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] border border-white/10 rounded-[2.5rem] overflow-hidden">
-           <div className="h-2 bg-accent w-full opacity-50"></div>
+           <div className="h-2 bg-accent/50 w-full"></div>
            <CardHeader className="pb-4 pt-8 px-8">
              <CardTitle className="text-4xl font-black text-primary leading-tight mb-3 tracking-tighter drop-shadow-md">
                Banjarsari <span className="text-accent-foreground">Connect</span>
@@ -45,7 +45,7 @@ export default function Home() {
              </CardDescription>
            </CardHeader>
            <CardContent className="px-8 pb-8 space-y-4">
-             <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 font-black shadow-xl shadow-primary/30 text-lg uppercase tracking-tight" asChild>
+             <Button className="w-full bg-primary/90 hover:bg-primary text-white rounded-2xl h-14 font-black shadow-xl shadow-primary/30 text-lg uppercase tracking-tight backdrop-blur-md" asChild>
                <a href="https://maps.app.goo.gl/acYJX9R7R7HXbv618" target="_blank" rel="noopener noreferrer">
                  <Navigation className="w-5 h-5 mr-3" />
                  Buka Rute
@@ -57,9 +57,9 @@ export default function Home() {
 
       {/* Mobile Optimized UI - Ultra Transparent Glassmorphism */}
       <div className="absolute top-6 inset-x-4 md:hidden z-10">
-        <div className="bg-white/5 backdrop-blur-2xl shadow-2xl border border-white/10 rounded-[2rem] p-4 flex items-center justify-between">
+        <div className="bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/10 rounded-[2rem] p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-primary/90 rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-primary/30">
+            <div className="w-11 h-11 bg-primary/80 rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-primary/30">
                <MapPin className="text-white w-5 h-5" />
             </div>
             <div className="text-left">
@@ -77,16 +77,16 @@ export default function Home() {
 
       {/* Floating Action Buttons */}
       <div className="absolute right-4 top-24 flex flex-col gap-3 z-10">
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl border border-white/10 text-primary hover:bg-white/20">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-white/20">
           <Layers className="w-5 h-5" />
         </Button>
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-md shadow-xl border border-white/10 text-primary hover:bg-white/20">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-white/20">
           <Compass className="w-5 h-5" />
         </Button>
       </div>
 
       {/* Bottom Gradient Overlay for Mobile Dock Clarity */}
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-[5]"></div>
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-[5]"></div>
     </div>
   );
 }

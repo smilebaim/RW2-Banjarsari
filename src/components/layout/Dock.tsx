@@ -26,7 +26,7 @@ export function Dock() {
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] sm:w-fit">
       <TooltipProvider delayDuration={0}>
-        <div className="flex items-center justify-around sm:justify-start gap-1 sm:gap-2 p-1.5 bg-white/5 dark:bg-black/5 backdrop-blur-3xl border border-white/10 dark:border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
+        <div className="flex items-center justify-around sm:justify-start gap-1 sm:gap-2 p-1.5 bg-white/10 backdrop-blur-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2.5rem]">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
