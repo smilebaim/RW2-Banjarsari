@@ -70,17 +70,42 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Left Floating Actions with Ultra-Glassmorphism */}
+      {/* Left Floating Actions with Tooltips */}
       <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
-          <Layers className="w-5 h-5" />
-        </Button>
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
-          <Compass className="w-5 h-5" />
-        </Button>
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
-          <Info className="w-5 h-5" />
-        </Button>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
+                <Layers className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest ml-2 px-4 py-2 rounded-xl">
+              Lapisan Peta
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
+                <Compass className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest ml-2 px-4 py-2 rounded-xl">
+              Kompas
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
+                <Info className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest ml-2 px-4 py-2 rounded-xl">
+              Tentang Wilayah
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Bottom Gradient Overlay for Clarity */}
