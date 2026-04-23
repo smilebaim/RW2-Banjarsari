@@ -5,10 +5,10 @@ import { MapPin, Navigation, Compass, Layers } from 'lucide-react';
 export default function Home() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Background Map - Full Screen Satellite View */}
+      {/* Background Map - Full Screen Satellite View Centered on RW 2 Banjarsari */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?q=-5.094553,105.300262&t=k&z=18&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?q=-5.094553,105.300262&t=k&z=19&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
@@ -48,7 +48,7 @@ export default function Home() {
              <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 font-black shadow-xl shadow-primary/30 text-lg uppercase tracking-tight" asChild>
                <a href="https://maps.app.goo.gl/e96s6tRQxeCDnLdAA" target="_blank" rel="noopener noreferrer">
                  <Navigation className="w-5 h-5 mr-3" />
-                 Petunjuk Arah
+                 Buka Rute
                </a>
              </Button>
            </CardContent>
