@@ -1,11 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Navigation, Compass, Layers, Info } from 'lucide-react';
+import { MapPin, Navigation, Layers, Compass, Info } from 'lucide-react';
 
 export default function Home() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Background Map - Full Screen Satellite View centered on specified location */}
+      {/* Background Map - Full Screen Satellite View centered on coordinate Masjid Al-Hidayah */}
       <div className="absolute inset-0 z-0">
         <iframe
           src="https://maps.google.com/maps?ll=-5.094194,105.300143&t=k&z=19&ie=UTF8&iwloc=&output=embed"
@@ -19,7 +19,7 @@ export default function Home() {
         ></iframe>
       </div>
 
-      {/* Top Identity Dock - Unified for Mobile & Desktop */}
+      {/* Top Identity Dock - Unified Ultra-Glassmorphism for Mobile & Desktop */}
       <div className="absolute top-6 inset-x-0 z-10 flex justify-center px-4">
         <div className="w-full max-w-xl bg-white/5 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/10 rounded-[2.5rem] p-2 flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4 pl-2">
@@ -28,7 +28,7 @@ export default function Home() {
             </div>
             <div className="text-left">
               <h1 className="text-sm sm:text-base font-black text-primary tracking-tighter leading-none mb-0.5 drop-shadow-md uppercase">Banjarsari Connect</h1>
-              <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">RW 2 Metro Utara, Lampung</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground/80 uppercase tracking-widest leading-none">RW 2 Metro Utara, Lampung</p>
             </div>
           </div>
           <div className="flex gap-2 pr-1">
@@ -41,7 +41,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Desktop Feature Info - Minimalist Card */}
+      {/* Desktop Feature Info - Minimalist Card with Ultra-Glassmorphism */}
       <div className="absolute bottom-32 left-8 z-10 max-w-[320px] hidden md:block animate-in fade-in slide-in-from-bottom-8 duration-1000">
         <Card className="bg-white/5 backdrop-blur-3xl shadow-[0_20px_60px_-12px_rgba(0,0,0,0.5)] border border-white/10 rounded-[2rem] overflow-hidden">
            <CardHeader className="pb-3 pt-6 px-6">
@@ -64,15 +64,15 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Right Floating Actions */}
+      {/* Right Floating Actions with Ultra-Glassmorphism */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
           <Layers className="w-5 h-5" />
         </Button>
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
           <Compass className="w-5 h-5" />
         </Button>
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-xl border border-white/10 text-primary hover:bg-primary hover:text-white transition-all">
           <Info className="w-5 h-5" />
         </Button>
       </div>
