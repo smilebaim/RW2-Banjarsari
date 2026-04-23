@@ -8,7 +8,7 @@ export default function Home() {
       {/* Background Map - Full Screen Satellite View Centered on Masjid Al-Hidayah Banjarsari */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?q=-5.094200,105.300150&t=k&z=19&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?q=-5.094194,105.300143&t=k&z=19&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
@@ -34,7 +34,7 @@ export default function Home() {
 
       {/* Desktop Feature Card - Ultra Transparent Glassmorphism */}
       <div className="absolute top-32 left-8 z-10 max-w-[360px] hidden md:block animate-in fade-in slide-in-from-left-8 duration-1000">
-        <Card className="bg-white/5 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] border-white/10 rounded-[2.5rem] overflow-hidden">
+        <Card className="bg-white/5 backdrop-blur-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] border border-white/10 rounded-[2.5rem] overflow-hidden">
            <div className="h-2 bg-accent w-full opacity-50"></div>
            <CardHeader className="pb-4 pt-8 px-8">
              <CardTitle className="text-4xl font-black text-primary leading-tight mb-3 tracking-tighter drop-shadow-md">
@@ -46,7 +46,7 @@ export default function Home() {
            </CardHeader>
            <CardContent className="px-8 pb-8 space-y-4">
              <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 font-black shadow-xl shadow-primary/30 text-lg uppercase tracking-tight" asChild>
-               <a href="https://maps.app.goo.gl/e96s6tRQxeCDnLdAA" target="_blank" rel="noopener noreferrer">
+               <a href="https://maps.app.goo.gl/7aYPGw2wXFx3RJeV9" target="_blank" rel="noopener noreferrer">
                  <Navigation className="w-5 h-5 mr-3" />
                  Buka Rute
                </a>
@@ -68,7 +68,7 @@ export default function Home() {
             </div>
           </div>
           <Button size="icon" variant="ghost" className="rounded-2xl w-11 h-11 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
-             <a href="https://maps.app.goo.gl/e96s6tRQxeCDnLdAA" target="_blank" rel="noopener noreferrer">
+             <a href="https://maps.app.goo.gl/7aYPGw2wXFx3RJeV9" target="_blank" rel="noopener noreferrer">
                 <Navigation className="w-5 h-5" />
              </a>
           </Button>
