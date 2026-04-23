@@ -8,7 +8,7 @@ export default function Home() {
       {/* Background Map - Full Screen Satellite View Centered on Masjid Al-Hidayah Banjarsari */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?q=-5.094250,105.300139&t=k&z=19&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?q=-5.094200,105.300150&t=k&z=19&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
