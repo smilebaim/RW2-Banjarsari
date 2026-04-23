@@ -46,7 +46,7 @@ export default function Home() {
            </CardHeader>
            <CardContent className="px-8 pb-8 space-y-4">
              <Button className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 font-black shadow-xl shadow-primary/30 text-lg uppercase tracking-tight" asChild>
-               <a href="https://maps.app.goo.gl/7aYPGw2wXFx3RJeV9" target="_blank" rel="noopener noreferrer">
+               <a href="https://maps.app.goo.gl/acYJX9R7R7HXbv618" target="_blank" rel="noopener noreferrer">
                  <Navigation className="w-5 h-5 mr-3" />
                  Buka Rute
                </a>
@@ -68,7 +68,7 @@ export default function Home() {
             </div>
           </div>
           <Button size="icon" variant="ghost" className="rounded-2xl w-11 h-11 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
-             <a href="https://maps.app.goo.gl/7aYPGw2wXFx3RJeV9" target="_blank" rel="noopener noreferrer">
+             <a href="https://maps.app.goo.gl/acYJX9R7R7HXbv618" target="_blank" rel="noopener noreferrer">
                 <Navigation className="w-5 h-5" />
              </a>
           </Button>
