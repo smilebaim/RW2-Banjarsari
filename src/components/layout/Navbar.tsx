@@ -11,10 +11,10 @@ const navItems = [
 
 export function Navbar() {
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm">
+    <nav className="sticky top-0 z-50 w-full bg-white/10 backdrop-blur-xl supports-[backdrop-filter]:bg-white/10 border-b border-white/20 shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
+          <div className="w-10 h-10 bg-primary/80 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
             <ShieldCheck className="text-white w-6 h-6" />
           </div>
           <span className="font-bold text-xl tracking-tight text-primary">Banjarsari <span className="text-accent-foreground">Connect</span></span>
@@ -33,13 +33,11 @@ export function Navbar() {
           ))}
           <Link
             href="/admin"
-            className="px-4 py-2 bg-accent text-accent-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="px-4 py-2 bg-accent/80 backdrop-blur-md text-accent-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Portal Pengurus
           </Link>
         </div>
-
-        {/* Mobile menu could be added here with a Sheet component */}
       </div>
     </nav>
   );

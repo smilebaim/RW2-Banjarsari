@@ -19,10 +19,10 @@ export default function Home() {
         ></iframe>
       </div>
 
-      {/* Desktop Floating UI */}
+      {/* Desktop Floating UI - Transparent Glassmorphism */}
       <div className="absolute top-8 left-8 z-10 hidden md:block">
-        <div className="flex items-center gap-4 p-3 pr-6 bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/40">
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+        <div className="flex items-center gap-4 p-3 pr-6 bg-white/40 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/20">
+          <div className="w-12 h-12 bg-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
              <MapPin className="text-white w-6 h-6" />
           </div>
           <div>
@@ -32,9 +32,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Desktop Feature Card */}
+      {/* Desktop Feature Card - Transparent Glassmorphism */}
       <div className="absolute top-32 left-8 z-10 max-w-[360px] hidden md:block animate-in fade-in slide-in-from-left-8 duration-1000">
-        <Card className="bg-white/90 backdrop-blur-2xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] border-white/40 rounded-[2.5rem] overflow-hidden">
+        <Card className="bg-white/40 backdrop-blur-2xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] border-white/20 rounded-[2.5rem] overflow-hidden">
            <div className="h-2 bg-accent w-full"></div>
            <CardHeader className="pb-4 pt-8 px-8">
              <CardTitle className="text-4xl font-black text-primary leading-tight mb-3 tracking-tighter">
@@ -55,11 +55,11 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Mobile Optimized UI */}
+      {/* Mobile Optimized UI - Transparent Glassmorphism */}
       <div className="absolute top-6 inset-x-4 md:hidden z-10">
-        <div className="bg-white/95 backdrop-blur-xl shadow-2xl border border-white/40 rounded-[2rem] p-4 flex items-center justify-between">
+        <div className="bg-white/40 backdrop-blur-xl shadow-2xl border border-white/20 rounded-[2rem] p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-primary rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="w-11 h-11 bg-primary/80 rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-primary/20">
                <MapPin className="text-white w-5 h-5" />
             </div>
             <div className="text-left">
@@ -77,10 +77,10 @@ export default function Home() {
 
       {/* Floating Action Buttons (Mobile View Look) */}
       <div className="absolute right-4 top-24 flex flex-col gap-3 md:hidden z-10">
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md shadow-xl border border-white/50 text-primary">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/40 backdrop-blur-md shadow-xl border border-white/20 text-primary">
           <Layers className="w-5 h-5" />
         </Button>
-        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md shadow-xl border border-white/50 text-primary">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/40 backdrop-blur-md shadow-xl border border-white/20 text-primary">
           <Compass className="w-5 h-5" />
         </Button>
       </div>
