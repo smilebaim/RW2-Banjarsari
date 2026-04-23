@@ -5,10 +5,10 @@ import { MapPin, Navigation, Compass, Layers } from 'lucide-react';
 export default function Home() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Background Map - Full Screen Satellite View Centered on RW 2 Banjarsari */}
+      {/* Background Map - Full Screen Satellite View Centered on Masjid Al-Hidayah Banjarsari */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?q=-5.094553,105.300262&t=k&z=19&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?q=-5.094250,105.300139&t=k&z=19&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
