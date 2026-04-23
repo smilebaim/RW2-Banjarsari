@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation, Compass, Layers } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
       {/* Background Map - Full Screen */}
       <div className="absolute inset-0 z-0">
         <iframe
@@ -15,13 +15,13 @@ export default function Home() {
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="w-full h-full brightness-[0.9] saturate-[1.2] grayscale-[0.2]"
+          className="w-full h-full brightness-[0.95] saturate-[1.1]"
         ></iframe>
       </div>
 
-      {/* Floating UI Elements */}
+      {/* Desktop Floating UI */}
       <div className="absolute top-8 left-8 z-10 hidden md:block">
-        <div className="flex items-center gap-4 p-3 pr-6 bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/20">
+        <div className="flex items-center gap-4 p-3 pr-6 bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/40">
           <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
              <MapPin className="text-white w-6 h-6" />
           </div>
@@ -32,16 +32,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main Feature Card - Floating Desktop */}
+      {/* Desktop Feature Card */}
       <div className="absolute top-32 left-8 z-10 max-w-[360px] hidden md:block animate-in fade-in slide-in-from-left-8 duration-1000">
-        <Card className="bg-white/90 backdrop-blur-2xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] border-white/20 rounded-[2.5rem] overflow-hidden">
+        <Card className="bg-white/90 backdrop-blur-2xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] border-white/40 rounded-[2.5rem] overflow-hidden">
            <div className="h-2 bg-accent w-full"></div>
            <CardHeader className="pb-4 pt-8 px-8">
              <CardTitle className="text-4xl font-black text-primary leading-tight mb-3 tracking-tighter">
                Banjarsari <span className="text-accent-foreground">Connect</span>
              </CardTitle>
              <CardDescription className="text-sm font-semibold text-muted-foreground/80 leading-relaxed">
-               Selamat datang di portal warga digital. Kami mempermudah akses informasi dan layanan untuk seluruh warga RW 02.
+               Portal digital terpadu warga RW 02. Akses informasi, layanan, dan pengaduan dalam satu genggaman.
              </CardDescription>
            </CardHeader>
            <CardContent className="px-8 pb-8 space-y-4">
@@ -55,28 +55,38 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* Mobile Top View */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[90%] md:hidden z-10">
-        <Card className="bg-white/90 backdrop-blur-xl shadow-2xl border-white/20 rounded-3xl p-5 flex items-center justify-between border">
+      {/* Mobile Optimized UI */}
+      <div className="absolute top-6 inset-x-4 md:hidden z-10">
+        <div className="bg-white/95 backdrop-blur-xl shadow-2xl border border-white/40 rounded-[2rem] p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-               <MapPin className="text-white w-6 h-6" />
+            <div className="w-11 h-11 bg-primary rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-primary/20">
+               <MapPin className="text-white w-5 h-5" />
             </div>
             <div className="text-left">
-              <h1 className="text-lg font-black text-primary tracking-tighter">Banjarsari Connect</h1>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">RW 2 Metro Utara</p>
+              <h1 className="text-base font-black text-primary tracking-tighter leading-none mb-0.5">Banjarsari Connect</h1>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">RW 2 Metro Utara</p>
             </div>
           </div>
-          <Button size="icon" variant="outline" className="rounded-2xl border-primary w-12 h-12 text-primary shadow-lg" asChild>
+          <Button size="icon" variant="ghost" className="rounded-2xl w-11 h-11 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
              <a href="https://maps.app.goo.gl/e96s6tRQxeCDnLdAA" target="_blank" rel="noopener noreferrer">
                 <Navigation className="w-5 h-5" />
              </a>
           </Button>
-        </Card>
+        </div>
       </div>
 
-      {/* Decorative Gradient Overlays */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/20 via-transparent to-black/10 z-[5]"></div>
+      {/* Floating Action Buttons (Mobile View Look) */}
+      <div className="absolute right-4 top-24 flex flex-col gap-3 md:hidden z-10">
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md shadow-xl border border-white/50 text-primary">
+          <Layers className="w-5 h-5" />
+        </Button>
+        <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md shadow-xl border border-white/50 text-primary">
+          <Compass className="w-5 h-5" />
+        </Button>
+      </div>
+
+      {/* Bottom Gradient Overlay for Mobile Dock Clarity */}
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/20 to-transparent pointer-events-none z-[5] md:hidden"></div>
     </div>
   );
 }
