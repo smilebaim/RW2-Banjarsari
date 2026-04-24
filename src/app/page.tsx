@@ -15,7 +15,7 @@ export default function Home() {
       {/* Background Map - Full Screen Satellite View centered on exact coordinates */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?ll=-5.097673729554944,105.2921561873565&t=k&z=19&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?ll=-5.097673729554944,105.2921561873565&t=k&z=18&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
