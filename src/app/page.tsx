@@ -12,10 +12,10 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Background Map - Full Screen Satellite View centered on coordinate Masjid Al-Hidayah */}
+      {/* Background Map - Full Screen Satellite View centered on exact coordinates */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?ll=-5.094194,105.300143&t=k&z=19&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?ll=-5.097673729554944,105.2921561873565&t=k&z=19&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
@@ -56,7 +56,7 @@ export default function Home() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button size="icon" variant="ghost" className="rounded-2xl w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
-                    <a href="https://maps.app.goo.gl/acYJX9R7R7HXbv618" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.google.com/maps/search/?api=1&query=-5.097673729554944,105.2921561873565" target="_blank" rel="noopener noreferrer">
                       <Navigation className="w-5 h-5" />
                     </a>
                   </Button>
