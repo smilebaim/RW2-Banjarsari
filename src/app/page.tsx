@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Navigation, Layers, Compass, Info, Newspaper } from 'lucide-react';
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
+  TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import Link from 'next/link';
@@ -12,10 +12,10 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Background Map - Full Screen Satellite View centered on exact coordinates */}
+      {/* Background Map - Full Screen Satellite View locked on specific coordinates with Zoom Level 17 */}
       <div className="absolute inset-0 z-0">
         <iframe
-          src="https://maps.google.com/maps?ll=-5.097673729554944,105.2921561873565&t=k&z=16&ie=UTF8&iwloc=&output=embed"
+          src="https://maps.google.com/maps?ll=-5.097673729554944,105.2921561873565&t=k&z=17&ie=UTF8&iwloc=&output=embed"
           width="100%"
           height="100%"
           style={{ border: 0 }}
