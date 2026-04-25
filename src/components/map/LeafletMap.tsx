@@ -20,7 +20,7 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
       mapInstance.current = L.map(mapRef.current, {
         zoomControl: false,
         attributionControl: false,
-        scrollWheelZoom: false, // Optional: restrict zoom for a 'locked' feel
+        scrollWheelZoom: false,
         dragging: true,
         doubleClickZoom: false,
         boxZoom: false,
@@ -31,8 +31,6 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
         maxZoom: 19,
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
       }).addTo(mapInstance.current);
-
-      // Add a subtle border glow to the entire map container through CSS if needed
     }
 
     return () => {
@@ -46,9 +44,8 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
   return (
     <div className="w-full h-full relative group">
       <div ref={mapRef} className="w-full h-full z-0 grayscale-[0.2] contrast-[1.1]" />
-      {/* Cinematic Color Grading Overlay */}
+      {/* Cinematic Color Grading Overlay (Tanpa Bingkai) */}
       <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-10" />
-      <div className="absolute inset-0 pointer-events-none ring-inset ring-[40px] ring-black/20 z-10" />
     </div>
   );
 }
