@@ -14,23 +14,6 @@ rules_version = '2';
  * - /announcements_public: Read-only mirror for residents containing only "Published" content.
  * - /resident_feedback: Inbox for community aspirations and issue reports.
  * - /rw_management_members & /important_contacts: Publicly viewable directory information.
- *
- * KEY SECURITY DECISIONS:
- * - Authorization Independence: User roles are verified by checking existence in the `/admin_roles` 
- *   collection. This is faster and more reliable than checking properties on every request.
- * - Managed Denormalization: Announcements exist in two states. Management rules protect the 
- *   master copy, while a public mirror allows residents to read data without complex filters.
- * - Anonymous Participation: Residents can submit feedback via Firebase Anonymous Authentication, 
- *   ensuring every submission is tied to a traceble (but potentially anonymous) UID.
- *
- * DENORMALIZATION FOR AUTHORIZATION:
- * - Administrative status is denormalized into the document existence at `/admin_roles/{userId}`.
- * - The `authorAdminUserId` is required on creation for management documents to maintain 
- *   audit trails, though authorization is granted via the global admin check.
- *
- * STRUCTURAL SEGREGATION:
- * - Publicly readable collections (Contacts, Published Announcements) are separated from 
- *   private administrative collections (Feedback, Role Management, Draft Announcements).
  */
 
 service cloud.firestore {
@@ -38,22 +21,18 @@ service cloud.firestore {
 
     // --- HELPER FUNCTIONS ---
 
-    /** @description Checks if the user is authenticated. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the user is a registered administrator in the DBAC system. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admin_roles/$(request.auth.uid));
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided document ID. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Verifies that a document exists and the user is an admin. */
     function isAdminWithExistingDoc() {
       return isAdmin() && resource != null;
     }
@@ -63,24 +42,19 @@ service cloud.firestore {
     /**
      * @description Registry of users with administrative access.
      * @path /admin_roles/{adminUserId}
-     * @allow (get) Any user can check their own role status; (list/write) Global admins only.
-     * @deny (write) Any non-admin user trying to escalate privileges.
-     * @principle DBAC (Database Access Control) and user ownership for metadata.
+     * @allow (get) Owner or admin; (list) Admin only; (create) Owner for bootstrap; (update/delete) Admin only.
      */
     match /admin_roles/{adminUserId} {
       allow get: if isOwner(adminUserId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isAdmin() && request.resource.data.id == adminUserId;
+      // Allow a user to create their own admin role document for bootstrapping purposes
+      allow create: if isOwner(adminUserId);
       allow update: if isAdminWithExistingDoc() && request.resource.data.id == resource.data.id;
       allow delete: if isAdminWithExistingDoc();
     }
 
     /**
      * @description Profiles of RW 2 management team members.
-     * @path /rw_management_members/{memberId}
-     * @allow (read) Public access for community visibility; (write) Admin only.
-     * @deny (write) Unauthenticated users or non-admins.
-     * @principle Public read with protected administrative writes.
      */
     match /rw_management_members/{memberId} {
       allow get, list: if true;
@@ -89,11 +63,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Master management collection for all announcements (Drafts/Published/Archived).
-     * @path /announcements_management/{announcementId}
-     * @allow (all) Restricted to administrative users.
-     * @deny (read/write) Residents or anonymous users.
-     * @principle Global role-based access for administrative content management.
+     * @description Master management collection for all announcements.
      */
     match /announcements_management/{announcementId} {
       allow get, list: if isAdmin();
@@ -103,11 +73,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Public mirror of published announcements for resident consumption.
-     * @path /announcements_public/{announcementId}
-     * @allow (read) Public access; (write) Admin only via denormalization process.
-     * @deny (write) Any non-admin user.
-     * @principle Structural segregation to optimize public list operations (QAPs).
+     * @description Public mirror of published announcements.
      */
     match /announcements_public/{announcementId} {
       allow get, list: if true;
@@ -116,11 +82,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Collection for resident feedback, aspirations, and reports.
-     * @path /resident_feedback/{feedbackId}
-     * @allow (create) Any signed-in user (including anonymous) can submit; (read/update/delete) Admin only.
-     * @deny (read) Non-admins trying to view feedback from others.
-     * @principle Public submission with private administrative review.
+     * @description Collection for resident feedback.
      */
     match /resident_feedback/{feedbackId} {
       allow create: if isSignedIn() && request.resource.data.id == feedbackId;
@@ -131,10 +93,6 @@ service cloud.firestore {
 
     /**
      * @description Directory of essential local services and emergency contacts.
-     * @path /important_contacts/{contactId}
-     * @allow (read) Public access for residents; (write) Admin only.
-     * @deny (write) Non-admins.
-     * @principle Information transparency with restricted maintenance.
      */
     match /important_contacts/{contactId} {
       allow get, list: if true;

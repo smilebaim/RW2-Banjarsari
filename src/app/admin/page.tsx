@@ -1,15 +1,14 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useAuth, useFirestore } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { FeedbackAnalysisView } from '@/components/admin/FeedbackAnalysisView';
 import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { 
   Users, 
   MessageSquare, 
@@ -18,16 +17,15 @@ import {
   LayoutDashboard, 
   Phone, 
   Settings,
-  Bell,
-  Search,
   Loader2,
   ShieldCheck,
   Map as MapIcon,
-  Database
+  Database,
+  Lock,
+  Zap
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -41,22 +39,15 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isSeeding, setIsSeeding] = useState(false);
 
+  // Check if user has an admin role document in Firestore
+  const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
+  const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
-
-  if (isUserLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-secondary/10">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="font-bold text-primary animate-pulse uppercase tracking-[0.2em]">Menyiapkan Dashboard...</p>
-      </div>
-    );
-  }
-
-  if (!user) return null;
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -64,9 +55,20 @@ export default function AdminDashboard() {
   };
 
   const handleImportDummyData = async () => {
+    if (!user) return;
     setIsSeeding(true);
     try {
-      // 1. Dummy Announcements
+      // 1. Create Admin Role for self (Bootstrap)
+      await setDoc(doc(db, 'admin_roles', user.uid), {
+        id: user.uid,
+        username: user.email?.split('@')[0] || 'admin',
+        email: user.email,
+        role: 'SuperAdmin',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      // 2. Dummy Announcements
       const announcements = [
         {
           id: 'news-1',
@@ -99,7 +101,7 @@ export default function AdminDashboard() {
         await setDoc(doc(db, 'announcements_public', item.id), item);
       }
 
-      // 2. Dummy Contacts
+      // 3. Dummy Contacts
       const contacts = [
         {
           id: 'contact-1',
@@ -125,39 +127,62 @@ export default function AdminDashboard() {
         await setDoc(doc(db, 'important_contacts', contact.id), contact);
       }
 
-      // 3. Dummy Feedback
-      const feedbacks = [
-        {
-          id: 'fb-1',
-          submissionDate: new Date().toISOString(),
-          type: 'Issue Report',
-          subject: 'Lampu Jalan Padam',
-          message: 'Lampu jalan di depan masjid RT 03 sudah padam selama 1 minggu.',
-          status: 'New',
-          aiSentiment: 'negative',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      for (const fb of feedbacks) {
-        await setDoc(doc(db, 'resident_feedback', fb.id), fb);
-      }
-
       toast({
         title: "Import Berhasil",
-        description: "Data dummy Banjarsari telah berhasil diinisialisasi ke database.",
+        description: "Akses admin dan data dummy telah berhasil diaktifkan.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Gagal Import",
+        title: "Gagal Inisialisasi",
         description: error.message,
       });
     } finally {
       setIsSeeding(false);
     }
   };
+
+  if (isUserLoading || isAdminRoleLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-secondary/10">
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+        <p className="font-bold text-primary animate-pulse uppercase tracking-[0.2em]">Memuat Sistem...</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  // If user is logged in but has no admin role document yet, show Setup View
+  if (!adminRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9] p-4">
+        <Card className="max-w-xl w-full border-none shadow-2xl rounded-[3rem] overflow-hidden">
+          <div className="h-4 bg-primary" />
+          <CardContent className="p-12 text-center space-y-8">
+            <div className="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto">
+              <Lock className="w-12 h-12 text-primary" />
+            </div>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
+              <p className="text-muted-foreground font-medium">Akun Anda belum terdaftar sebagai admin di database. Silakan inisialisasi sistem untuk pertama kali untuk mendapatkan akses penuh.</p>
+            </div>
+            <Button 
+              onClick={handleImportDummyData} 
+              disabled={isSeeding}
+              className="w-full h-16 rounded-2xl bg-primary text-white text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 gap-4"
+            >
+              {isSeeding ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" />}
+              Aktifkan Portal Admin
+            </Button>
+            <Button variant="ghost" onClick={handleLogout} className="text-muted-foreground font-bold">
+              Keluar Akun
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F8FAF9]">
@@ -214,7 +239,7 @@ export default function AdminDashboard() {
         {/* Header Bar */}
         <header className="h-24 bg-white/80 backdrop-blur-md border-b border-secondary/50 px-10 flex items-center justify-between sticky top-0 z-20">
           <div className="relative w-96 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 group-focus-within:text-primary transition-colors" />
+            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
             <Input placeholder="Cari data warga atau laporan..." className="pl-12 bg-secondary/30 border-none h-12 rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/20" />
           </div>
 
@@ -231,7 +256,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-black text-primary uppercase leading-none mb-1">{user.email?.split('@')[0]}</p>
-                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest bg-accent/20 text-accent-foreground">Super Admin</Badge>
+                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest bg-accent/20 text-accent-foreground">{adminRole?.role || 'Admin'}</Badge>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
                 <Users className="w-6 h-6 text-primary" />
@@ -250,15 +275,6 @@ export default function AdminDashboard() {
                   <p className="text-muted-foreground font-medium">Monitoring aktivitas wilayah RW 02 secara real-time.</p>
                 </div>
                 <div className="flex gap-4">
-                  <Button 
-                    onClick={handleImportDummyData} 
-                    disabled={isSeeding}
-                    variant="outline" 
-                    className="rounded-2xl border-primary text-primary font-black uppercase tracking-widest text-[10px] h-12 px-6 hover:bg-primary hover:text-white"
-                  >
-                    {isSeeding ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Database className="w-4 h-4 mr-2" />}
-                    Import Data Dummy
-                  </Button>
                   <div className="text-primary font-black text-xs uppercase tracking-[0.3em] bg-white px-6 py-3 rounded-2xl shadow-sm border border-secondary/50">
                     {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </div>
@@ -296,17 +312,17 @@ export default function AdminDashboard() {
                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary text-white overflow-hidden p-8">
                       <h3 className="text-xl font-black uppercase tracking-tighter mb-4">Pengumuman Cepat</h3>
                       <p className="text-white/70 text-sm mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga dalam hitungan detik.</p>
-                      <Button className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
+                      <Button onClick={() => setActiveTab('news')} className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
                    </Card>
                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-white p-8">
-                      <h3 className="text-xl font-black text-primary uppercase tracking-tighter mb-6">Sapaan Pengurus</h3>
+                      <h3 className="text-xl font-black text-primary uppercase tracking-tighter mb-6">Aktivitas Terkini</h3>
                       <div className="space-y-4">
                         {[1, 2, 3].map(i => (
                           <div key={i} className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-bold text-primary">P</div>
                             <div className="flex-1">
                               <p className="text-sm font-bold leading-none mb-1">Pengurus RT 0{i}</p>
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Baru saja login</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Update status laporan</p>
                             </div>
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                           </div>
