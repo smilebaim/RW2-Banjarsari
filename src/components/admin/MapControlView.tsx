@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -12,7 +13,8 @@ import {
   Moon, 
   Navigation,
   Maximize2,
-  Info
+  Info,
+  Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,10 +67,10 @@ export function MapControlView() {
             <div className="absolute bottom-8 left-8 z-10">
               <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl border border-white/20 max-w-xs">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Sistem Aktif</span>
+                  <Lock className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Koordinat Terkunci</span>
                 </div>
-                <h4 className="font-black text-primary uppercase text-xs mb-1">Koordinat Pusat</h4>
+                <h4 className="font-black text-primary uppercase text-xs mb-1">Pusat Wilayah</h4>
                 <p className="text-[10px] font-mono text-muted-foreground">5°05'51.6"S 105°17'31.8"E</p>
               </div>
             </div>
@@ -117,10 +119,10 @@ export function MapControlView() {
             </div>
 
             <div className="pt-8 mt-8 border-t border-secondary/50">
-              <div className="bg-accent/10 p-4 rounded-2xl flex items-start gap-3">
-                <Info className="w-4 h-4 text-accent-foreground shrink-0 mt-0.5" />
-                <p className="text-[10px] text-accent-foreground font-medium leading-relaxed">
-                  Gunakan roda mouse untuk memperbesar dan klik tahan untuk menggeser posisi peta.
+              <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3 border border-primary/10">
+                <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[10px] text-primary font-bold leading-relaxed uppercase tracking-tight">
+                  Peta saat ini dikunci untuk menjaga fokus visual pada koordinat utama RW 02 Banjarsari.
                 </p>
               </div>
             </div>

@@ -16,14 +16,17 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
-      // Initialize map with locking options
+      // Initialize map with full locking options for a "Locked" feel
       mapInstance.current = L.map(mapRef.current, {
         zoomControl: false,
         attributionControl: false,
         scrollWheelZoom: false,
-        dragging: true,
+        dragging: false, // Map is locked, cannot be dragged
         doubleClickZoom: false,
         boxZoom: false,
+        touchZoom: false,
+        keyboard: false,
+        tap: false,
       }).setView(center, zoom);
 
       // Satellite Imagery (Esri World Imagery)
@@ -44,7 +47,7 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
   return (
     <div className="w-full h-full relative group">
       <div ref={mapRef} className="w-full h-full z-0 grayscale-[0.2] contrast-[1.1]" />
-      {/* Cinematic Color Grading Overlay (Tanpa Bingkai) */}
+      {/* Cinematic Color Grading Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-10" />
     </div>
   );
