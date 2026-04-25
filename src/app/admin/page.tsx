@@ -1,13 +1,15 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { FeedbackAnalysisView } from '@/components/admin/FeedbackAnalysisView';
 import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { 
   Users, 
   MessageSquare, 
@@ -20,19 +22,24 @@ import {
   Search,
   Loader2,
   ShieldCheck,
-  Map as MapIcon
+  Map as MapIcon,
+  Database
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -54,6 +61,102 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     await signOut(auth);
     router.push('/');
+  };
+
+  const handleImportDummyData = async () => {
+    setIsSeeding(true);
+    try {
+      // 1. Dummy Announcements
+      const announcements = [
+        {
+          id: 'news-1',
+          title: 'Pembangunan Drainase RT 02',
+          content: 'Pemerintah kota memulai pengerjaan drainase di sepanjang jalan utama RT 02 untuk mencegah banjir tahunan.',
+          summary: 'Perbaikan drainase jalan utama RT 02 Banjarsari dimulai.',
+          publicationDate: new Date().toISOString(),
+          status: 'Published',
+          category: 'Pembangunan',
+          authorAdminUserId: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'news-2',
+          title: 'Jadwal Posyandu Balita Juni',
+          content: 'Kegiatan posyandu rutin akan dilaksanakan di Balai RW pada hari Sabtu ini pukul 08.00 WIB.',
+          summary: 'Posyandu rutin Balai RW, Sabtu ini jam 8 pagi.',
+          publicationDate: new Date().toISOString(),
+          status: 'Published',
+          category: 'Kesehatan',
+          authorAdminUserId: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      for (const item of announcements) {
+        await setDoc(doc(db, 'announcements_management', item.id), item);
+        await setDoc(doc(db, 'announcements_public', item.id), item);
+      }
+
+      // 2. Dummy Contacts
+      const contacts = [
+        {
+          id: 'contact-1',
+          name: 'Puskesmas Metro Utara',
+          category: 'Emergency',
+          phoneNumber: '0725-41234',
+          description: 'Layanan darurat medis 24 jam.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'contact-2',
+          name: 'Bhabinkamtibmas Banjarsari',
+          category: 'Keamanan',
+          phoneNumber: '0812-3456-7890',
+          description: 'Petugas keamanan wilayah Banjarsari.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      for (const contact of contacts) {
+        await setDoc(doc(db, 'important_contacts', contact.id), contact);
+      }
+
+      // 3. Dummy Feedback
+      const feedbacks = [
+        {
+          id: 'fb-1',
+          submissionDate: new Date().toISOString(),
+          type: 'Issue Report',
+          subject: 'Lampu Jalan Padam',
+          message: 'Lampu jalan di depan masjid RT 03 sudah padam selama 1 minggu.',
+          status: 'New',
+          aiSentiment: 'negative',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      for (const fb of feedbacks) {
+        await setDoc(doc(db, 'resident_feedback', fb.id), fb);
+      }
+
+      toast({
+        title: "Import Berhasil",
+        description: "Data dummy Banjarsari telah berhasil diinisialisasi ke database.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Import",
+        description: error.message,
+      });
+    } finally {
+      setIsSeeding(false);
+    }
   };
 
   return (
@@ -117,9 +220,8 @@ export default function AdminDashboard() {
 
           <div className="flex items-center gap-6">
             <div className="flex gap-2">
-              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50 relative">
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50 relative" onClick={handleImportDummyData} disabled={isSeeding}>
+                <Database className={`w-5 h-5 text-primary ${isSeeding ? 'animate-spin' : ''}`} />
               </Button>
               <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50">
                 <Settings className="w-5 h-5 text-muted-foreground" />
@@ -147,8 +249,19 @@ export default function AdminDashboard() {
                   <h1 className="text-4xl font-black text-primary mb-2 uppercase tracking-tighter">Dashboard Utama</h1>
                   <p className="text-muted-foreground font-medium">Monitoring aktivitas wilayah RW 02 secara real-time.</p>
                 </div>
-                <div className="text-primary font-black text-xs uppercase tracking-[0.3em] bg-white px-6 py-3 rounded-2xl shadow-sm border border-secondary/50">
-                  {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                <div className="flex gap-4">
+                  <Button 
+                    onClick={handleImportDummyData} 
+                    disabled={isSeeding}
+                    variant="outline" 
+                    className="rounded-2xl border-primary text-primary font-black uppercase tracking-widest text-[10px] h-12 px-6 hover:bg-primary hover:text-white"
+                  >
+                    {isSeeding ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Database className="w-4 h-4 mr-2" />}
+                    Import Data Dummy
+                  </Button>
+                  <div className="text-primary font-black text-xs uppercase tracking-[0.3em] bg-white px-6 py-3 rounded-2xl shadow-sm border border-secondary/50">
+                    {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
                 </div>
               </div>
 
