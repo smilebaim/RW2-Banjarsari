@@ -1,9 +1,9 @@
-
 'use client';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Navigation, Layers, Compass, Info } from 'lucide-react';
+import { Layers, Compass, Info, ShieldCheck } from 'lucide-react';
 import {
   Tooltip,
   TooltipProvider,
@@ -53,13 +53,13 @@ export default function Home() {
                   className="rounded-full w-12 h-12 text-white hover:bg-primary hover:scale-105 transition-all duration-500" 
                   asChild
                 >
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${COORDINATES[0]},${COORDINATES[1]}`} target="_blank" rel="noopener noreferrer">
-                    <Navigation className="w-5 h-5" />
-                  </a>
+                  <Link href="/login">
+                    <ShieldCheck className="w-5 h-5" />
+                  </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="bg-primary text-white border-none font-black text-[10px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
-                Buka Navigasi
+                Login Dashboard
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
