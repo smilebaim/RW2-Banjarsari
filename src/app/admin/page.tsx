@@ -7,6 +7,7 @@ import { signOut } from 'firebase/auth';
 import { FeedbackAnalysisView } from '@/components/admin/FeedbackAnalysisView';
 import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
+import { MapControlView } from '@/components/admin/MapControlView';
 import { 
   Users, 
   MessageSquare, 
@@ -17,9 +18,11 @@ import {
   Settings,
   Bell,
   Search,
-  Loader2
+  Loader2,
+  ShieldCheck,
+  Map as MapIcon
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -70,6 +73,7 @@ export default function AdminDashboard() {
         <nav className="flex-1 space-y-2">
           {[
             { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
+            { id: 'map', label: 'Peta Wilayah', icon: MapIcon },
             { id: 'news', label: 'Manajemen Berita', icon: Newspaper },
             { id: 'feedback', label: 'Aspirasi & Laporan', icon: MessageSquare },
             { id: 'contacts', label: 'Kontak Penting', icon: Phone },
@@ -198,6 +202,12 @@ export default function AdminDashboard() {
                    </Card>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'map' && (
+            <div className="animate-in fade-in slide-in-from-left-8 duration-500">
+              <MapControlView />
             </div>
           )}
 
