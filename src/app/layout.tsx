@@ -1,6 +1,8 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Dock } from '@/components/layout/Dock';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   title: 'Banjarsari Connect - RW 2 Community Portal',
@@ -20,8 +22,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased min-h-screen bg-background text-foreground selection:bg-primary selection:text-white">
-        {children}
-        <Dock />
+        <FirebaseClientProvider>
+          {children}
+          <Dock />
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );
