@@ -11,6 +11,7 @@ interface LeafletMapProps {
   center: [number, number];
   zoom: number;
   layer?: MapLayerType;
+  showBoundary?: boolean;
 }
 
 const TILE_LAYERS = {
@@ -25,10 +26,19 @@ const ATTRIBUTIONS = {
   dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 };
 
-export default function LeafletMap({ center, zoom, layer = 'satellite' }: LeafletMapProps) {
+// Default Boundary for RW 02 Banjarsari
+const RW_BOUNDARY_COORDS: [number, number][] = [
+  [-5.0968, 105.2912],
+  [-5.0968, 105.2932],
+  [-5.0984, 105.2932],
+  [-5.0984, 105.2912],
+];
+
+export default function LeafletMap({ center, zoom, layer = 'satellite', showBoundary = false }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const tileLayerInstance = useRef<L.TileLayer | null>(null);
+  const boundaryInstance = useRef<L.Polygon | null>(null);
 
   // Initialize Map
   useEffect(() => {
@@ -51,6 +61,7 @@ export default function LeafletMap({ center, zoom, layer = 'satellite' }: Leafle
         mapInstance.current.remove();
         mapInstance.current = null;
         tileLayerInstance.current = null;
+        boundaryInstance.current = null;
       }
     };
   }, [center, zoom]);
@@ -68,6 +79,26 @@ export default function LeafletMap({ center, zoom, layer = 'satellite' }: Leafle
       }).addTo(mapInstance.current);
     }
   }, [layer]);
+
+  // Handle Boundary Visibility
+  useEffect(() => {
+    if (mapInstance.current) {
+      if (boundaryInstance.current) {
+        mapInstance.current.removeLayer(boundaryInstance.current);
+        boundaryInstance.current = null;
+      }
+
+      if (showBoundary) {
+        boundaryInstance.current = L.polygon(RW_BOUNDARY_COORDS, {
+          color: '#22c55e',
+          fillColor: '#22c55e',
+          fillOpacity: 0.2,
+          weight: 3,
+          dashArray: '5, 10'
+        }).addTo(mapInstance.current);
+      }
+    }
+  }, [showBoundary]);
 
   return (
     <div className="w-full h-full relative group">

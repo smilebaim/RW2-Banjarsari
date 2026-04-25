@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { 
   Layers, 
   Map as MapIcon, 
@@ -14,7 +15,9 @@ import {
   Navigation,
   Maximize2,
   Info,
-  Lock
+  Lock,
+  Hexagon,
+  AreaChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +34,7 @@ type MapLayer = 'satellite' | 'streets' | 'dark';
 
 export function MapControlView() {
   const [activeLayer, setActiveLayer] = useState<MapLayer>('satellite');
+  const [showBoundary, setShowBoundary] = useState(true);
 
   const layers = [
     { id: 'satellite', label: 'Satelit', icon: Globe, description: 'Citra satelit resolusi tinggi' },
@@ -55,12 +59,12 @@ export function MapControlView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[650px]">
         {/* Map Display */}
         <div className="lg:col-span-8 relative">
           <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white">
             <div className="absolute inset-0 z-0">
-               <LeafletMap center={COORDINATES} zoom={ZOOM_LEVEL} />
+               <LeafletMap center={COORDINATES} zoom={ZOOM_LEVEL} layer={activeLayer} showBoundary={showBoundary} />
             </div>
             
             {/* Map Overlay Info */}
@@ -78,37 +82,38 @@ export function MapControlView() {
         </div>
 
         {/* Control Panel */}
-        <div className="lg:col-span-4 space-y-6">
-          <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white h-full flex flex-col">
-            <div className="flex items-center gap-3 mb-8">
+        <div className="lg:col-span-4 space-y-6 flex flex-col h-full">
+          {/* Layer Controls */}
+          <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                 <Layers className="w-5 h-5" />
               </div>
               <h3 className="font-black text-primary uppercase tracking-tighter">Kontrol Lapisan</h3>
             </div>
 
-            <div className="space-y-4 flex-1">
+            <div className="space-y-3">
               {layers.map((layer) => (
                 <button
                   key={layer.id}
                   onClick={() => setActiveLayer(layer.id as MapLayer)}
                   className={cn(
-                    "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 border-2 text-left group",
+                    "w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 border-2 text-left group",
                     activeLayer === layer.id 
                       ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
                       : "bg-secondary/30 border-transparent hover:border-primary/20 text-muted-foreground"
                   )}
                 >
                   <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
+                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
                     activeLayer === layer.id ? "bg-white/20" : "bg-white"
                   )}>
-                    <layer.icon className={cn("w-6 h-6", activeLayer === layer.id ? "text-white" : "text-primary")} />
+                    <layer.icon className={cn("w-5 h-5", activeLayer === layer.id ? "text-white" : "text-primary")} />
                   </div>
                   <div>
-                    <p className="font-bold text-sm leading-none mb-1">{layer.label}</p>
+                    <p className="font-bold text-xs leading-none mb-1">{layer.label}</p>
                     <p className={cn(
-                      "text-[10px] uppercase tracking-widest font-medium",
+                      "text-[9px] uppercase tracking-widest font-medium",
                       activeLayer === layer.id ? "text-white/60" : "text-muted-foreground"
                     )}>
                       {layer.description}
@@ -117,12 +122,46 @@ export function MapControlView() {
                 </button>
               ))}
             </div>
+          </Card>
 
-            <div className="pt-8 mt-8 border-t border-secondary/50">
+          {/* Polygon / Boundary Tool */}
+          <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+                  <Hexagon className="w-5 h-5" />
+                </div>
+                <h3 className="font-black text-primary uppercase tracking-tighter">Manajemen Batas</h3>
+              </div>
+              <Switch checked={showBoundary} onCheckedChange={setShowBoundary} />
+            </div>
+
+            <div className="space-y-6 flex-1">
+              <div className="p-4 bg-secondary/50 rounded-2xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <AreaChart className="w-4 h-4 text-primary" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estimasi Luas</span>
+                </div>
+                <p className="text-2xl font-black text-primary">~4.2 Hektar</p>
+              </div>
+
+              <div className="space-y-3">
+                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-muted-foreground">Status Batas</span>
+                    <Badge className="bg-green-100 text-green-700">Terverifikasi</Badge>
+                 </div>
+                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-muted-foreground">Tipe Polygon</span>
+                    <span className="text-primary">Wilayah RW</span>
+                 </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-secondary/50">
               <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3 border border-primary/10">
                 <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                 <p className="text-[10px] text-primary font-bold leading-relaxed uppercase tracking-tight">
-                  Peta saat ini dikunci untuk menjaga fokus visual pada koordinat utama RW 02 Banjarsari.
+                  Gunakan switch di atas untuk menampilkan batas administratif RW 02 Banjarsari pada peta.
                 </p>
               </div>
             </div>
