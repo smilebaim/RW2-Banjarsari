@@ -16,25 +16,23 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
-      // Initialize map
+      // Initialize map with locking options
       mapInstance.current = L.map(mapRef.current, {
         zoomControl: false,
         attributionControl: false,
+        scrollWheelZoom: false, // Optional: restrict zoom for a 'locked' feel
+        dragging: true,
+        doubleClickZoom: false,
+        boxZoom: false,
       }).setView(center, zoom);
 
-      // Add satellite layer (Esri World Imagery)
+      // Satellite Imagery (Esri World Imagery)
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
       }).addTo(mapInstance.current);
 
-      // Fix icon issues for Leaflet
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      });
+      // Add a subtle border glow to the entire map container through CSS if needed
     }
 
     return () => {
@@ -46,10 +44,11 @@ export default function LeafletMap({ center, zoom }: LeafletMapProps) {
   }, [center, zoom]);
 
   return (
-    <div className="w-full h-full relative">
-      <div ref={mapRef} className="w-full h-full z-0" />
-      {/* Custom Overlay for minimal styling if needed */}
-      <div className="absolute inset-0 pointer-events-none bg-black/5 mix-blend-multiply z-10" />
+    <div className="w-full h-full relative group">
+      <div ref={mapRef} className="w-full h-full z-0 grayscale-[0.2] contrast-[1.1]" />
+      {/* Cinematic Color Grading Overlay */}
+      <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-10" />
+      <div className="absolute inset-0 pointer-events-none ring-inset ring-[40px] ring-black/20 z-10" />
     </div>
   );
 }
