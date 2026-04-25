@@ -1,6 +1,9 @@
+
 "use client";
 
 import { useState } from 'react';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -8,38 +11,18 @@ import Image from 'next/image';
 import { Calendar, User, Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { summarizeNews } from '@/ai/flows/summarize-news-flow';
 
-const mockNews = [
-  {
-    id: 1,
-    title: "Program Imunisasi Anak Nasional di Balai RW",
-    date: "12 Juni 2024",
-    author: "Sekretariat RW",
-    content: "Dalam rangka menyukseskan Bulan Imunisasi Anak Nasional, RW 2 Banjarsari bekerjasama dengan Puskesmas Metro Utara akan mengadakan kegiatan imunisasi gratis. Kegiatan ini ditujukan bagi anak usia 9 bulan hingga 12 tahun. Harap membawa buku KIA. Kami menghimbau seluruh orang tua yang memiliki balita dan anak-anak untuk hadir tepat waktu demi kesehatan generasi masa depan kita. Tersedia juga vitamin A gratis untuk balita.",
-    image: PlaceHolderImages[1].imageUrl
-  },
-  {
-    id: 2,
-    title: "Update Perbaikan Jalan Gang Melati",
-    date: "10 Juni 2024",
-    author: "Bagian Pembangunan",
-    content: "Pengerjaan perbaikan jalan di Gang Melati akan dimulai pada hari Senin depan. Mohon kepada warga yang memarkir kendaraannya di area tersebut untuk sementara memindahkan kendaraannya guna kelancaran alat berat. Perbaikan ini diperkirakan memakan waktu 4 hari kerja. Kami memohon maaf atas ketidaknyamanan yang ditimbulkan selama proses konstruksi berlangsung. Kerjasama warga sangat kami harapkan.",
-    image: PlaceHolderImages[2].imageUrl
-  },
-  {
-    id: 3,
-    title: "Lomba Kebersihan Lingkungan Antar RT",
-    date: "5 Juni 2024",
-    author: "Ketua RW",
-    content: "Menyambut HUT Kemerdekaan RI, RW 2 akan mengadakan lomba kebersihan dan keasrian lingkungan antar RT. Penilaian akan dilakukan mulai tanggal 1 Agustus. Kriteria penilaian meliputi pengelolaan sampah, penghijauan, dan ketertiban administrasi. Hadiah menarik menanti bagi RT pemenang! Ayo tunjukkan semangat kebersamaan dan kecintaan kita pada lingkungan sekitar.",
-    image: PlaceHolderImages[3].imageUrl
-  }
-];
-
 export function NewsList() {
-  const [summaries, setSummaries] = useState<Record<number, string>>({});
-  const [loadingIds, setLoadingIds] = useState<Set<number>>(new Set());
+  const db = useFirestore();
+  const [summaries, setSummaries] = useState<Record<string, string>>({});
+  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
 
-  const handleSummarize = async (id: number, content: string) => {
+  const publicNewsQuery = useMemoFirebase(() => {
+    return query(collection(db, 'announcements_public'), orderBy('publicationDate', 'desc'));
+  }, [db]);
+
+  const { data: news, isLoading } = useCollection(publicNewsQuery);
+
+  const handleSummarize = async (id: string, content: string) => {
     if (summaries[id]) return;
     
     setLoadingIds(prev => new Set(prev).add(id));
@@ -57,28 +40,47 @@ export function NewsList() {
     }
   };
 
+  if (isLoading) {
+    return <div className="p-20 text-center"><Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" /></div>;
+  }
+
+  if (!news || news.length === 0) {
+    return (
+      <div className="p-20 text-center border-4 border-dashed border-secondary rounded-[3rem]">
+        <h3 className="text-2xl font-black text-primary uppercase">Belum ada warta terbaru</h3>
+        <p className="text-muted-foreground font-medium">Silakan cek kembali nanti untuk informasi terkini.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-16">
-      {mockNews.map((item) => (
+      {news.map((item) => (
         <div key={item.id} className="group grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-5 relative h-[400px] overflow-hidden rounded-[3rem] shadow-2xl">
             <Image
-              src={item.image}
+              src={item.imageUrl || PlaceHolderImages[Math.floor(Math.random() * 3) + 1].imageUrl}
               alt={item.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute top-6 left-6 flex gap-2">
               <span className="bg-white/90 backdrop-blur-md text-primary text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
-                PENTING
+                {item.category.toUpperCase()}
               </span>
             </div>
           </div>
           
           <div className="lg:col-span-7 space-y-6">
             <div className="flex items-center gap-6 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-              <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-accent-foreground" /> {item.date}</span>
-              <span className="flex items-center gap-2"><User className="w-4 h-4 text-accent-foreground" /> {item.author}</span>
+              <span className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-accent-foreground" /> 
+                {new Date(item.publicationDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+              <span className="flex items-center gap-2">
+                <User className="w-4 h-4 text-accent-foreground" /> 
+                Sekretariat RW
+              </span>
             </div>
             
             <h2 className="text-4xl font-black text-primary leading-[1.1] tracking-tighter group-hover:text-accent-foreground transition-colors">
@@ -114,7 +116,7 @@ export function NewsList() {
                 )}
               </Button>
               <Button className="h-14 px-8 rounded-full bg-primary text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-                Baca Selengkapnya <ArrowRight className="ml-2 w-4 h-4" />
+                Baca Selengkapnya
               </Button>
             </div>
           </div>

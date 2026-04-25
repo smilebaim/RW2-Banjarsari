@@ -1,9 +1,12 @@
+
 "use client";
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +24,7 @@ const formSchema = z.object({
 });
 
 export function FeedbackForm() {
+  const db = useFirestore();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -37,11 +41,25 @@ export function FeedbackForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log(values);
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      const feedbackId = doc(collection(db, 'resident_feedback')).id;
+      const feedbackData = {
+        ...values,
+        id: feedbackId,
+        submissionDate: new Date().toISOString(),
+        status: 'New',
+        subject: `${values.type} - Dari RT ${values.rt}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      addDocumentNonBlocking(collection(db, 'resident_feedback'), feedbackData);
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Submission failed:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -115,10 +133,10 @@ export function FeedbackForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="RT01">RT 01</SelectItem>
-                        <SelectItem value="RT02">RT 02</SelectItem>
-                        <SelectItem value="RT03">RT 03</SelectItem>
-                        <SelectItem value="RT04">RT 04</SelectItem>
+                        <SelectItem value="01">RT 01</SelectItem>
+                        <SelectItem value="02">RT 02</SelectItem>
+                        <SelectItem value="03">RT 03</SelectItem>
+                        <SelectItem value="04">RT 04</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -138,10 +156,9 @@ export function FeedbackForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="aspiration">Aspirasi / Saran</SelectItem>
-                        <SelectItem value="report">Pengaduan Masalah</SelectItem>
-                        <SelectItem value="praise">Apresiasi</SelectItem>
-                        <SelectItem value="other">Lainnya</SelectItem>
+                        <SelectItem value="Aspiration">Aspirasi / Saran</SelectItem>
+                        <SelectItem value="Issue Report">Pengaduan Masalah</SelectItem>
+                        <SelectItem value="Praise">Apresiasi</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
