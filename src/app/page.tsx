@@ -3,14 +3,13 @@
 
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
-import { MapPin, Navigation, Layers, Compass, Info, Newspaper } from 'lucide-react';
+import { Navigation, Layers, Compass, Info, MapPin } from 'lucide-react';
 import {
   Tooltip,
   TooltipProvider,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import Link from 'next/link';
 
 // Load map dynamically to avoid hydration issues with Leaflet
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
@@ -29,90 +28,79 @@ export default function Home() {
         <LeafletMap center={COORDINATES} zoom={ZOOM_LEVEL} />
       </div>
 
-      {/* Top Identity Dock - Glassmorphism UI */}
-      <div className="absolute top-6 inset-x-0 z-10 flex justify-center px-4 pointer-events-none">
-        <div className="w-full max-w-xl bg-white/10 backdrop-blur-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/20 rounded-[2.5rem] p-2 flex items-center justify-between pointer-events-auto">
-          <div className="flex items-center gap-3 sm:gap-4 pl-2">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/80 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
-               <MapPin className="text-white w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-            <div className="text-left">
-              <h1 className="text-sm sm:text-base font-black text-primary tracking-tighter leading-none mb-0.5 drop-shadow-md uppercase">Banjarsari Connect</h1>
-              <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground/80 uppercase tracking-widest leading-none">RW 2 Metro Utara, Lampung</p>
+      {/* Top Floating Dock - Minimal Identity */}
+      <div className="absolute top-8 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
+        <div className="w-fit bg-white/5 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] border border-white/10 rounded-full p-1.5 flex items-center gap-1.5 pointer-events-auto">
+          <div className="flex items-center gap-3 pl-4 pr-3">
+            <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.8)]" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] leading-none mb-0.5">RW 02 Banjarsari</span>
+              <span className="text-[8px] font-bold text-white/50 uppercase tracking-widest leading-none">Metro Utara, Lampung</span>
             </div>
           </div>
-          <div className="flex gap-2 pr-1">
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" className="rounded-2xl w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
-                    <Link href="/news">
-                      <Newspaper className="w-5 h-5" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest mb-2 px-4 py-2 rounded-xl">
-                  Informasi Utama
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="icon" variant="ghost" className="rounded-2xl w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
-                    <a href={`https://www.google.com/maps/search/?api=1&query=${COORDINATES[0]},${COORDINATES[1]}`} target="_blank" rel="noopener noreferrer">
-                      <Navigation className="w-5 h-5" />
-                    </a>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest mb-2 px-4 py-2 rounded-xl">
-                  Buka Rute
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <div className="h-6 w-px bg-white/10 mx-1" />
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="rounded-full w-11 h-11 bg-primary/20 text-white hover:bg-primary hover:scale-105 transition-all duration-300" 
+                  asChild
+                >
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${COORDINATES[0]},${COORDINATES[1]}`} target="_blank" rel="noopener noreferrer">
+                    <Navigation className="w-5 h-5" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
+                Buka Rute Navigasi
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
-      {/* Left Floating Actions */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
+      {/* Left Sidebar Tools */}
+      <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20">
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-3xl shadow-xl border border-white/20 text-primary hover:bg-primary hover:text-white transition-all">
-                <Layers className="w-5 h-5" />
+              <Button size="icon" variant="secondary" className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/10 text-white hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 group">
+                <Layers className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest ml-2 px-4 py-2 rounded-xl">
+            <TooltipContent side="right" className="bg-black/80 backdrop-blur-md text-white border-none font-bold text-[10px] uppercase tracking-widest ml-3 px-4 py-2 rounded-xl">
               Lapisan Peta
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-3xl shadow-xl border border-white/20 text-primary hover:bg-primary hover:text-white transition-all">
-                <Compass className="w-5 h-5" />
+              <Button size="icon" variant="secondary" className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/10 text-white hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 group">
+                <Compass className="w-5 h-5 group-hover:rotate-45 transition-transform" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest ml-2 px-4 py-2 rounded-xl">
-              Kompas
+            <TooltipContent side="right" className="bg-black/80 backdrop-blur-md text-white border-none font-bold text-[10px] uppercase tracking-widest ml-3 px-4 py-2 rounded-xl">
+              Kalibrasi Kompas
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="icon" variant="secondary" className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-3xl shadow-xl border border-white/20 text-primary hover:bg-primary hover:text-white transition-all">
-                <Info className="w-5 h-5" />
+              <Button size="icon" variant="secondary" className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/10 text-white hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 group">
+                <Info className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-primary text-white border-none font-bold text-[10px] uppercase tracking-widest ml-2 px-4 py-2 rounded-xl">
-              Tentang Wilayah
+            <TooltipContent side="right" className="bg-black/80 backdrop-blur-md text-white border-none font-bold text-[10px] uppercase tracking-widest ml-3 px-4 py-2 rounded-xl">
+              Informasi Wilayah
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
-      {/* Bottom Gradient Overlay */}
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/40 to-transparent pointer-events-none z-[5]"></div>
+      {/* Ambient Bottom Overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-[5]"></div>
     </div>
   );
 }
