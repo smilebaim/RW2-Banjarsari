@@ -70,16 +70,40 @@ export default function AdminDashboard() {
         updatedAt: new Date().toISOString()
       });
 
-      // 2. Dummy Announcements
+      // 2. Dummy Announcements (News & Events)
       const announcements = [
         {
           id: 'news-1',
-          title: 'Peresmian Portal Digital RW 02',
-          content: 'Kami dengan bangga memperkenalkan portal Banjarsari Connect untuk memudahkan komunikasi antar warga.',
-          summary: 'Portal digital RW 02 resmi diluncurkan hari ini.',
+          title: 'Peresmian Portal Digital Banjarsari Connect',
+          content: 'Kami dengan bangga memperkenalkan portal Banjarsari Connect untuk memudahkan komunikasi antar warga. Portal ini mencakup fitur berita, aspirasi, dan peta wilayah.',
+          summary: 'RW 02 Banjarsari resmi meluncurkan portal digital untuk transparansi layanan.',
           publicationDate: new Date().toISOString(),
           status: 'Published',
           category: 'Informasi',
+          authorAdminUserId: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'news-2',
+          title: 'Agenda Gotong Royong Kebersihan Saluran Air',
+          content: 'Dihimbau kepada seluruh warga RW 02 untuk mengikuti kegiatan gotong royong pada hari Minggu besok pukul 07.00 WIB guna mengantisipasi musim penghujan.',
+          summary: 'Kegiatan gotong royong rutin warga untuk kebersihan lingkungan.',
+          publicationDate: new Date().toISOString(),
+          status: 'Published',
+          category: 'Kegiatan',
+          authorAdminUserId: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'news-3',
+          title: 'Sosialisasi Keamanan Lingkungan (Siskamling)',
+          content: 'Rapat koordinasi keamanan akan dilaksanakan di Balai RW untuk membahas jadwal ronda baru dan pengadaan CCTV di titik-titik rawan.',
+          summary: 'Peningkatan sistem keamanan lingkungan melalui koordinasi warga.',
+          publicationDate: new Date().toISOString(),
+          status: 'Published',
+          category: 'Keamanan',
           authorAdminUserId: user.uid,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -91,7 +115,7 @@ export default function AdminDashboard() {
         await setDoc(doc(db, 'announcements_public', item.id), item);
       }
 
-      // 3. Dummy Members
+      // 3. Dummy Members (Management Structure)
       const members = [
         {
           id: 'member-1',
@@ -99,7 +123,27 @@ export default function AdminDashboard() {
           role: 'Ketua RW 02',
           contactNumber: '081234567890',
           email: 'sutrisno@banjarsari.id',
-          description: 'Berkomitmen pada transparansi pengelolaan dana RW.',
+          description: 'Berkomitmen pada transparansi pengelolaan dana dan inovasi digital wilayah.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'member-2',
+          name: 'Budi Hartono',
+          role: 'Sekretaris',
+          contactNumber: '081299887766',
+          email: 'budi@banjarsari.id',
+          description: 'Mengelola administrasi dan persuratan warga dengan tertib dan terdigitalisasi.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'member-3',
+          name: 'Siti Aminah',
+          role: 'Bendahara',
+          contactNumber: '081255443322',
+          email: 'siti@banjarsari.id',
+          description: 'Bertanggung jawab atas laporan keuangan dan iuran rutin bulanan warga secara transparan.',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
@@ -109,9 +153,78 @@ export default function AdminDashboard() {
         await setDoc(doc(db, 'rw_management_members', member.id), member);
       }
 
+      // 4. Dummy Contacts (Public Services)
+      const contacts = [
+        {
+          id: 'contact-1',
+          name: 'Puskesmas Banjarsari',
+          category: 'Kesehatan',
+          phoneNumber: '0725-41234',
+          address: 'Jl. Ahmad Yani No. 10, Banjarsari',
+          description: 'Layanan kesehatan masyarakat terdekat.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'contact-2',
+          name: 'Polsek Metro Utara',
+          category: 'Keamanan',
+          phoneNumber: '0725-45678',
+          address: 'Jl. Jendral Sudirman, Metro Utara',
+          description: 'Layanan pengamanan dan laporan kepolisian.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'contact-3',
+          name: 'Call Center PLN Metro',
+          category: 'Utilitas',
+          phoneNumber: '123 / 0725-55555',
+          description: 'Layanan gangguan listrik 24 jam.',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      for (const contact of contacts) {
+        await setDoc(doc(db, 'important_contacts', contact.id), contact);
+      }
+
+      // 5. Dummy Resident Feedback
+      const feedbacks = [
+        {
+          id: 'fb-1',
+          name: 'Bpk. Ahmad Fauzi',
+          rt: '02',
+          phone: '085211112222',
+          type: 'Issue Report',
+          subject: 'Lampu Jalan Padam',
+          message: 'Lampu penerangan jalan di gang Mawar RT 02 padam sudah 3 hari, mohon segera ditindaklanjuti demi keamanan.',
+          status: 'New',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'fb-2',
+          name: 'Ibu Ratna',
+          rt: '01',
+          phone: '085233334444',
+          type: 'Aspiration',
+          subject: 'Usulan Taman Bermain',
+          message: 'Usul untuk pemanfaatan lahan kosong di belakang balai RW untuk dijadikan taman bermain ramah anak.',
+          status: 'New',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      for (const fb of feedbacks) {
+        await setDoc(doc(db, 'resident_feedback', fb.id), fb);
+      }
+
       toast({
         title: "Import Berhasil",
-        description: "Data dummy dan akses admin telah diaktifkan.",
+        description: "Data dummy lengkap (Berita, Pengurus, Kontak, Aspirasi) telah dimuat.",
       });
     } catch (error: any) {
       toast({
