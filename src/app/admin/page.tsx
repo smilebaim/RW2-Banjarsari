@@ -8,6 +8,7 @@ import { FeedbackAnalysisView } from '@/components/admin/FeedbackAnalysisView';
 import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
+import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
 import { doc, setDoc } from 'firebase/firestore';
 import { 
   Users, 
@@ -22,7 +23,8 @@ import {
   Map as MapIcon,
   Database,
   Lock,
-  Zap
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,24 +74,12 @@ export default function AdminDashboard() {
       const announcements = [
         {
           id: 'news-1',
-          title: 'Pembangunan Drainase RT 02',
-          content: 'Pemerintah kota memulai pengerjaan drainase di sepanjang jalan utama RT 02 untuk mencegah banjir tahunan.',
-          summary: 'Perbaikan drainase jalan utama RT 02 Banjarsari dimulai.',
+          title: 'Peresmian Portal Digital RW 02',
+          content: 'Kami dengan bangga memperkenalkan portal Banjarsari Connect untuk memudahkan komunikasi antar warga.',
+          summary: 'Portal digital RW 02 resmi diluncurkan hari ini.',
           publicationDate: new Date().toISOString(),
           status: 'Published',
-          category: 'Pembangunan',
-          authorAdminUserId: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'news-2',
-          title: 'Jadwal Posyandu Balita Juni',
-          content: 'Kegiatan posyandu rutin akan dilaksanakan di Balai RW pada hari Sabtu ini pukul 08.00 WIB.',
-          summary: 'Posyandu rutin Balai RW, Sabtu ini jam 8 pagi.',
-          publicationDate: new Date().toISOString(),
-          status: 'Published',
-          category: 'Kesehatan',
+          category: 'Informasi',
           authorAdminUserId: user.uid,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -101,40 +91,32 @@ export default function AdminDashboard() {
         await setDoc(doc(db, 'announcements_public', item.id), item);
       }
 
-      // 3. Dummy Contacts
-      const contacts = [
+      // 3. Dummy Members
+      const members = [
         {
-          id: 'contact-1',
-          name: 'Puskesmas Metro Utara',
-          category: 'Emergency',
-          phoneNumber: '0725-41234',
-          description: 'Layanan darurat medis 24 jam.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'contact-2',
-          name: 'Bhabinkamtibmas Banjarsari',
-          category: 'Keamanan',
-          phoneNumber: '0812-3456-7890',
-          description: 'Petugas keamanan wilayah Banjarsari.',
+          id: 'member-1',
+          name: 'H. Sutrisno, S.E.',
+          role: 'Ketua RW 02',
+          contactNumber: '081234567890',
+          email: 'sutrisno@banjarsari.id',
+          description: 'Berkomitmen pada transparansi pengelolaan dana RW.',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
       ];
 
-      for (const contact of contacts) {
-        await setDoc(doc(db, 'important_contacts', contact.id), contact);
+      for (const member of members) {
+        await setDoc(doc(db, 'rw_management_members', member.id), member);
       }
 
       toast({
         title: "Import Berhasil",
-        description: "Akses admin dan data dummy telah berhasil diaktifkan.",
+        description: "Data dummy dan akses admin telah diaktifkan.",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Gagal Inisialisasi",
+        title: "Gagal",
         description: error.message,
       });
     } finally {
@@ -146,14 +128,13 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-secondary/10">
         <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="font-bold text-primary animate-pulse uppercase tracking-[0.2em]">Memuat Sistem...</p>
+        <p className="font-black text-primary animate-pulse uppercase tracking-[0.2em] text-xs">Menyiapkan Dashboard...</p>
       </div>
     );
   }
 
   if (!user) return null;
 
-  // If user is logged in but has no admin role document yet, show Setup View
   if (!adminRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9] p-4">
@@ -165,7 +146,7 @@ export default function AdminDashboard() {
             </div>
             <div className="space-y-3">
               <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
-              <p className="text-muted-foreground font-medium">Akun Anda belum terdaftar sebagai admin di database. Silakan inisialisasi sistem untuk pertama kali untuk mendapatkan akses penuh.</p>
+              <p className="text-muted-foreground font-medium">Aktifkan dashboard Anda dan muat data infrastruktur wilayah untuk pertama kali.</p>
             </div>
             <Button 
               onClick={handleImportDummyData} 
@@ -202,8 +183,8 @@ export default function AdminDashboard() {
           {[
             { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
             { id: 'map', label: 'Peta Wilayah', icon: MapIcon },
-            { id: 'news', label: 'Manajemen Berita', icon: Newspaper },
-            { id: 'feedback', label: 'Aspirasi & Laporan', icon: MessageSquare },
+            { id: 'news', label: 'Kelola Berita', icon: Newspaper },
+            { id: 'feedback', label: 'Aspirasi AI', icon: TrendingUp },
             { id: 'contacts', label: 'Kontak Penting', icon: Phone },
             { id: 'users', label: 'Struktur Pengurus', icon: Users },
           ].map((item) => (
@@ -240,12 +221,12 @@ export default function AdminDashboard() {
         <header className="h-24 bg-white/80 backdrop-blur-md border-b border-secondary/50 px-10 flex items-center justify-between sticky top-0 z-20">
           <div className="relative w-96 group">
             <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
-            <Input placeholder="Cari data warga atau laporan..." className="pl-12 bg-secondary/30 border-none h-12 rounded-2xl focus-visible:ring-1 focus-visible:ring-primary/20" />
+            <Input placeholder="Cari data warga atau laporan..." className="pl-12 bg-secondary/30 border-none h-12 rounded-2xl" />
           </div>
 
           <div className="flex items-center gap-6">
             <div className="flex gap-2">
-              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50 relative" onClick={handleImportDummyData} disabled={isSeeding}>
+              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50" onClick={handleImportDummyData} disabled={isSeeding}>
                 <Database className={`w-5 h-5 text-primary ${isSeeding ? 'animate-spin' : ''}`} />
               </Button>
               <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50">
@@ -285,11 +266,11 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
                   { label: 'Total Warga', value: '1,240', sub: '+12 Bulan ini', icon: Users, color: 'bg-blue-500' },
-                  { label: 'Laporan Baru', value: '12', sub: '3 Perlu tindak lanjut', icon: MessageSquare, color: 'bg-orange-500' },
+                  { label: 'Laporan Baru', value: '12', sub: 'Perlu tindak lanjut', icon: MessageSquare, color: 'bg-orange-500' },
                   { label: 'Berita Aktif', value: '8', sub: '2 Draft belum rilis', icon: Newspaper, color: 'bg-primary' },
                   { label: 'Keamanan', value: '100%', sub: 'Sistem Terpantau', icon: ShieldCheck, color: 'bg-green-600' },
                 ].map((stat, i) => (
-                  <Card key={i} className="border-none shadow-xl shadow-gray-200/50 rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500">
+                  <Card key={i} className="border-none shadow-xl rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white">
                     <CardContent className="p-8">
                       <div className="flex items-start justify-between mb-6">
                         <div className={`w-14 h-14 ${stat.color} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
@@ -314,58 +295,16 @@ export default function AdminDashboard() {
                       <p className="text-white/70 text-sm mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga dalam hitungan detik.</p>
                       <Button onClick={() => setActiveTab('news')} className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
                    </Card>
-                   <Card className="border-none shadow-xl rounded-[2.5rem] bg-white p-8">
-                      <h3 className="text-xl font-black text-primary uppercase tracking-tighter mb-6">Aktivitas Terkini</h3>
-                      <div className="space-y-4">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-bold text-primary">P</div>
-                            <div className="flex-1">
-                              <p className="text-sm font-bold leading-none mb-1">Pengurus RT 0{i}</p>
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Update status laporan</p>
-                            </div>
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          </div>
-                        ))}
-                      </div>
-                   </Card>
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === 'map' && (
-            <div className="animate-in fade-in slide-in-from-left-8 duration-500">
-              <MapControlView />
-            </div>
-          )}
-
-          {activeTab === 'news' && (
-            <div className="animate-in fade-in zoom-in-95 duration-500">
-               <AdminNewsManager />
-            </div>
-          )}
-
-          {activeTab === 'contacts' && (
-            <div className="animate-in fade-in slide-in-from-right-8 duration-500">
-               <ContactManager />
-            </div>
-          )}
-
-          {activeTab === 'feedback' && (
-             <div className="space-y-8">
-               <h1 className="text-4xl font-black text-primary uppercase tracking-tighter">Kotak Aspirasi</h1>
-               <FeedbackAnalysisView />
-             </div>
-          )}
-          
-          {activeTab === 'users' && (
-             <div className="p-20 text-center border-4 border-dashed border-secondary rounded-[3rem]">
-               <Users className="w-20 h-20 mx-auto text-secondary mb-6" />
-               <h2 className="text-2xl font-black text-primary uppercase mb-2">Manajemen Pengurus</h2>
-               <p className="text-muted-foreground font-medium">Fitur ini sedang dalam pengembangan untuk integrasi profil pengurus.</p>
-             </div>
-          )}
+          {activeTab === 'map' && <MapControlView />}
+          {activeTab === 'news' && <AdminNewsManager />}
+          {activeTab === 'contacts' && <ContactManager />}
+          {activeTab === 'feedback' && <FeedbackAnalysisView />}
+          {activeTab === 'users' && <ManagementMemberManager />}
         </div>
       </main>
     </div>
