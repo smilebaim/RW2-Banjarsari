@@ -9,11 +9,9 @@ import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { 
   Compass, 
-  Info, 
   ShieldCheck, 
   Activity,
   Hexagon,
-  Route,
   MapPin,
   Zap,
   Layers,
@@ -31,9 +29,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
@@ -82,10 +78,10 @@ export default function Home() {
       const initialHiddenAreas: Record<string, boolean> = {};
       allPolygons.forEach((p: any) => {
         const name = p.name?.toLowerCase() || '';
-        const isRT = name.includes('rt');
-        const isMainRW = (name.includes('rw 2') || name.includes('rw 02') || name.includes('batas')) && !isRT;
+        // Only show "Batas Wilayah RW 2" and exclude anything with "RT"
+        const isRW2Boundary = (name.includes('rw 2') || name.includes('rw 02') || name.includes('batas')) && !name.includes('rt');
         
-        if (!isMainRW) {
+        if (!isRW2Boundary) {
           initialHiddenAreas[p.id] = true;
         }
       });
@@ -152,64 +148,64 @@ export default function Home() {
       </div>
 
       <TooltipProvider delayDuration={0}>
-        {/* Floating Header HUD (Top) */}
-        <div className="absolute top-8 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
-          <div className="w-fit bg-black/40 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[1.5rem] p-1 flex items-center gap-2 pointer-events-auto transition-all hover:bg-black/60 hover:border-primary/30 group">
-            <div className="flex items-center gap-3 pl-4 pr-3 py-1.5">
-              <div className="relative flex h-2 w-2">
+        {/* Floating Header HUD (Top) - Smaller Version */}
+        <div className="absolute top-6 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
+          <div className="w-fit bg-black/40 backdrop-blur-3xl shadow-[0_4px_24px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[1.2rem] p-0.5 flex items-center gap-1.5 pointer-events-auto transition-all hover:bg-black/60 hover:border-primary/30 group">
+            <div className="flex items-center gap-2 pl-3 pr-2 py-1">
+              <div className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_8px_rgba(var(--primary),1)]"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_rgba(var(--primary),1)]"></span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] leading-none mb-0.5">RW 02 Banjarsari</span>
-                <span className="text-[8px] font-bold text-primary tracking-widest leading-none flex items-center gap-1 uppercase">
-                  <Zap className="w-2 h-2" /> Portal Digital
+                <span className="text-[9px] font-black text-white uppercase tracking-[0.1em] leading-none mb-0.5">RW 02 Banjarsari</span>
+                <span className="text-[7px] font-bold text-primary tracking-widest leading-none flex items-center gap-1 uppercase">
+                  <Zap className="w-1.5 h-1.5" /> Portal Digital
                 </span>
               </div>
             </div>
             
-            <div className="h-6 w-px bg-white/10 mx-0.5" />
+            <div className="h-4 w-px bg-white/10 mx-0.5" />
             
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
                   size="icon" 
                   variant="ghost" 
-                  className="rounded-full w-9 h-9 text-white/50 hover:bg-primary hover:text-white transition-all duration-500" 
+                  className="rounded-full w-8 h-8 text-white/50 hover:bg-primary hover:text-white transition-all duration-500" 
                   asChild
                 >
                   <Link href="/login">
-                    <ShieldCheck className="w-4 h-4" />
+                    <ShieldCheck className="w-3.5 h-3.5" />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-primary text-white border-none font-black text-[9px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
+              <TooltipContent className="bg-primary text-white border-none font-black text-[8px] uppercase tracking-widest mb-4 px-3 py-1.5 rounded-lg shadow-2xl">
                 Dashboard
               </TooltipContent>
             </Tooltip>
           </div>
         </div>
 
-        {/* Sidebar Controls (Left) */}
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+        {/* Sidebar Controls (Left) - Smaller Icons */}
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     size="icon" 
-                    className="w-14 h-14 rounded-2xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 transition-all duration-500 group relative text-primary"
+                    className="w-11 h-11 rounded-xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 transition-all duration-500 group relative text-primary"
                   >
-                    <Layers className="w-6 h-6 transition-transform group-hover:scale-110" />
+                    <Layers className="w-5 h-5 transition-transform group-hover:scale-110" />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[9px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl shadow-2xl">
+              <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
                 Data Layer
               </TooltipContent>
             </Tooltip>
             
-            <DropdownMenuContent side="right" align="center" className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-[2rem] p-4 min-w-[300px] shadow-2xl animate-in zoom-in-95 duration-300">
+            <DropdownMenuContent side="right" align="center" className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-4 min-w-[300px] shadow-2xl animate-in zoom-in-95 duration-300">
               <div className="px-4 py-3 mb-3 border-b border-white/5">
                 <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Infrastruktur</p>
               </div>
@@ -217,7 +213,7 @@ export default function Home() {
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between px-2 mb-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Area RT</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Area Wilayah</span>
                     <div className="flex gap-1.5">
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary hover:text-white rounded">Semua</Button>
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', false)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-red-500/20 rounded">Reset</Button>
@@ -244,7 +240,7 @@ export default function Home() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between px-2 mb-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Jalur</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Jalur & Drainase</span>
                     <Button variant="ghost" size="sm" onClick={() => toggleAll('line', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary rounded">Aktifkan</Button>
                   </div>
                   <ScrollArea className="h-[100px]">
@@ -268,7 +264,7 @@ export default function Home() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between px-2 mb-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Fasilitas</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Titik Fasilitas</span>
                     <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary rounded">Tampilkan</Button>
                   </div>
                   <ScrollArea className="h-[100px]">
@@ -296,12 +292,12 @@ export default function Home() {
               <Button 
                 size="icon" 
                 onClick={() => window.location.reload()}
-                className="w-14 h-14 rounded-2xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/40 hover:bg-primary hover:text-white transition-all duration-500 group"
+                className="w-11 h-11 rounded-xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/40 hover:bg-primary hover:text-white transition-all duration-500 group"
               >
-                <Compass className="w-6 h-6 transition-transform group-hover:rotate-180" />
+                <Compass className="w-5 h-5 transition-transform group-hover:rotate-180" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[9px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl shadow-2xl">
+            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
               Focus
             </TooltipContent>
           </Tooltip>
