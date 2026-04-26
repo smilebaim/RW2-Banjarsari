@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Layers, 
@@ -35,7 +37,8 @@ import {
   Hospital,
   Droplet,
   Zap,
-  Trees
+  Trees,
+  Tag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -69,6 +72,12 @@ const ICON_PALETTE = [
   { value: 'zap', icon: Zap },
   { value: 'trees', icon: Trees },
 ];
+
+const CATEGORIES = {
+  polygon: ['Batas Wilayah', 'Fasilitas Umum', 'Area Hijau', 'Pemukiman', 'Lainnya'],
+  line: ['Jalan Utama', 'Jalan Lingkungan', 'Drainase', 'Jalur Kabel', 'Lainnya'],
+  marker: ['Keamanan', 'Kesehatan', 'Ibadah', 'Pendidikan', 'Niaga', 'Sosial', 'Lainnya']
+};
 
 type MapLayer = 'satellite' | 'streets' | 'dark';
 
@@ -222,27 +231,6 @@ export function MapControlView() {
         </div>
 
         <div className="lg:col-span-5 space-y-6 flex flex-col h-full">
-          {isEditing && (
-            <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white animate-in slide-in-from-right-4">
-               <div className="flex items-center gap-3 mb-4">
-                  <PlusCircle className="w-5 h-5 text-accent" />
-                  <h3 className="font-black uppercase text-sm tracking-tight">Alat Pemetaan Baru</h3>
-               </div>
-               <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { icon: Hexagon, label: 'Area', color: 'text-accent' },
-                    { icon: Route, label: 'Jalur', color: 'text-blue-300' },
-                    { icon: MapPin, label: 'Titik', color: 'text-red-300' }
-                  ].map((tool, i) => (
-                    <div key={i} className="bg-white/10 p-3 rounded-2xl flex flex-col items-center gap-2 border border-white/10">
-                       <tool.icon className={cn("w-5 h-5", tool.color)} />
-                       <p className="text-[9px] font-black uppercase">{tool.label}</p>
-                    </div>
-                  ))}
-               </div>
-            </Card>
-          )}
-
           <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white flex-1 overflow-hidden flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -252,15 +240,17 @@ export function MapControlView() {
               <Badge variant="secondary" className="font-black text-[9px]">{tempData.polygons.length + tempData.lines.length + tempData.markers.length} Elemen</Badge>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            <div className="flex-1 overflow-y-auto space-y-6 pr-2">
                 {tempData.polygons.map(poly => (
-                  <div key={poly.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-green-50 border-green-100" : "bg-secondary/20 border-transparent")}>
+                  <div key={poly.id} className={cn("p-5 rounded-[2rem] space-y-4 border transition-all group", isEditing ? "bg-green-50 border-green-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
-                          <Hexagon className="w-3 h-3" /> Area Poligon
+                          <Hexagon className="w-3 h-3" /> Poligon Area
                         </label>
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: poly.color || '#22c55e' }} />
+                        <Badge variant="outline" className="text-[8px] border-green-200 text-green-600 bg-white">
+                          {poly.category || 'Umum'}
+                        </Badge>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button onClick={() => focusOnObject(poly.coords)} size="icon" variant="ghost" className="h-8 w-8 text-green-600 bg-white/50 rounded-xl">
@@ -276,16 +266,34 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
+                    
                     <div className="space-y-3">
-                      <Input 
-                        value={poly.name} 
-                        onChange={(e) => updateObjectProperty('polygon', poly.id, 'name', e.target.value)}
-                        disabled={!isEditing}
-                        className="bg-white border-none h-9 text-xs font-bold shadow-sm"
-                        placeholder="Nama Area..."
-                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <Input 
+                          value={poly.name} 
+                          onChange={(e) => updateObjectProperty('polygon', poly.id, 'name', e.target.value)}
+                          disabled={!isEditing}
+                          className="bg-white border-none h-10 text-xs font-bold shadow-sm"
+                          placeholder="Nama Area..."
+                        />
+                        <Select 
+                          disabled={!isEditing} 
+                          value={poly.category || 'Lainnya'} 
+                          onValueChange={(val) => updateObjectProperty('polygon', poly.id, 'category', val)}
+                        >
+                          <SelectTrigger className="h-10 bg-white border-none text-xs font-bold shadow-sm">
+                            <SelectValue placeholder="Kategori" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.polygon.map(cat => (
+                              <SelectItem key={cat} value={cat} className="text-xs">{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {isEditing && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl shadow-sm">
                           <Palette className="w-3.5 h-3.5 text-muted-foreground" />
                           <div className="flex gap-1.5">
                             {COLOR_PALETTE.map(color => (
@@ -297,7 +305,6 @@ export function MapControlView() {
                                   poly.color === color.value ? "border-primary scale-110" : "border-transparent"
                                 )}
                                 style={{ backgroundColor: color.value }}
-                                title={color.label}
                               />
                             ))}
                           </div>
@@ -307,21 +314,23 @@ export function MapControlView() {
                         value={poly.description || ''} 
                         onChange={(e) => updateObjectProperty('polygon', poly.id, 'description', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
-                        placeholder="Keterangan area..."
+                        className="bg-white border-none min-h-[70px] text-[10px] font-medium shadow-sm resize-none"
+                        placeholder="Keterangan detail area..."
                       />
                     </div>
                   </div>
                 ))}
 
                 {tempData.lines.map(line => (
-                  <div key={line.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-blue-50 border-blue-100" : "bg-secondary/20 border-transparent")}>
+                  <div key={line.id} className={cn("p-5 rounded-[2rem] space-y-4 border transition-all group", isEditing ? "bg-blue-50 border-blue-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
                           <Route className="w-3 h-3" /> Jalur Garis
                         </label>
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: line.color || '#3b82f6' }} />
+                        <Badge variant="outline" className="text-[8px] border-blue-200 text-blue-600 bg-white">
+                          {line.category || 'Umum'}
+                        </Badge>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button onClick={() => focusOnObject(line.coords)} size="icon" variant="ghost" className="h-8 w-8 text-blue-600 bg-white/50 rounded-xl">
@@ -338,15 +347,32 @@ export function MapControlView() {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Input 
-                        value={line.name} 
-                        onChange={(e) => updateObjectProperty('line', line.id, 'name', e.target.value)}
-                        disabled={!isEditing}
-                        className="bg-white border-none h-9 text-xs font-bold shadow-sm"
-                        placeholder="Nama Jalur..."
-                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <Input 
+                          value={line.name} 
+                          onChange={(e) => updateObjectProperty('line', line.id, 'name', e.target.value)}
+                          disabled={!isEditing}
+                          className="bg-white border-none h-10 text-xs font-bold shadow-sm"
+                          placeholder="Nama Jalur..."
+                        />
+                        <Select 
+                          disabled={!isEditing} 
+                          value={line.category || 'Lainnya'} 
+                          onValueChange={(val) => updateObjectProperty('line', line.id, 'category', val)}
+                        >
+                          <SelectTrigger className="h-10 bg-white border-none text-xs font-bold shadow-sm">
+                            <SelectValue placeholder="Kategori" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.line.map(cat => (
+                              <SelectItem key={cat} value={cat} className="text-xs">{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {isEditing && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl shadow-sm">
                           <Palette className="w-3.5 h-3.5 text-muted-foreground" />
                           <div className="flex gap-1.5">
                             {COLOR_PALETTE.map(color => (
@@ -358,7 +384,6 @@ export function MapControlView() {
                                   line.color === color.value ? "border-primary scale-110" : "border-transparent"
                                 )}
                                 style={{ backgroundColor: color.value }}
-                                title={color.label}
                               />
                             ))}
                           </div>
@@ -368,7 +393,7 @@ export function MapControlView() {
                         value={line.description || ''} 
                         onChange={(e) => updateObjectProperty('line', line.id, 'description', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
+                        className="bg-white border-none min-h-[70px] text-[10px] font-medium shadow-sm resize-none"
                         placeholder="Keterangan jalur..."
                       />
                     </div>
@@ -376,11 +401,16 @@ export function MapControlView() {
                 ))}
 
                 {tempData.markers.map(marker => (
-                  <div key={marker.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-red-50 border-red-100" : "bg-secondary/20 border-transparent")}>
+                  <div key={marker.id} className={cn("p-5 rounded-[2rem] space-y-4 border transition-all group", isEditing ? "bg-red-50 border-red-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] font-black uppercase text-red-700 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> Titik Lokasi
-                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] font-black uppercase text-red-700 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> Titik Lokasi
+                        </label>
+                        <Badge variant="outline" className="text-[8px] border-red-200 text-red-600 bg-white">
+                          {marker.category || 'Umum'}
+                        </Badge>
+                      </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button onClick={() => focusOnObject(marker.coords)} size="icon" variant="ghost" className="h-8 w-8 text-red-600 bg-white/50 rounded-xl">
                           <Maximize2 className="w-4 h-4" />
@@ -396,48 +426,64 @@ export function MapControlView() {
                       </div>
                     </div>
                     <div className="space-y-4">
-                      <Input 
-                        value={marker.name} 
-                        onChange={(e) => updateObjectProperty('marker', marker.id, 'name', e.target.value)}
-                        disabled={!isEditing}
-                        className="bg-white border-none h-9 text-xs font-bold shadow-sm"
-                        placeholder="Nama Lokasi..."
-                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <Input 
+                          value={marker.name} 
+                          onChange={(e) => updateObjectProperty('marker', marker.id, 'name', e.target.value)}
+                          disabled={!isEditing}
+                          className="bg-white border-none h-10 text-xs font-bold shadow-sm"
+                          placeholder="Nama Lokasi..."
+                        />
+                        <Select 
+                          disabled={!isEditing} 
+                          value={marker.category || 'Lainnya'} 
+                          onValueChange={(val) => updateObjectProperty('marker', marker.id, 'category', val)}
+                        >
+                          <SelectTrigger className="h-10 bg-white border-none text-xs font-bold shadow-sm">
+                            <SelectValue placeholder="Kategori" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.marker.map(cat => (
+                              <SelectItem key={cat} value={cat} className="text-xs">{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       
                       {isEditing && (
-                        <div className="space-y-3 p-3 bg-white rounded-xl shadow-sm border border-secondary/50">
-                          <div className="flex items-center gap-2">
-                            <Palette className="w-3.5 h-3.5 text-muted-foreground" />
-                            <div className="flex gap-1.5 flex-wrap">
-                              {COLOR_PALETTE.map(color => (
-                                <button
-                                  key={color.value}
-                                  onClick={() => updateObjectProperty('marker', marker.id, 'color', color.value)}
-                                  className={cn(
-                                    "w-5 h-5 rounded-full border-2 transition-transform hover:scale-110",
-                                    marker.color === color.value ? "border-primary scale-110" : "border-transparent"
-                                  )}
-                                  style={{ backgroundColor: color.value }}
-                                  title={color.label}
-                                />
-                              ))}
+                        <div className="space-y-3 p-4 bg-white rounded-2xl shadow-sm border border-secondary/50">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                              <div className="flex gap-1.5 flex-wrap">
+                                {COLOR_PALETTE.map(color => (
+                                  <button
+                                    key={color.value}
+                                    onClick={() => updateObjectProperty('marker', marker.id, 'color', color.value)}
+                                    className={cn(
+                                      "w-5 h-5 rounded-full border-2 transition-transform hover:scale-110",
+                                      marker.color === color.value ? "border-primary scale-110" : "border-transparent"
+                                    )}
+                                    style={{ backgroundColor: color.value }}
+                                  />
+                                ))}
+                              </div>
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-2 pt-2 border-t border-secondary">
-                            <Type className="w-3.5 h-3.5 text-muted-foreground" />
+                          <div className="flex items-center gap-3 pt-3 border-t border-secondary/50">
+                            <Tag className="w-3.5 h-3.5 text-muted-foreground" />
                             <div className="flex gap-2 flex-wrap">
                               {ICON_PALETTE.map(icon => (
                                 <button
                                   key={icon.value}
                                   onClick={() => updateObjectProperty('marker', marker.id, 'icon', icon.value)}
                                   className={cn(
-                                    "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                                    marker.icon === icon.value ? "bg-primary text-white shadow-md" : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                                    "w-9 h-9 rounded-xl flex items-center justify-center transition-all",
+                                    marker.icon === icon.value ? "bg-primary text-white shadow-lg" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                                   )}
-                                  title={icon.value}
                                 >
-                                  <icon.icon className="w-4 h-4" />
+                                  <icon.icon className="w-4.5 h-4.5" />
                                 </button>
                               ))}
                             </div>
@@ -449,7 +495,7 @@ export function MapControlView() {
                         value={marker.description || ''} 
                         onChange={(e) => updateObjectProperty('marker', marker.id, 'description', e.target.value)}
                         disabled={!isEditing}
-                        className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
+                        className="bg-white border-none min-h-[70px] text-[10px] font-medium shadow-sm resize-none"
                         placeholder="Keterangan lokasi..."
                       />
                     </div>
@@ -457,10 +503,10 @@ export function MapControlView() {
                 ))}
 
                 {tempData.polygons.length === 0 && tempData.lines.length === 0 && tempData.markers.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-10 text-center opacity-30">
-                    <MousePointer2 className="w-10 h-10 mb-2" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Peta Kosong</p>
-                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan toolbar gambar untuk menambah elemen infrastruktur baru.</p>
+                  <div className="flex flex-col items-center justify-center py-16 text-center opacity-30">
+                    <MousePointer2 className="w-12 h-12 mb-4" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Peta Belum Berisi Data</p>
+                    <p className="text-[8px] max-w-[180px] leading-tight mt-2 italic">Gunakan toolbar gambar untuk mulai memetakan infrastruktur wilayah.</p>
                   </div>
                 )}
             </div>

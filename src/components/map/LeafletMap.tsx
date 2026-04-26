@@ -24,6 +24,7 @@ export interface MapObject {
   id: string;
   name: string;
   description?: string;
+  category?: string;
   color?: string;
   icon?: string;
   coords: any;
@@ -80,7 +81,8 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
 };
 
 const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
-  if (typeof window === 'undefined') return L.divIcon(); // Fallback for SSR safety
+  if (typeof window === 'undefined') return L.divIcon();
+  
   const safeName = iconName || 'pin';
   const safeColor = color || '#ef4444';
   
@@ -126,20 +128,21 @@ export default function LeafletMap({
       const existingId = l.options.id || `obj-${Date.now()}-${index}`;
       const existingName = l.options.name || 'Objek Tanpa Nama';
       const existingDesc = l.options.description || '';
+      const existingCat = l.options.category || 'Umum';
       const existingColor = l.options.color || (l instanceof L.Marker ? '#ef4444' : '#22c55e');
-      const existingIcon = l.options.iconName || 'pin'; // Read from custom property
+      const existingIconName = l.options.iconName || 'pin';
 
       if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
         const latlngs = l.getLatLngs();
         const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-        polygons.push({ id: existingId, name: existingName, description: existingDesc, color: existingColor, coords, type: 'polygon' });
+        polygons.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, coords, type: 'polygon' });
       } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
         const latlngs = l.getLatLngs();
         const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
-        lines.push({ id: existingId, name: existingName, description: existingDesc, color: existingColor, coords, type: 'line' });
+        lines.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, coords, type: 'line' });
       } else if (l instanceof L.Marker) {
         const ll = l.getLatLng();
-        markers.push({ id: existingId, name: existingName, description: existingDesc, color: existingColor, icon: existingIcon, coords: [ll.lat, ll.lng], type: 'marker' });
+        markers.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, icon: existingIconName, coords: [ll.lat, ll.lng], type: 'marker' });
       }
     });
 
@@ -190,15 +193,14 @@ export default function LeafletMap({
           const layer = e.layer;
           const type = layer instanceof L.Polygon ? 'polygon' : layer instanceof L.Marker ? 'marker' : 'line';
           
-          // Setup custom properties WITHOUT overwriting standard ones like 'icon'
           layer.options.id = `obj-${Date.now()}`;
           layer.options.name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
           layer.options.description = '';
+          layer.options.category = 'Umum';
           layer.options.color = type === 'polygon' ? '#22c55e' : type === 'line' ? '#3b82f6' : '#ef4444';
           
           if (type === 'marker') {
             layer.options.iconName = 'pin';
-            // We don't overwrite layer.options.icon here because it was set during creation
           }
           
           drawItems.current?.addLayer(layer);
@@ -240,11 +242,16 @@ export default function LeafletMap({
   useEffect(() => {
     if (!mapInstance.current) return;
 
-    const createPopupContent = (name: string, desc?: string) => {
+    const createPopupContent = (item: MapObject) => {
       return `
-        <div class="p-3 min-w-[200px]">
-          <h4 class="font-black text-primary uppercase text-sm mb-1">${name}</h4>
-          ${desc ? `<p class="text-xs text-muted-foreground font-medium italic">${desc}</p>` : ''}
+        <div class="p-3 min-w-[220px]">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              ${item.category || 'Umum'}
+            </span>
+          </div>
+          <h4 class="font-black text-primary uppercase text-sm mb-1">${item.name}</h4>
+          ${item.description ? `<p class="text-xs text-muted-foreground font-medium italic border-t border-secondary pt-2 mt-2">${item.description}</p>` : ''}
         </div>
       `;
     };
@@ -262,7 +269,7 @@ export default function LeafletMap({
             weight: 3,
             dashArray: '5, 10'
           })
-          .bindPopup(createPopupContent(poly.name, poly.description))
+          .bindPopup(createPopupContent(poly))
           .addTo(featureGroupInstance.current!);
         }
       });
@@ -273,7 +280,7 @@ export default function LeafletMap({
             color: item.color || '#3b82f6', 
             weight: 4 
           })
-          .bindPopup(createPopupContent(item.name, item.description))
+          .bindPopup(createPopupContent(item))
           .addTo(featureGroupInstance.current!);
         }
       });
@@ -283,7 +290,7 @@ export default function LeafletMap({
           const icon = createLeafletIcon(item.icon, item.color);
           if (icon) {
             L.marker(item.coords as any, { icon })
-            .bindPopup(createPopupContent(item.name, item.description))
+            .bindPopup(createPopupContent(item))
             .addTo(featureGroupInstance.current!);
           }
         }
@@ -299,6 +306,7 @@ export default function LeafletMap({
             p.options.id = poly.id; 
             p.options.name = poly.name; 
             p.options.description = poly.description;
+            p.options.category = poly.category;
             p.options.color = poly.color;
             p.addTo(drawItems.current!);
           }
@@ -310,6 +318,7 @@ export default function LeafletMap({
             l.options.id = item.id; 
             l.options.name = item.name; 
             l.options.description = item.description;
+            l.options.category = item.category;
             l.options.color = item.color;
             l.addTo(drawItems.current!);
           }
@@ -319,7 +328,6 @@ export default function LeafletMap({
             const icon = createLeafletIcon(item.icon, item.color);
             if (icon && drawItems.current) {
               const m = L.marker(item.coords as any, { icon });
-              // Store custom properties without overwriting 'icon'
               // @ts-ignore
               m.options.id = item.id; 
               // @ts-ignore
@@ -327,9 +335,11 @@ export default function LeafletMap({
               // @ts-ignore
               m.options.description = item.description;
               // @ts-ignore
+              m.options.category = item.category;
+              // @ts-ignore
               m.options.color = item.color;
               // @ts-ignore
-              m.options.iconName = item.icon; // Use a different property name
+              m.options.iconName = item.icon;
               
               m.addTo(drawItems.current!);
             }
