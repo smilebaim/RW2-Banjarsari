@@ -73,10 +73,25 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
 
   const path = icons[iconName] || icons.pin;
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${iconName}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       ${path}
     </svg>
   `;
+};
+
+// Global-ish helper for Leaflet icons to avoid scope issues
+const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
+  if (typeof window === 'undefined') return null;
+  return L.divIcon({
+    html: `
+      <div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-xl border-2 border-white transform -translate-x-1/2 -translate-y-1/2">
+        ${getIconSVG(iconName, color)}
+      </div>
+    `,
+    className: 'custom-map-icon',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
 };
 
 export default function LeafletMap({ 
@@ -223,19 +238,6 @@ export default function LeafletMap({
       `;
     };
 
-    const createIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
-      return L.divIcon({
-        html: `
-          <div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-xl border-2 border-white transform -translate-x-1/2 -translate-y-1/2">
-            ${getIconSVG(iconName, color)}
-          </div>
-        `,
-        className: 'custom-map-icon',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-      });
-    };
-
     if (!editable && featureGroupInstance.current) {
       featureGroupInstance.current.clearLayers();
       if (!showBoundary) return;
@@ -264,11 +266,12 @@ export default function LeafletMap({
       });
 
       markersData?.forEach(item => {
-        L.marker(item.coords as any, {
-          icon: createIcon(item.icon, item.color)
-        })
-        .bindPopup(createPopupContent(item.name, item.description))
-        .addTo(featureGroupInstance.current!);
+        const icon = createLeafletIcon(item.icon, item.color);
+        if (icon) {
+          L.marker(item.coords as any, { icon })
+          .bindPopup(createPopupContent(item.name, item.description))
+          .addTo(featureGroupInstance.current!);
+        }
       });
 
     } else if (drawItems.current && editable) {
@@ -293,16 +296,17 @@ export default function LeafletMap({
           l.addTo(drawItems.current!);
         });
         markersData?.forEach(item => {
-          const m = L.marker(item.coords as any, {
-            icon: createIcon(item.icon, item.color)
-          });
-          // @ts-ignore
-          m.options.id = item.id; 
-          m.options.name = item.name; 
-          m.options.description = item.description;
-          m.options.color = item.color;
-          m.options.icon = item.icon;
-          m.addTo(drawItems.current!);
+          const icon = createLeafletIcon(item.icon, item.color);
+          if (icon) {
+            const m = L.marker(item.coords as any, { icon });
+            // @ts-ignore
+            m.options.id = item.id; 
+            m.options.name = item.name; 
+            m.options.description = item.description;
+            m.options.color = item.color;
+            m.options.icon = item.icon;
+            m.addTo(drawItems.current!);
+          }
         });
       }
     }

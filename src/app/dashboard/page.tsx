@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -146,7 +145,7 @@ export default function DashboardPage() {
 
       // 2. Setup Default Map Settings (Prevents Permission Errors on first edit)
       await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
-        polygon: JSON.stringify({ id: 'initial-poly', name: 'RW 02 Banjarsari', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon' }),
+        polygons: JSON.stringify([{ id: 'initial-poly', name: 'RW 02 Banjarsari', description: 'Area utama RW 02 Banjarsari.', color: '#22c55e', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon' }]),
         lines: "[]",
         markers: "[]",
         updatedAt: new Date().toISOString()
