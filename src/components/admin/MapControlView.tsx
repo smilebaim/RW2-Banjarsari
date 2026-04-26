@@ -23,19 +23,27 @@ import {
   Trash2,
   MapPin,
   Route,
-  Type,
   Maximize2,
   Pencil,
   Palette,
+  Info,
+  Settings2,
   Home,
   Shield,
   Hospital,
   Droplet,
   Zap,
   Trees,
-  Info,
-  ChevronRight,
-  Settings2
+  School,
+  ShoppingBag,
+  Coffee,
+  Video,
+  Wifi,
+  Trash,
+  Car,
+  Bus,
+  Heart,
+  Building
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -60,6 +68,26 @@ const COLOR_PALETTE = [
   { value: '#06b6d4', label: 'Cyan' },
 ];
 
+const ICON_LIST = [
+  { value: 'pin', icon: MapPin },
+  { value: 'home', icon: Home },
+  { value: 'shield', icon: Shield },
+  { value: 'hospital', icon: Hospital },
+  { value: 'zap', icon: Zap },
+  { value: 'droplet', icon: Droplet },
+  { value: 'trees', icon: Trees },
+  { value: 'school', icon: School },
+  { value: 'shopping', icon: ShoppingBag },
+  { value: 'dining', icon: Coffee },
+  { value: 'cctv', icon: Video },
+  { value: 'wifi', icon: Wifi },
+  { value: 'trash', icon: Trash },
+  { value: 'parking', icon: Car },
+  { value: 'bus', icon: Bus },
+  { value: 'social', icon: Heart },
+  { value: 'office', icon: Building },
+];
+
 const CATEGORIES = {
   polygon: ['Batas Wilayah', 'Fasilitas Umum', 'Area Hijau', 'Pemukiman', 'Lainnya'],
   line: ['Jalan Utama', 'Jalan Lingkungan', 'Drainase', 'Jalur Kabel', 'Lainnya'],
@@ -76,15 +104,12 @@ export function MapControlView() {
   const [isEditing, setIsEditing] = useState(false);
   const [focusTrigger, setFocusTrigger] = useState<{ coords: [number, number], zoom: number } | null>(null);
   
-  const [tempData, setTempData] = useState<{
-    polygons: MapObject[],
-    lines: MapObject[],
-    markers: MapObject[]
-  }>({
-    polygons: [],
-    lines: [],
-    markers: []
-  });
+  const [tempData, setTempData] = {
+    polygons: [] as MapObject[],
+    lines: [] as MapObject[],
+    markers: [] as MapObject[]
+  };
+  const [stateData, setStateData] = useState(tempData);
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings, isLoading } = useDoc(mapSettingsRef);
@@ -102,7 +127,7 @@ export function MapControlView() {
         return val || fallback;
       };
 
-      setTempData({
+      setStateData({
         polygons: parseData(mapSettings.polygons || mapSettings.polygon, []),
         lines: parseData(mapSettings.lines, []),
         markers: parseData(mapSettings.markers, [])
@@ -112,9 +137,9 @@ export function MapControlView() {
 
   const handleSaveMap = () => {
     setDocumentNonBlocking(mapSettingsRef, {
-      polygons: JSON.stringify(tempData.polygons),
-      lines: JSON.stringify(tempData.lines),
-      markers: JSON.stringify(tempData.markers),
+      polygons: JSON.stringify(stateData.polygons),
+      lines: JSON.stringify(stateData.lines),
+      markers: JSON.stringify(stateData.markers),
       updatedAt: new Date().toISOString()
     }, { merge: true });
     
@@ -126,7 +151,7 @@ export function MapControlView() {
   };
 
   const updateObjectProperty = (type: 'line' | 'marker' | 'polygon', id: string, property: keyof MapObject, value: any) => {
-    setTempData(prev => {
+    setStateData(prev => {
       if (type === 'polygon') {
         return { ...prev, polygons: prev.polygons.map(p => p.id === id ? { ...p, [property]: value } : p) };
       }
@@ -141,7 +166,7 @@ export function MapControlView() {
   };
 
   const removeObject = (type: 'line' | 'marker' | 'polygon', id: string) => {
-    setTempData(prev => {
+    setStateData(prev => {
       if (type === 'polygon') return { ...prev, polygons: prev.polygons.filter(p => p.id !== id) };
       if (type === 'line') return { ...prev, lines: prev.lines.filter(l => l.id !== id) };
       if (type === 'marker') return { ...prev, markers: prev.markers.filter(m => m.id !== id) };
@@ -233,6 +258,29 @@ export function MapControlView() {
                 </SelectContent>
               </Select>
             </div>
+
+            {type === 'marker' && isEditing && (
+              <div className="space-y-1">
+                <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest px-1">Pilih Ikon</label>
+                <div className="grid grid-cols-6 gap-2 p-2 bg-white/50 rounded-xl shadow-inner border border-secondary/30">
+                  {ICON_LIST.map((iconObj) => (
+                    <button
+                      key={iconObj.value}
+                      onClick={() => updateObjectProperty('marker', item.id, 'icon', iconObj.value)}
+                      className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                        item.icon === iconObj.value 
+                          ? "bg-primary text-white shadow-md scale-110" 
+                          : "bg-white text-muted-foreground hover:bg-secondary"
+                      )}
+                    >
+                      <iconObj.icon className="w-4 h-4" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1">
               <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest px-1">Keterangan / Deskripsi</label>
               <Textarea 
@@ -318,10 +366,10 @@ export function MapControlView() {
                    layer={activeLayer} 
                    showBoundary={showBoundary}
                    editable={isEditing}
-                   polygonsData={tempData.polygons}
-                   linesData={tempData.lines}
-                   markersData={tempData.markers}
-                   onDataChange={(data) => setTempData({ polygons: data.polygons, lines: data.lines, markers: data.markers })}
+                   polygonsData={stateData.polygons}
+                   linesData={stateData.lines}
+                   markersData={stateData.markers}
+                   onDataChange={(data) => setStateData({ polygons: data.polygons, lines: data.lines, markers: data.markers })}
                  />
                )}
             </div>
@@ -347,50 +395,50 @@ export function MapControlView() {
                 <h3 className="font-black text-primary uppercase text-sm tracking-widest">Inventaris Objek</h3>
               </div>
               <Badge className="bg-secondary text-primary font-black text-[9px] px-3 py-1 border-none uppercase tracking-widest">
-                {tempData.polygons.length + tempData.lines.length + tempData.markers.length} Objek
+                {stateData.polygons.length + stateData.lines.length + stateData.markers.length} Objek
               </Badge>
             </div>
             
             <ScrollArea className="flex-1 -mr-4 pr-4">
               <div className="space-y-6">
                 {/* Polygons Section */}
-                {tempData.polygons.length > 0 && (
+                {stateData.polygons.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
                       <Hexagon className="w-3 h-3" /> Area Wilayah
                     </div>
-                    {tempData.polygons.map(poly => (
+                    {stateData.polygons.map(poly => (
                       <ObjectCard key={poly.id} item={poly} type="polygon" />
                     ))}
                   </div>
                 )}
 
                 {/* Lines Section */}
-                {tempData.lines.length > 0 && (
+                {stateData.lines.length > 0 && (
                   <div className="space-y-4 pt-4 border-t border-secondary/50">
                     <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
                       <Route className="w-3 h-3" /> Jalur & Utilitas
                     </div>
-                    {tempData.lines.map(line => (
+                    {stateData.lines.map(line => (
                       <ObjectCard key={line.id} item={line} type="line" />
                     ))}
                   </div>
                 )}
 
                 {/* Markers Section */}
-                {tempData.markers.length > 0 && (
+                {stateData.markers.length > 0 && (
                   <div className="space-y-4 pt-4 border-t border-secondary/50">
                     <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
                       <MapPin className="w-3 h-3" /> Titik Layanan
                     </div>
-                    {tempData.markers.map(marker => (
+                    {stateData.markers.map(marker => (
                       <ObjectCard key={marker.id} item={marker} type="marker" />
                     ))}
                   </div>
                 )}
 
                 {/* Empty State */}
-                {tempData.polygons.length === 0 && tempData.lines.length === 0 && tempData.markers.length === 0 && (
+                {stateData.polygons.length === 0 && stateData.lines.length === 0 && stateData.markers.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                     <div className="w-20 h-20 bg-secondary rounded-[2.5rem] flex items-center justify-center text-secondary-foreground/20">
                       <MapIcon className="w-10 h-10" />
@@ -425,4 +473,3 @@ export function MapControlView() {
     </div>
   );
 }
-
