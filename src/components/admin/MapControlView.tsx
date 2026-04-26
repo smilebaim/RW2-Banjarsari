@@ -15,8 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Layers, 
   Map as MapIcon, 
-  Globe, 
-  Moon, 
   Edit3,
   Check,
   X,
@@ -27,7 +25,6 @@ import {
   Route,
   Type,
   Maximize2,
-  Info,
   Pencil,
   Palette,
   Home,
@@ -36,7 +33,9 @@ import {
   Droplet,
   Zap,
   Trees,
-  Tag
+  Info,
+  ChevronRight,
+  Settings2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -59,17 +58,6 @@ const COLOR_PALETTE = [
   { value: '#f59e0b', label: 'Orange' },
   { value: '#8b5cf6', label: 'Purple' },
   { value: '#06b6d4', label: 'Cyan' },
-];
-
-const ICON_PALETTE = [
-  { value: 'pin', icon: MapPin },
-  { value: 'home', icon: Home },
-  { value: 'info', icon: Info },
-  { value: 'shield', icon: Shield },
-  { value: 'hospital', icon: Hospital },
-  { value: 'droplet', icon: Droplet },
-  { value: 'zap', icon: Zap },
-  { value: 'trees', icon: Trees },
 ];
 
 const CATEGORIES = {
@@ -177,39 +165,150 @@ export function MapControlView() {
     setIsEditing(true);
   };
 
-  return (
-    <div className="space-y-6 pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-primary uppercase tracking-tighter mb-1">Editor Infrastruktur</h1>
-          <p className="text-muted-foreground font-medium text-xs">Kelola batas area, jalur jalan, dan titik lokasi penting.</p>
+  const ObjectCard = ({ item, type }: { item: MapObject, type: 'polygon' | 'line' | 'marker' }) => {
+    const Icon = type === 'polygon' ? Hexagon : type === 'line' ? Route : MapPin;
+    const accentColor = type === 'polygon' ? 'text-green-600' : type === 'line' ? 'text-blue-600' : 'text-red-600';
+    const bgAccent = type === 'polygon' ? 'bg-green-50 border-green-100' : type === 'line' ? 'bg-blue-50 border-blue-100' : 'bg-red-50 border-red-100';
+
+    return (
+      <div className={cn(
+        "p-5 rounded-[2rem] space-y-4 border transition-all duration-300 group relative",
+        isEditing ? bgAccent : "bg-white border-secondary shadow-sm hover:shadow-md"
+      )}>
+        <div className="flex justify-between items-start">
+          <div className="flex items-center gap-2">
+            <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", isEditing ? "bg-white" : "bg-secondary")}>
+              <Icon className={cn("w-4 h-4", accentColor)} />
+            </div>
+            <div>
+              <span className={cn("text-[9px] font-black uppercase tracking-widest block", accentColor)}>
+                {type === 'polygon' ? 'Area' : type === 'line' ? 'Jalur' : 'Titik'}
+              </span>
+              <Badge variant="outline" className="text-[7px] border-none bg-black/5 h-4 px-1 font-bold uppercase">
+                {item.category || 'Umum'}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex gap-1.5">
+            <Button onClick={() => focusOnObject(item.coords)} size="icon" variant="ghost" className="h-8 w-8 rounded-xl bg-white/80 hover:bg-white shadow-sm">
+              <Maximize2 className="w-3.5 h-3.5" />
+            </Button>
+            {!isEditing && (
+              <Button onClick={() => startEditObject(item.coords)} size="icon" variant="ghost" className="h-8 w-8 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white shadow-sm">
+                <Pencil className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            <Button onClick={() => removeObject(type, item.id)} size="icon" variant="ghost" className="h-8 w-8 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white shadow-sm">
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
+        
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest px-1">Nama Objek</label>
+              <Input 
+                value={item.name} 
+                onChange={(e) => updateObjectProperty(type, item.id, 'name', e.target.value)}
+                disabled={!isEditing}
+                className="bg-white/80 border-none h-10 text-xs font-bold shadow-inner rounded-xl"
+                placeholder="Nama..."
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest px-1">Kategori</label>
+              <Select 
+                disabled={!isEditing} 
+                value={item.category || 'Lainnya'} 
+                onValueChange={(val) => updateObjectProperty(type, item.id, 'category', val)}
+              >
+                <SelectTrigger className="h-10 bg-white/80 border-none text-xs font-bold shadow-inner rounded-xl">
+                  <SelectValue placeholder="Kategori" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  {CATEGORIES[type].map(cat => (
+                    <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest px-1">Keterangan / Deskripsi</label>
+              <Textarea 
+                value={item.description || ''} 
+                onChange={(e) => updateObjectProperty(type, item.id, 'description', e.target.value)}
+                disabled={!isEditing}
+                className="bg-white/80 border-none text-[10px] font-medium shadow-inner rounded-xl min-h-[60px] leading-relaxed"
+                placeholder="Berikan keterangan lengkap objek ini..."
+              />
+            </div>
+          </div>
+
+          {isEditing && (
+            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-white/50 rounded-xl shadow-inner border border-secondary/30">
+              <div className="flex items-center gap-2">
+                <Palette className="w-3 h-3 text-muted-foreground" />
+                <span className="text-[8px] font-bold uppercase text-muted-foreground">Warna</span>
+              </div>
+              <div className="flex gap-1.5">
+                {COLOR_PALETTE.map(color => (
+                  <button
+                    key={color.value}
+                    onClick={() => updateObjectProperty(type, item.id, 'color', color.value)}
+                    className={cn(
+                      "w-4 h-4 rounded-full border-2 transition-transform hover:scale-125",
+                      item.color === color.value ? "border-white shadow-md scale-125" : "border-transparent"
+                    )}
+                    style={{ backgroundColor: color.value }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8 pb-32">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div>
+          <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.3em] mb-2">
+            <span className="w-6 h-[2px] bg-primary"></span>
+            <Settings2 className="w-4 h-4" /> Konfigurasi Wilayah
+          </div>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-1">Editor Infrastruktur</h1>
+          <p className="text-muted-foreground font-medium text-sm">Visualisasikan batas wilayah, jalur utilitas, dan titik layanan publik.</p>
+        </div>
+        <div className="flex gap-3">
           {isEditing ? (
             <>
-              <Button onClick={() => setIsEditing(false)} variant="ghost" className="rounded-xl gap-2 font-bold h-10 text-xs text-muted-foreground">
-                <X className="w-3.5 h-3.5" /> Batal
+              <Button onClick={() => setIsEditing(false)} variant="ghost" className="rounded-2xl gap-3 font-black uppercase tracking-widest text-[10px] h-14 px-8 border border-secondary">
+                <X className="w-4 h-4" /> Batal
               </Button>
-              <Button onClick={handleSaveMap} className="rounded-xl bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200 gap-2 font-bold h-10 px-4 text-xs text-white">
-                <Check className="w-3.5 h-3.5" /> Simpan
+              <Button onClick={handleSaveMap} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-3 font-black uppercase tracking-widest text-[10px] h-14 px-8 text-white">
+                <Check className="w-4 h-4" /> Simpan Perubahan
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)} className="rounded-xl bg-primary shadow-lg shadow-primary/20 gap-2 font-bold h-10 px-4 text-xs">
-              <Edit3 className="w-3.5 h-3.5" /> Aktifkan Gambar
+            <Button onClick={() => setIsEditing(true)} className="rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-3 font-black uppercase tracking-widest text-[10px] h-14 px-8 text-white">
+              <Edit3 className="w-4 h-4" /> Aktifkan Mode Gambar
             </Button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
-        <div className="lg:col-span-8 h-[500px] lg:h-full relative">
-          <Card className="h-full border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white relative">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[700px]">
+        {/* Map Canvas */}
+        <div className="lg:col-span-8 h-[600px] lg:h-auto relative">
+          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative">
             <div className="absolute inset-0 z-0">
                {isLoading ? (
                  <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/10">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
-                    <p className="text-[8px] font-black uppercase tracking-widest text-primary/40">Inisialisasi Peta...</p>
+                    <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary/40 animate-pulse">Sinkronisasi Peta...</p>
                  </div>
                ) : (
                  <LeafletMap 
@@ -226,203 +325,100 @@ export function MapControlView() {
                  />
                )}
             </div>
+
+            {/* Layer HUD Overlay */}
+            <div className="absolute top-6 right-6 z-10 flex flex-col gap-2">
+              <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-xl border border-white/50 flex flex-col gap-1">
+                <Button size="icon" variant={activeLayer === 'satellite' ? 'default' : 'ghost'} onClick={() => setActiveLayer('satellite')} className="rounded-xl h-10 w-10"><Layers className="w-4 h-4" /></Button>
+                <Button size="icon" variant={activeLayer === 'streets' ? 'default' : 'ghost'} onClick={() => setActiveLayer('streets')} className="rounded-xl h-10 w-10"><MapIcon className="w-4 h-4" /></Button>
+              </div>
+            </div>
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-4 flex flex-col h-full">
-          <Card className="border-none shadow-xl rounded-[2rem] p-4 bg-white flex-1 overflow-hidden flex flex-col max-h-[700px]">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-secondary/50">
-              <div className="flex items-center gap-2">
-                <Type className="w-4 h-4 text-primary" />
-                <h3 className="font-black text-primary uppercase text-[11px] tracking-tight">Inventaris Objek</h3>
+        {/* Object Inspector Sidebar */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          <Card className="border-none shadow-xl rounded-[3rem] p-8 bg-white flex-1 flex flex-col max-h-[850px]">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                  <Settings2 className="w-5 h-5" />
+                </div>
+                <h3 className="font-black text-primary uppercase text-sm tracking-widest">Inventaris Objek</h3>
               </div>
-              <Badge variant="secondary" className="font-black text-[8px] px-2 py-0.5">
-                {tempData.polygons.length + tempData.lines.length + tempData.markers.length} Elemen
+              <Badge className="bg-secondary text-primary font-black text-[9px] px-3 py-1 border-none uppercase tracking-widest">
+                {tempData.polygons.length + tempData.lines.length + tempData.markers.length} Objek
               </Badge>
             </div>
             
-            <ScrollArea className="flex-1 pr-3">
-              <div className="space-y-3">
-                {tempData.polygons.map(poly => (
-                  <div key={poly.id} className={cn("p-3 rounded-2xl space-y-2 border transition-all group relative", isEditing ? "bg-green-50/50 border-green-100" : "bg-secondary/10 border-transparent")}>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1.5">
-                        <Hexagon className="w-3 h-3 text-green-700" />
-                        <span className="text-[9px] font-black uppercase text-green-700 tracking-tighter">Area</span>
-                        <Badge variant="outline" className="text-[7px] border-green-200 text-green-600 bg-white h-4 px-1">
-                          {poly.category || 'Umum'}
-                        </Badge>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(poly.coords)} size="icon" variant="ghost" className="h-6 w-6 text-green-600 bg-white/50 rounded-lg">
-                          <Maximize2 className="w-3 h-3" />
-                        </Button>
-                        {!isEditing && (
-                          <Button onClick={() => startEditObject(poly.coords)} size="icon" variant="ghost" className="h-6 w-6 text-primary bg-white/50 rounded-lg">
-                            <Pencil className="w-3 h-3" />
-                          </Button>
-                        )}
-                        <Button onClick={() => removeObject('polygon', poly.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 bg-white/50 rounded-lg">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
+            <ScrollArea className="flex-1 -mr-4 pr-4">
+              <div className="space-y-6">
+                {/* Polygons Section */}
+                {tempData.polygons.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
+                      <Hexagon className="w-3 h-3" /> Area Wilayah
                     </div>
-                    
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input 
-                          value={poly.name} 
-                          onChange={(e) => updateObjectProperty('polygon', poly.id, 'name', e.target.value)}
-                          disabled={!isEditing}
-                          className="bg-white border-none h-8 text-[10px] font-bold shadow-sm"
-                          placeholder="Nama Area"
-                        />
-                        <Select 
-                          disabled={!isEditing} 
-                          value={poly.category || 'Lainnya'} 
-                          onValueChange={(val) => updateObjectProperty('polygon', poly.id, 'category', val)}
-                        >
-                          <SelectTrigger className="h-8 bg-white border-none text-[10px] font-bold shadow-sm px-2">
-                            <SelectValue placeholder="Kategori" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CATEGORIES.polygon.map(cat => (
-                              <SelectItem key={cat} value={cat} className="text-[10px]">{cat}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {isEditing && (
-                        <div className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg shadow-sm border border-secondary/30">
-                          <Palette className="w-3 h-3 text-muted-foreground" />
-                          <div className="flex gap-1">
-                            {COLOR_PALETTE.map(color => (
-                              <button
-                                key={color.value}
-                                onClick={() => updateObjectProperty('polygon', poly.id, 'color', color.value)}
-                                className={cn(
-                                  "w-3.5 h-3.5 rounded-full border transition-transform hover:scale-110",
-                                  poly.color === color.value ? "border-primary scale-110" : "border-transparent"
-                                )}
-                                style={{ backgroundColor: color.value }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    {tempData.polygons.map(poly => (
+                      <ObjectCard key={poly.id} item={poly} type="polygon" />
+                    ))}
                   </div>
-                ))}
+                )}
 
-                {tempData.lines.map(line => (
-                  <div key={line.id} className={cn("p-3 rounded-2xl space-y-2 border transition-all group relative", isEditing ? "bg-blue-50/50 border-blue-100" : "bg-secondary/10 border-transparent")}>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1.5">
-                        <Route className="w-3 h-3 text-blue-700" />
-                        <span className="text-[9px] font-black uppercase text-blue-700 tracking-tighter">Jalur</span>
-                        <Badge variant="outline" className="text-[7px] border-blue-200 text-blue-600 bg-white h-4 px-1">
-                          {line.category || 'Umum'}
-                        </Badge>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(line.coords)} size="icon" variant="ghost" className="h-6 w-6 text-blue-600 bg-white/50 rounded-lg">
-                          <Maximize2 className="w-3 h-3" />
-                        </Button>
-                        {!isEditing && (
-                          <Button onClick={() => startEditObject(line.coords)} size="icon" variant="ghost" className="h-6 w-6 text-primary bg-white/50 rounded-lg">
-                            <Pencil className="w-3 h-3" />
-                          </Button>
-                        )}
-                        <Button onClick={() => removeObject('line', line.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 bg-white/50 rounded-lg">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
+                {/* Lines Section */}
+                {tempData.lines.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-secondary/50">
+                    <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
+                      <Route className="w-3 h-3" /> Jalur & Utilitas
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input 
-                        value={line.name} 
-                        onChange={(e) => updateObjectProperty('line', line.id, 'name', e.target.value)}
-                        disabled={!isEditing}
-                        className="bg-white border-none h-8 text-[10px] font-bold shadow-sm"
-                        placeholder="Nama Jalur"
-                      />
-                      <Select 
-                        disabled={!isEditing} 
-                        value={line.category || 'Lainnya'} 
-                        onValueChange={(val) => updateObjectProperty('line', line.id, 'category', val)}
-                      >
-                        <SelectTrigger className="h-8 bg-white border-none text-[10px] font-bold shadow-sm px-2">
-                          <SelectValue placeholder="Kategori" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.line.map(cat => (
-                            <SelectItem key={cat} value={cat} className="text-[10px]">{cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {tempData.lines.map(line => (
+                      <ObjectCard key={line.id} item={line} type="line" />
+                    ))}
                   </div>
-                ))}
+                )}
 
-                {tempData.markers.map(marker => (
-                  <div key={marker.id} className={cn("p-3 rounded-2xl space-y-2 border transition-all group relative", isEditing ? "bg-red-50/50 border-red-100" : "bg-secondary/10 border-transparent")}>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3 h-3 text-red-700" />
-                        <span className="text-[9px] font-black uppercase text-red-700 tracking-tighter">Titik</span>
-                        <Badge variant="outline" className="text-[7px] border-red-200 text-red-600 bg-white h-4 px-1">
-                          {marker.category || 'Umum'}
-                        </Badge>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(marker.coords)} size="icon" variant="ghost" className="h-6 w-6 text-red-600 bg-white/50 rounded-lg">
-                          <Maximize2 className="w-3 h-3" />
-                        </Button>
-                        {!isEditing && (
-                          <Button onClick={() => startEditObject(marker.coords)} size="icon" variant="ghost" className="h-6 w-6 text-primary bg-white/50 rounded-lg">
-                            <Pencil className="w-3 h-3" />
-                          </Button>
-                        )}
-                        <Button onClick={() => removeObject('marker', marker.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 bg-white/50 rounded-lg">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
+                {/* Markers Section */}
+                {tempData.markers.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t border-secondary/50">
+                    <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] px-2">
+                      <MapPin className="w-3 h-3" /> Titik Layanan
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input 
-                        value={marker.name} 
-                        onChange={(e) => updateObjectProperty('marker', marker.id, 'name', e.target.value)}
-                        disabled={!isEditing}
-                        className="bg-white border-none h-8 text-[10px] font-bold shadow-sm"
-                        placeholder="Nama Lokasi"
-                      />
-                      <Select 
-                        disabled={!isEditing} 
-                        value={marker.category || 'Lainnya'} 
-                        onValueChange={(val) => updateObjectProperty('marker', marker.id, 'category', val)}
-                      >
-                        <SelectTrigger className="h-8 bg-white border-none text-[10px] font-bold shadow-sm px-2">
-                          <SelectValue placeholder="Kategori" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.marker.map(cat => (
-                            <SelectItem key={cat} value={cat} className="text-[10px]">{cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {tempData.markers.map(marker => (
+                      <ObjectCard key={marker.id} item={marker} type="marker" />
+                    ))}
                   </div>
-                ))}
+                )}
 
+                {/* Empty State */}
                 {tempData.polygons.length === 0 && tempData.lines.length === 0 && tempData.markers.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-center opacity-30">
-                    <Loader2 className="w-10 h-10 mb-2 animate-pulse" />
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em]">Peta Kosong</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                    <div className="w-20 h-20 bg-secondary rounded-[2.5rem] flex items-center justify-center text-secondary-foreground/20">
+                      <MapIcon className="w-10 h-10" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest text-primary/30">Peta Belum Memiliki Objek</p>
+                      <p className="text-[10px] text-muted-foreground mt-2 max-w-[200px] mx-auto">Gunakan mode gambar untuk mulai memetakan wilayah RW 02.</p>
+                    </div>
                   </div>
                 )}
               </div>
             </ScrollArea>
+          </Card>
+
+          {/* Tips Card */}
+          <Card className="border-none shadow-xl rounded-[2.5rem] bg-zinc-900 text-white p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/40 transition-all duration-700"></div>
+            <div className="relative flex gap-4">
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
+                <Info className="w-5 h-5 text-accent" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-accent">Tips Editor</h4>
+                <p className="text-[10px] text-white/60 leading-relaxed italic">
+                  Gunakan "Keterangan" untuk memberikan info mendalam seperti jadwal buka fasilitas atau detail ukuran drainase.
+                </p>
+              </div>
+            </div>
           </Card>
         </div>
       </div>
