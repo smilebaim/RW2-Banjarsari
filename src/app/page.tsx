@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -45,15 +44,15 @@ export default function Home() {
       try {
         return JSON.parse(val);
       } catch (e) {
-        return [];
+        return val;
       }
     }
-    return val || [];
+    return val;
   };
 
-  const polygonCoords = mapSettings ? parseData(mapSettings.polygon) : [];
-  const lineCoords = mapSettings ? parseData(mapSettings.lines) : [];
-  const markerCoords = mapSettings ? parseData(mapSettings.markers) : [];
+  const polygonData = mapSettings ? parseData(mapSettings.polygon) : null;
+  const linesData = mapSettings ? parseData(mapSettings.lines) : [];
+  const markersData = mapSettings ? parseData(mapSettings.markers) : [];
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
@@ -64,9 +63,9 @@ export default function Home() {
           layer={activeLayer} 
           locked={true}
           showBoundary={true}
-          polygonCoords={polygonCoords}
-          lineCoords={lineCoords}
-          markerCoords={markerCoords}
+          polygonData={polygonData}
+          linesData={linesData}
+          markersData={markersData}
         />
       </div>
 
