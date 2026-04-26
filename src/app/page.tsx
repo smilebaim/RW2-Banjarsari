@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +7,18 @@ import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Layers, Compass, Info, ShieldCheck, Globe, Map as MapIcon, Moon } from 'lucide-react';
+import { 
+  Layers, 
+  Compass, 
+  Info, 
+  ShieldCheck, 
+  Globe, 
+  Map as MapIcon, 
+  Moon,
+  Database,
+  Eye,
+  Activity
+} from 'lucide-react';
 import {
   Tooltip,
   TooltipProvider,
@@ -19,10 +31,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-[#0a0a0a] animate-pulse" />,
+  loading: () => <div className="w-full h-full bg-[#0a0a0a] animate-pulse flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <Activity className="w-10 h-10 text-primary animate-bounce" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Sinkronisasi Peta...</p>
+    </div>
+  </div>,
 });
 
 const COORDINATES: [number, number] = [-5.097673729554944, 105.2921561873565];
@@ -33,6 +51,7 @@ type MapLayerType = 'satellite' | 'streets' | 'dark';
 export default function Home() {
   const db = useFirestore();
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
+  const [showInfra, setShowInfra] = useState(true);
 
   // Fetch geography settings from Firestore
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
@@ -54,6 +73,8 @@ export default function Home() {
   const linesData = parseData(mapSettings?.lines, []);
   const markersData = parseData(mapSettings?.markers, []);
 
+  const totalInfra = polygonsData.length + linesData.length + markersData.length;
+
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
       <div className="absolute inset-0 z-0">
@@ -61,14 +82,15 @@ export default function Home() {
           center={COORDINATES} 
           zoom={ZOOM_LEVEL} 
           layer={activeLayer} 
-          locked={true}
-          showBoundary={true}
+          locked={false}
+          showBoundary={showInfra}
           polygonsData={polygonsData}
           linesData={linesData}
           markersData={markersData}
         />
       </div>
 
+      {/* Top Header Navigation */}
       <div className="absolute top-8 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
         <div className="w-fit bg-white/5 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border border-white/10 rounded-full p-1.5 flex items-center gap-2 pointer-events-auto transition-all hover:bg-white/10">
           <div className="flex items-center gap-3 pl-5 pr-3 py-1">
@@ -78,7 +100,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col">
               <span className="text-[11px] font-black text-white uppercase tracking-[0.25em] leading-none mb-0.5">RW 02 BANJARSARI</span>
-              <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest leading-none">Sistem Monitoring Wilayah</span>
+              <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest leading-none">Portal Koneksi Wilayah</span>
             </div>
           </div>
           
@@ -106,6 +128,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Map Control Tools (Left Side) */}
       <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
         <TooltipProvider delayDuration={0}>
           <DropdownMenu>
@@ -146,15 +169,25 @@ export default function Home() {
           </DropdownMenu>
 
           {[
-            { icon: Compass, label: 'Kompas', tooltip: 'Kalibrasi Orientasi' },
-            { icon: Info, label: 'Info Wilayah', tooltip: 'Detail Geografis' }
+            { 
+              icon: showInfra ? Eye : Database, 
+              label: 'Infrastruktur', 
+              tooltip: showInfra ? 'Sembunyikan Aset' : 'Tampilkan Aset',
+              onClick: () => setShowInfra(!showInfra),
+              active: showInfra
+            },
+            { icon: Compass, label: 'Kompas', tooltip: 'Kalibrasi Orientasi', onClick: () => {} },
+            { icon: Info, label: 'Info Wilayah', tooltip: 'Detail Geografis', onClick: () => {} }
           ].map((tool, idx) => (
             <Tooltip key={idx}>
               <TooltipTrigger asChild>
                 <Button 
                   size="icon" 
                   variant="secondary" 
-                  className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white hover:border-primary/50 transition-all duration-500 group"
+                  onClick={tool.onClick}
+                  className={`w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 transition-all duration-500 group ${
+                    tool.active ? 'bg-primary text-white border-primary/50' : 'text-white/70 hover:bg-primary hover:text-white'
+                  }`}
                 >
                   <tool.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
                 </Button>
@@ -167,6 +200,43 @@ export default function Home() {
         </TooltipProvider>
       </div>
 
+      {/* Bottom Infrastructure Summary Bar */}
+      {totalInfra > 0 && showInfra && (
+        <div className="absolute bottom-32 inset-x-0 z-20 flex justify-center pointer-events-none px-4">
+          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-6 pointer-events-auto animate-in slide-in-from-bottom-10 duration-700">
+             <div className="flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+               <span className="text-[10px] font-black text-white uppercase tracking-widest">{totalInfra} Infrastruktur Terkoneksi</span>
+             </div>
+             <div className="h-4 w-px bg-white/10" />
+             <div className="flex gap-4">
+               {polygonsData.length > 0 && (
+                 <div className="flex items-center gap-2">
+                   <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500 text-[8px] font-black uppercase tracking-widest px-2">
+                     {polygonsData.length} Area
+                   </Badge>
+                 </div>
+               )}
+               {linesData.length > 0 && (
+                 <div className="flex items-center gap-2">
+                   <Badge variant="outline" className="bg-blue-500/10 border-blue-500/20 text-blue-500 text-[8px] font-black uppercase tracking-widest px-2">
+                     {linesData.length} Jalur
+                   </Badge>
+                 </div>
+               )}
+               {markersData.length > 0 && (
+                 <div className="flex items-center gap-2">
+                   <Badge variant="outline" className="bg-red-500/10 border-red-500/20 text-red-500 text-[8px] font-black uppercase tracking-widest px-2">
+                     {markersData.length} Titik
+                   </Badge>
+                 </div>
+               )}
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decorative Gradients */}
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-[5]"></div>
       <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none z-[5]"></div>
     </div>
