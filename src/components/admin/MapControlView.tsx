@@ -23,7 +23,9 @@ import {
   Info,
   Loader2,
   Trash2,
-  RefreshCcw
+  RefreshCcw,
+  MapPin,
+  Route
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,40 +45,60 @@ export function MapControlView() {
   const [activeLayer, setActiveLayer] = useState<MapLayer>('satellite');
   const [showBoundary, setShowBoundary] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [tempCoords, setTempCoords] = useState<[number, number][]>([]);
+  
+  // Temporal drawing state
+  const [tempData, setTempData] = useState<{
+    polygon: [number, number][],
+    lines: [number, number][][],
+    markers: [number, number][]
+  }>({
+    polygon: [],
+    lines: [],
+    markers: []
+  });
 
-  // Fetch polygon from Firestore
+  // Fetch from Firestore
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings, isLoading } = useDoc(mapSettingsRef);
 
   useEffect(() => {
-    if (mapSettings?.polygon) {
-      setTempCoords(mapSettings.polygon);
+    if (mapSettings) {
+      setTempData({
+        polygon: mapSettings.polygon || [],
+        lines: mapSettings.lines || [],
+        markers: mapSettings.markers || []
+      });
     }
   }, [mapSettings]);
 
-  const handleSavePolygon = () => {
+  const handleSaveMap = () => {
     updateDocumentNonBlocking(mapSettingsRef, {
-      polygon: tempCoords,
+      ...tempData,
       updatedAt: new Date().toISOString()
     });
     setIsEditing(false);
     toast({
-      title: "Batas Wilayah Disimpan",
-      description: "Koordinat poligon telah berhasil diperbarui di database.",
+      title: "Peta Wilayah Diperbarui",
+      description: "Data poligon, garis, dan penanda telah disimpan ke database.",
     });
   };
 
-  const handleClearPolygon = () => {
-    setTempCoords([]);
+  const handleClearMap = () => {
+    setTempData({ polygon: [], lines: [], markers: [] });
     toast({
-      title: "Area Dibersihkan",
-      description: "Poligon telah dihapus dari canvas edit. Jangan lupa simpan untuk menerapkan.",
+      title: "Canvas Dibersihkan",
+      description: "Semua elemen visual telah dihapus dari editor.",
     });
   };
 
   const handleCancel = () => {
-    setTempCoords(mapSettings?.polygon || []);
+    if (mapSettings) {
+      setTempData({
+        polygon: mapSettings.polygon || [],
+        lines: mapSettings.lines || [],
+        markers: mapSettings.markers || []
+      });
+    }
     setIsEditing(false);
   };
 
@@ -90,8 +112,8 @@ export function MapControlView() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Peta Wilayah</h1>
-          <p className="text-muted-foreground font-medium">Definisikan batas administratif RW 02 secara digital.</p>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Infrastruktur Peta</h1>
+          <p className="text-muted-foreground font-medium">Kelola batas wilayah, jalur jalan, dan titik lokasi penting.</p>
         </div>
         <div className="flex gap-3">
           {isEditing ? (
@@ -99,16 +121,16 @@ export function MapControlView() {
               <Button onClick={handleCancel} variant="ghost" className="rounded-2xl gap-2 font-bold h-12 text-muted-foreground hover:bg-secondary">
                 <X className="w-4 h-4" /> Batal
               </Button>
-              <Button onClick={handleClearPolygon} variant="outline" className="rounded-2xl gap-2 font-bold h-12 border-orange-200 text-orange-600 hover:bg-orange-50">
-                <Trash2 className="w-4 h-4" /> Reset Area
+              <Button onClick={handleClearMap} variant="outline" className="rounded-2xl gap-2 font-bold h-12 border-orange-200 text-orange-600 hover:bg-orange-50">
+                <Trash2 className="w-4 h-4" /> Reset Semua
               </Button>
-              <Button onClick={handleSavePolygon} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12 px-6">
-                <Check className="w-4 h-4" /> Simpan Batas
+              <Button onClick={handleSaveMap} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12 px-6">
+                <Check className="w-4 h-4" /> Simpan Perubahan
               </Button>
             </>
           ) : (
             <Button onClick={() => setIsEditing(true)} className="rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-2 font-bold h-12 px-6">
-              <Edit3 className="w-4 h-4" /> Edit Poligon
+              <Edit3 className="w-4 h-4" /> Buka Editor Peta
             </Button>
           )}
         </div>
@@ -129,8 +151,10 @@ export function MapControlView() {
                    layer={activeLayer} 
                    showBoundary={showBoundary}
                    editable={isEditing}
-                   polygonCoords={tempCoords}
-                   onPolygonChange={setTempCoords}
+                   polygonCoords={tempData.polygon}
+                   lineCoords={tempData.lines}
+                   markerCoords={tempData.markers}
+                   onDataChange={setTempData}
                  />
                )}
             </div>
@@ -139,7 +163,7 @@ export function MapControlView() {
               <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 w-full px-4 flex justify-center">
                 <Badge className="bg-primary/95 backdrop-blur-md px-8 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest shadow-2xl border-2 border-white/20 animate-in fade-in slide-in-from-top-4 duration-500">
                   <RefreshCcw className="w-4 h-4 mr-3 animate-spin" />
-                  Mode Edit Aktif: Klik peta untuk menarik garis atau geser titik yang ada
+                  Editor Aktif: Gunakan toolbar di kiri peta untuk menggambar atau menandai
                 </Badge>
               </div>
             )}
@@ -182,37 +206,45 @@ export function MapControlView() {
           <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white flex-1 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl" />
             
-            <div className="flex items-center justify-between mb-10 relative">
+            <div className="flex items-center justify-between mb-8 relative">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
                   <Hexagon className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-primary uppercase tracking-tighter">Detail Wilayah</h3>
+                <h3 className="font-black text-primary uppercase tracking-tighter">Inventory</h3>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Tampilkan</span>
-                <Switch checked={showBoundary} onCheckedChange={setShowBoundary} disabled={isEditing} className="data-[state=checked]:bg-green-500" />
-              </div>
+              <Switch checked={showBoundary} onCheckedChange={setShowBoundary} disabled={isEditing} />
             </div>
 
-            <div className="space-y-6 relative">
-              <div className="p-6 bg-secondary/40 rounded-[2rem] border border-secondary/50">
-                <div className="flex items-center gap-3 mb-3">
-                  <AreaChart className="w-5 h-5 text-primary" />
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Luas Wilayah</span>
+            <div className="space-y-4 relative">
+              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <AreaChart className="w-4 h-4 text-primary" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Area</span>
                 </div>
-                <p className="text-3xl font-black text-primary tracking-tighter">
-                  {tempCoords.length > 2 ? '± 4.2 Hektar' : 'Belum Ditentukan'}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <Badge variant="secondary" className="bg-white/50 text-[9px] font-black uppercase tracking-widest">{tempCoords.length} Titik Koordinat</Badge>
-                </div>
+                <span className="font-black text-primary text-sm">{tempData.polygon.length > 0 ? '1' : '0'} Batas</span>
               </div>
 
-              <div className="bg-primary/5 p-5 rounded-[1.5rem] flex items-start gap-4 border border-primary/10">
-                <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <p className="text-[11px] text-primary/80 font-bold leading-relaxed uppercase tracking-tight">
-                  Pemetaan digital membantu dalam manajemen aset, perencanaan infrastruktur, dan identifikasi lokasi laporan warga secara presisi.
+              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <Route className="w-4 h-4 text-blue-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jalur</span>
+                </div>
+                <span className="font-black text-blue-600 text-sm">{tempData.lines.length} Garis</span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Titik</span>
+                </div>
+                <span className="font-black text-red-600 text-sm">{tempData.markers.length} Lokasi</span>
+              </div>
+
+              <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3 border border-primary/10 mt-4">
+                <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[9px] text-primary/80 font-bold uppercase tracking-tight">
+                  Gunakan penanda (marker) untuk lokasi seperti Balai RW, Pos Ronda, atau UMKM unggulan warga.
                 </p>
               </div>
             </div>

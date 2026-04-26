@@ -35,7 +35,7 @@ export default function Home() {
   const db = useFirestore();
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
 
-  // Fetch polygon from Firestore for public view
+  // Fetch geography settings from Firestore
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings } = useDoc(mapSettingsRef);
 
@@ -49,6 +49,8 @@ export default function Home() {
           locked={true}
           showBoundary={true}
           polygonCoords={mapSettings?.polygon}
+          lineCoords={mapSettings?.lines}
+          markerCoords={mapSettings?.markers}
         />
       </div>
 
@@ -105,7 +107,7 @@ export default function Home() {
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl">
-                Ubah Visual Peta
+                Visual Peta
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent side="right" align="center" className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[150px]">

@@ -6,9 +6,15 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 
-// Importing leaflet-draw only on client side
+// Fix for default marker icons in Leaflet
 if (typeof window !== 'undefined') {
   require('leaflet-draw');
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  });
 }
 
 export type MapLayerType = 'satellite' | 'streets' | 'dark';
@@ -20,7 +26,13 @@ interface LeafletMapProps {
   showBoundary?: boolean;
   editable?: boolean;
   polygonCoords?: [number, number][];
-  onPolygonChange?: (coords: [number, number][]) => void;
+  lineCoords?: [number, number][][];
+  markerCoords?: [number, number][];
+  onDataChange?: (data: { 
+    polygon: [number, number][], 
+    lines: [number, number][][], 
+    markers: [number, number][] 
+  }) => void;
   locked?: boolean;
 }
 
@@ -40,16 +52,18 @@ export default function LeafletMap({
   center, 
   zoom, 
   layer = 'satellite', 
-  showBoundary = false, 
+  showBoundary = true, 
   editable = false,
-  polygonCoords,
-  onPolygonChange,
+  polygonCoords = [],
+  lineCoords = [],
+  markerCoords = [],
+  onDataChange,
   locked = false
 }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const tileLayerInstance = useRef<L.TileLayer | null>(null);
-  const boundaryInstance = useRef<L.Polygon | null>(null);
+  const featureGroupInstance = useRef<L.FeatureGroup | null>(null);
   const drawItems = useRef<L.FeatureGroup | null>(null);
 
   // Initialize Map
@@ -67,31 +81,26 @@ export default function LeafletMap({
       }).setView(center, zoom);
 
       drawItems.current = new L.FeatureGroup().addTo(mapInstance.current);
+      featureGroupInstance.current = new L.FeatureGroup().addTo(mapInstance.current);
 
       if (editable) {
         const drawControl = new (L as any).Control.Draw({
           edit: {
             featureGroup: drawItems.current,
-            poly: {
-              allowIntersection: false
-            }
+            poly: { allowIntersection: false }
           },
           draw: {
             polygon: {
               allowIntersection: false,
               showArea: true,
-              drawError: {
-                color: '#e11d48',
-                message: '<strong>Error:<strong> Garis tidak boleh berpotongan!'
-              },
-              shapeOptions: {
-                color: '#22c55e'
-              }
+              shapeOptions: { color: '#22c55e', fillOpacity: 0.3 }
             },
-            polyline: false,
+            polyline: {
+              shapeOptions: { color: '#3b82f6', weight: 4 }
+            },
+            marker: true,
             rectangle: false,
             circle: false,
-            marker: false,
             circlemarker: false
           }
         });
@@ -101,31 +110,41 @@ export default function LeafletMap({
         const handleDrawChange = () => {
           if (!drawItems.current) return;
           const layers = drawItems.current.getLayers();
-          if (layers.length > 0) {
-            const layer = layers[0] as L.Polygon;
-            const latlngs = layer.getLatLngs();
-            // Handle multi-dimensional array from getLatLngs() for polygons
-            const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-            onPolygonChange?.(coords as [number, number][]);
-          } else {
-            onPolygonChange?.([]);
-          }
+          
+          let polygon: [number, number][] = [];
+          const lines: [number, number][][] = [];
+          const markers: [number, number][] = [];
+
+          layers.forEach((l: any) => {
+            if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
+              const latlngs = l.getLatLngs();
+              polygon = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
+            } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
+              const latlngs = l.getLatLngs();
+              lines.push((latlngs as any).map((ll: any) => [ll.lat, ll.lng]));
+            } else if (l instanceof L.Marker) {
+              const ll = l.getLatLng();
+              markers.push([ll.lat, ll.lng]);
+            }
+          });
+
+          onDataChange?.({ polygon, lines, markers });
         };
 
         mapInstance.current.on((L as any).Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
-          drawItems.current?.clearLayers();
+          // If it's a polygon, we only want one main boundary for now (based on app logic)
+          if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
+            drawItems.current?.getLayers().forEach(l => {
+              if (l instanceof L.Polygon) drawItems.current?.removeLayer(l);
+            });
+          }
           drawItems.current?.addLayer(layer);
           handleDrawChange();
         });
 
-        mapInstance.current.on((L as any).Draw.Event.EDITED, () => {
-          handleDrawChange();
-        });
-
-        mapInstance.current.on((L as any).Draw.Event.DELETED, () => {
-          handleDrawChange();
-        });
+        mapInstance.current.on((L as any).Draw.Event.EDITED, handleDrawChange);
+        mapInstance.current.on((L as any).Draw.Event.DELETED, handleDrawChange);
       }
     }
 
@@ -150,45 +169,51 @@ export default function LeafletMap({
     }
   }, [layer]);
 
-  // Sync Polygon Data
+  // Sync Features
   useEffect(() => {
     if (!mapInstance.current) return;
 
-    if (!editable) {
-      // Non-editable view (Public or Dashboard Summary)
-      if (boundaryInstance.current) {
-        mapInstance.current.removeLayer(boundaryInstance.current);
-        boundaryInstance.current = null;
-      }
+    if (!editable && featureGroupInstance.current) {
+      featureGroupInstance.current.clearLayers();
+      if (!showBoundary) return;
 
-      if (showBoundary && polygonCoords && polygonCoords.length > 0) {
-        boundaryInstance.current = L.polygon(polygonCoords as any, {
+      // Add Polygon
+      if (polygonCoords && polygonCoords.length > 0) {
+        L.polygon(polygonCoords as any, {
           color: '#22c55e',
           fillColor: '#22c55e',
           fillOpacity: 0.2,
           weight: 3,
           dashArray: '5, 10'
-        }).addTo(mapInstance.current);
+        }).addTo(featureGroupInstance.current);
       }
-    } else if (drawItems.current) {
-      // Editable mode
+
+      // Add Lines
+      lineCoords?.forEach(coords => {
+        L.polyline(coords as any, { color: '#3b82f6', weight: 4 }).addTo(featureGroupInstance.current);
+      });
+
+      // Add Markers
+      markerCoords?.forEach(pos => {
+        L.marker(pos as any).addTo(featureGroupInstance.current);
+      });
+
+    } else if (drawItems.current && editable) {
       const currentLayers = drawItems.current.getLayers();
-      
-      // If no layers in feature group but we have coords, populate it
-      if (currentLayers.length === 0 && polygonCoords && polygonCoords.length > 0) {
-        const poly = L.polygon(polygonCoords as any, {
-          color: '#22c55e'
+      if (currentLayers.length === 0) {
+        // Initial population for editing
+        if (polygonCoords && polygonCoords.length > 0) {
+          L.polygon(polygonCoords as any, { color: '#22c55e' }).addTo(drawItems.current);
+        }
+        lineCoords?.forEach(coords => {
+          L.polyline(coords as any, { color: '#3b82f6' }).addTo(drawItems.current);
         });
-        drawItems.current.addLayer(poly);
-      } 
-      // If we have coords in props and they differ from what's in drawItems (e.g. after a reset)
-      // we don't want to force sync because user is currently drawing.
-      // But we can clear it if polygonCoords becomes empty from outside
-      if ((!polygonCoords || polygonCoords.length === 0) && currentLayers.length > 0) {
-        drawItems.current.clearLayers();
+        markerCoords?.forEach(pos => {
+          L.marker(pos as any).addTo(drawItems.current);
+        });
       }
     }
-  }, [showBoundary, polygonCoords, editable]);
+  }, [showBoundary, polygonCoords, lineCoords, markerCoords, editable]);
 
   return (
     <div className="w-full h-full relative group">
