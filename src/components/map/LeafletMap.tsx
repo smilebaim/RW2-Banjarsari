@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -73,16 +74,23 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
     trees: `<path d="M10 10v.01"/><path d="M14 10v.01"/><path d="M10 14v.01"/><path d="M14 14v.01"/><path d="M18 10h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1"/><path d="M12 2v8"/><path d="M9 2h6"/>`
   };
   const path = icons[iconName] || icons.pin;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 };
 
 const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
   if (typeof window === 'undefined') return L.divIcon();
   return L.divIcon({
-    html: `<div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-xl border-2 border-white transform -translate-x-1/2 -translate-y-1/2">${getIconSVG(iconName, color)}</div>`,
+    html: `
+      <div class="relative group">
+        <div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.3)] border-2 border-white transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_35px_-10px_rgba(0,0,0,0.4)]">
+          ${getIconSVG(iconName, color)}
+        </div>
+        <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45 border-r-2 border-b-2 border-white shadow-md"></div>
+      </div>
+    `,
     className: 'custom-map-icon',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
+    iconSize: [40, 46],
+    iconAnchor: [20, 46]
   });
 };
 
@@ -143,7 +151,7 @@ export default function LeafletMap({
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
-        zoomControl: false, // We use custom zoom buttons in sidebar
+        zoomControl: false, 
         attributionControl: false,
         scrollWheelZoom: !locked,
         dragging: !locked,
@@ -192,7 +200,6 @@ export default function LeafletMap({
     };
   }, [center, zoom, editable, locked]);
 
-  // Handle programmatic zoom changes from external buttons
   useEffect(() => {
     if (mapInstance.current && mapInstance.current.getZoom() !== zoom) {
       mapInstance.current.setZoom(zoom);
@@ -213,14 +220,14 @@ export default function LeafletMap({
     if (!mapInstance.current) return;
 
     const createPopup = (item: MapObject) => `
-      <div class="p-3 min-w-[220px]">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+      <div class="p-4 min-w-[240px] font-sans">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-[9px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary px-3 py-1 rounded-lg">
             ${item.category || 'Umum'}
           </span>
         </div>
-        <h4 class="font-black text-primary uppercase text-sm mb-1">${item.name}</h4>
-        ${item.description ? `<p class="text-xs text-muted-foreground font-medium italic border-t border-secondary pt-2 mt-2">${item.description}</p>` : ''}
+        <h4 class="font-black text-primary uppercase text-base mb-1 tracking-tight">${item.name}</h4>
+        ${item.description ? `<p class="text-[11px] text-muted-foreground font-medium italic border-t border-secondary pt-3 mt-3 leading-relaxed">${item.description}</p>` : ''}
       </div>
     `;
 
