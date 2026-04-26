@@ -26,10 +26,8 @@ import {
   Database,
   Lock,
   Zap,
-  TrendingUp,
   Menu,
   Trash2,
-  Settings2,
   MessageCircle
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';

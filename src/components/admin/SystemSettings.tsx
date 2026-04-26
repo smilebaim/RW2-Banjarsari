@@ -6,7 +6,6 @@ import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@
 import { doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare, Save, Loader2, Info } from 'lucide-react';
@@ -83,7 +82,7 @@ export function SystemSettings() {
                     <Info className="w-3.5 h-3.5" /> Placeholder:
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <code className="bg-white px-3 py-1 rounded-lg text-[10px] font-black text-primary border border-primary/10">{{target}}</code>
+                    <code className="bg-white px-3 py-1 rounded-lg text-[10px] font-black text-primary border border-primary/10">{'{{target}}'}</code>
                     <span className="text-[9px] text-muted-foreground italic">(Akan diganti otomatis dengan Nama Pejabat tujuan)</span>
                   </div>
                 </div>

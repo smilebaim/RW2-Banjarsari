@@ -6,7 +6,7 @@ import { useFirestore, useCollection, useMemoFirebase, useDoc, setDocumentNonBlo
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Zap, MessageSquare, UserCheck, ShieldCheck, ArrowRight, Settings, Save, Loader2, Info } from 'lucide-react';
+import { Zap, MessageSquare, UserCheck, ShieldCheck, ArrowRight, Save, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -53,7 +53,7 @@ export function FeedbackAnalysisView() {
         <div>
           <h2 className="text-2xl font-black text-primary flex items-center gap-2 uppercase tracking-tighter">
             <Zap className="w-6 h-6" />
-            Kontrol Aspirasi & WhatsApp
+            Kontrol Aspirasi Digital
           </h2>
           <p className="text-muted-foreground font-medium text-sm">Kelola alur komunikasi langsung warga ke pengurus melalui WhatsApp.</p>
         </div>
@@ -85,7 +85,7 @@ export function FeedbackAnalysisView() {
                   <Info className="w-3 h-3" /> Placeholder Dinamis:
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <code className="bg-white px-2 py-0.5 rounded text-[8px] font-black text-primary border border-primary/20">{{target}}</code>
+                  <code className="bg-white px-2 py-0.5 rounded text-[8px] font-black text-primary border border-primary/20">{'{{target}}'}</code>
                   <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Nama Pejabat</span>
                 </div>
               </div>
