@@ -52,6 +52,7 @@ export default function LeafletMap({
   const boundaryInstance = useRef<L.Polygon | null>(null);
   const drawItems = useRef<L.FeatureGroup | null>(null);
 
+  // Initialize Map
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
@@ -78,7 +79,14 @@ export default function LeafletMap({
           draw: {
             polygon: {
               allowIntersection: false,
-              showArea: true
+              showArea: true,
+              drawError: {
+                color: '#e11d48',
+                message: '<strong>Error:<strong> Garis tidak boleh berpotongan!'
+              },
+              shapeOptions: {
+                color: '#22c55e'
+              }
             },
             polyline: false,
             rectangle: false,
@@ -90,24 +98,33 @@ export default function LeafletMap({
 
         mapInstance.current.addControl(drawControl);
 
+        const handleDrawChange = () => {
+          if (!drawItems.current) return;
+          const layers = drawItems.current.getLayers();
+          if (layers.length > 0) {
+            const layer = layers[0] as L.Polygon;
+            const latlngs = layer.getLatLngs();
+            // Handle multi-dimensional array from getLatLngs() for polygons
+            const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
+            onPolygonChange?.(coords as [number, number][]);
+          } else {
+            onPolygonChange?.([]);
+          }
+        };
+
         mapInstance.current.on((L as any).Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
           drawItems.current?.clearLayers();
           drawItems.current?.addLayer(layer);
-          const coords = layer.getLatLngs()[0].map((ll: any) => [ll.lat, ll.lng]);
-          onPolygonChange?.(coords);
+          handleDrawChange();
         });
 
-        mapInstance.current.on((L as any).Draw.Event.EDITED, (e: any) => {
-          const layers = e.layers;
-          layers.eachLayer((layer: any) => {
-            const coords = layer.getLatLngs()[0].map((ll: any) => [ll.lat, ll.lng]);
-            onPolygonChange?.(coords);
-          });
+        mapInstance.current.on((L as any).Draw.Event.EDITED, () => {
+          handleDrawChange();
         });
 
         mapInstance.current.on((L as any).Draw.Event.DELETED, () => {
-          onPolygonChange?.([]);
+          handleDrawChange();
         });
       }
     }
@@ -118,8 +135,9 @@ export default function LeafletMap({
         mapInstance.current = null;
       }
     };
-  }, [center, zoom, editable, locked, onPolygonChange]);
+  }, [center, zoom, editable, locked]);
 
+  // Handle Tile Layer updates
   useEffect(() => {
     if (mapInstance.current) {
       if (tileLayerInstance.current) {
@@ -132,8 +150,12 @@ export default function LeafletMap({
     }
   }, [layer]);
 
+  // Sync Polygon Data
   useEffect(() => {
-    if (mapInstance.current && !editable) {
+    if (!mapInstance.current) return;
+
+    if (!editable) {
+      // Non-editable view (Public or Dashboard Summary)
       if (boundaryInstance.current) {
         mapInstance.current.removeLayer(boundaryInstance.current);
         boundaryInstance.current = null;
@@ -148,12 +170,23 @@ export default function LeafletMap({
           dashArray: '5, 10'
         }).addTo(mapInstance.current);
       }
-    } else if (mapInstance.current && editable && drawItems.current) {
+    } else if (drawItems.current) {
+      // Editable mode
+      const currentLayers = drawItems.current.getLayers();
+      
+      // If no layers in feature group but we have coords, populate it
+      if (currentLayers.length === 0 && polygonCoords && polygonCoords.length > 0) {
+        const poly = L.polygon(polygonCoords as any, {
+          color: '#22c55e'
+        });
+        drawItems.current.addLayer(poly);
+      } 
+      // If we have coords in props and they differ from what's in drawItems (e.g. after a reset)
+      // we don't want to force sync because user is currently drawing.
+      // But we can clear it if polygonCoords becomes empty from outside
+      if ((!polygonCoords || polygonCoords.length === 0) && currentLayers.length > 0) {
         drawItems.current.clearLayers();
-        if (polygonCoords && polygonCoords.length > 0) {
-            const poly = L.polygon(polygonCoords as any);
-            drawItems.current.addLayer(poly);
-        }
+      }
     }
   }, [showBoundary, polygonCoords, editable]);
 
