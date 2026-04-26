@@ -95,8 +95,12 @@ export default function Home() {
       const initialHiddenAreas: Record<string, boolean> = {};
       allPolygons.forEach((p: any) => {
         const name = p.name?.toLowerCase() || '';
-        // If it's NOT the main boundary, hide it
-        if (!name.includes('rw 2') && !name.includes('rw 02') && !name.includes('batas')) {
+        // Strict check: Only show the main RW boundary. 
+        // If it contains "RT", it is a sub-area and should be hidden by default.
+        const isRT = name.includes('rt');
+        const isMainRW = (name.includes('rw 2') || name.includes('rw 02') || name.includes('batas')) && !isRT;
+        
+        if (!isMainRW) {
           initialHiddenAreas[p.id] = true;
         }
       });
@@ -316,7 +320,7 @@ export default function Home() {
                       <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Titik Fasilitas</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500 hover:text-white rounded-lg">Aktifkan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
                     </div>
                   </div>
