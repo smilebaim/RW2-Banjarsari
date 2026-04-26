@@ -65,17 +65,32 @@ export function MapControlView() {
 
   useEffect(() => {
     if (mapSettings) {
+      // Safely parse JSON strings from Firestore if they exist, otherwise fallback to existing data
+      const parseData = (val: any) => {
+        if (typeof val === 'string') {
+          try {
+            return JSON.parse(val);
+          } catch (e) {
+            return [];
+          }
+        }
+        return val || [];
+      };
+
       setTempData({
-        polygon: mapSettings.polygon || [],
-        lines: mapSettings.lines || [],
-        markers: mapSettings.markers || []
+        polygon: parseData(mapSettings.polygon),
+        lines: parseData(mapSettings.lines),
+        markers: parseData(mapSettings.markers)
       });
     }
   }, [mapSettings]);
 
   const handleSaveMap = () => {
+    // Stringify nested arrays to avoid Firestore "Nested arrays not supported" error
     updateDocumentNonBlocking(mapSettingsRef, {
-      ...tempData,
+      polygon: JSON.stringify(tempData.polygon),
+      lines: JSON.stringify(tempData.lines),
+      markers: JSON.stringify(tempData.markers),
       updatedAt: new Date().toISOString()
     });
     setIsEditing(false);
@@ -95,10 +110,21 @@ export function MapControlView() {
 
   const handleCancel = () => {
     if (mapSettings) {
+      const parseData = (val: any) => {
+        if (typeof val === 'string') {
+          try {
+            return JSON.parse(val);
+          } catch (e) {
+            return [];
+          }
+        }
+        return val || [];
+      };
+
       setTempData({
-        polygon: mapSettings.polygon || [],
-        lines: mapSettings.lines || [],
-        markers: mapSettings.markers || []
+        polygon: parseData(mapSettings.polygon),
+        lines: parseData(mapSettings.lines),
+        markers: parseData(mapSettings.markers)
       });
     }
     setIsEditing(false);

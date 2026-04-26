@@ -39,6 +39,22 @@ export default function Home() {
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings } = useDoc(mapSettingsRef);
 
+  // Helper to safely parse JSON strings from Firestore
+  const parseData = (val: any) => {
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch (e) {
+        return [];
+      }
+    }
+    return val || [];
+  };
+
+  const polygonCoords = mapSettings ? parseData(mapSettings.polygon) : [];
+  const lineCoords = mapSettings ? parseData(mapSettings.lines) : [];
+  const markerCoords = mapSettings ? parseData(mapSettings.markers) : [];
+
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
       <div className="absolute inset-0 z-0">
@@ -48,9 +64,9 @@ export default function Home() {
           layer={activeLayer} 
           locked={true}
           showBoundary={true}
-          polygonCoords={mapSettings?.polygon}
-          lineCoords={mapSettings?.lines}
-          markerCoords={mapSettings?.markers}
+          polygonCoords={polygonCoords}
+          lineCoords={lineCoords}
+          markerCoords={markerCoords}
         />
       </div>
 
