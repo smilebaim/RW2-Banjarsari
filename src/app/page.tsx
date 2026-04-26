@@ -8,19 +8,15 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { 
-  Layers, 
   Compass, 
   Info, 
   ShieldCheck, 
-  Globe, 
   Map as MapIcon, 
-  Moon,
   Database,
   Activity,
   Hexagon,
   Route,
   MapPin,
-  ChevronRight,
   Zap,
 } from 'lucide-react';
 import {
@@ -32,13 +28,12 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -60,8 +55,6 @@ const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
 const COORDINATES: [number, number] = [-5.097673729554944, 105.2921561873565];
 const ZOOM_LEVEL = 17;
 
-type MapLayerType = 'satellite' | 'streets' | 'dark';
-
 const parseData = (val: any, fallback: any = []) => {
   if (typeof val === 'string') {
     try {
@@ -75,7 +68,6 @@ const parseData = (val: any, fallback: any = []) => {
 
 export default function Home() {
   const db = useFirestore();
-  const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
   
   // States for hidden individual objects
   const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
@@ -127,7 +119,7 @@ export default function Home() {
         <LeafletMap 
           center={COORDINATES} 
           zoom={ZOOM_LEVEL} 
-          layer={activeLayer} 
+          layer="satellite" 
           locked={false}
           showBoundary={true}
           showPolygons={true}
@@ -183,45 +175,7 @@ export default function Home() {
       <div className="absolute left-8 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20">
         <TooltipProvider delayDuration={0}>
           
-          {/* Visual Layer Switcher */}
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    size="icon" 
-                    className="w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/60 hover:bg-primary hover:text-white hover:border-primary/50 transition-all duration-500 group"
-                  >
-                    <Layers className="w-6 h-6 transition-transform group-hover:scale-110" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl">
-                Visual Peta
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent side="right" align="center" className="bg-black/80 backdrop-blur-3xl border-white/10 rounded-[2rem] p-3 min-w-[180px] shadow-2xl">
-              {[
-                { id: 'satellite', label: 'Satelit Esri', icon: Globe, color: 'text-blue-400' },
-                { id: 'streets', label: 'Peta Jalan', icon: MapIcon, color: 'text-green-400' },
-                { id: 'dark', label: 'Mode Malam', icon: Moon, color: 'text-purple-400' },
-              ].map((layer) => (
-                <DropdownMenuItem 
-                  key={layer.id}
-                  onClick={() => setActiveLayer(layer.id as MapLayerType)}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-4 rounded-2xl cursor-pointer transition-all font-black text-[10px] uppercase tracking-widest mb-1",
-                    activeLayer === layer.id ? 'bg-primary text-white shadow-lg' : 'text-white/60 hover:bg-white/5'
-                  )}
-                >
-                  <layer.icon className={cn("w-4 h-4", layer.color)} />
-                  {layer.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Rebuilt Data Infrastructure Checklist HUD */}
+          {/* Data Infrastructure Checklist HUD */}
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -344,7 +298,6 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Quick Action Tools */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
