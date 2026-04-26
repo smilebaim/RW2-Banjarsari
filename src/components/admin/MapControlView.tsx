@@ -18,17 +18,15 @@ import {
   Edit3,
   Check,
   X,
-  AreaChart,
   Hexagon,
-  Info,
   Loader2,
   Trash2,
-  RefreshCcw,
   MapPin,
   Route,
   Type,
   PlusCircle,
-  MousePointer2
+  MousePointer2,
+  Maximize2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -51,6 +49,7 @@ export function MapControlView() {
   const [activeLayer, setActiveLayer] = useState<MapLayer>('satellite');
   const [showBoundary, setShowBoundary] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [focusTrigger, setFocusTrigger] = useState<{ coords: [number, number], zoom: number } | null>(null);
   
   const [tempData, setTempData] = useState<{
     polygon: MapObject | null,
@@ -96,8 +95,8 @@ export function MapControlView() {
     
     setIsEditing(false);
     toast({
-      title: "Peta Wilayah Diperbarui",
-      description: "Semua elemen visual dan label telah disimpan.",
+      title: "Konfigurasi Disimpan",
+      description: "Data infrastruktur wilayah telah diperbarui di database.",
     });
   };
 
@@ -123,7 +122,20 @@ export function MapControlView() {
       if (type === 'marker') return { ...prev, markers: prev.markers.filter(m => m.id !== id) };
       return prev;
     });
-    toast({ title: "Objek dihapus", description: "Elemen telah dihapus dari daftar sementara." });
+    toast({ title: "Elemen Dihapus", description: "Objek telah dihapus dari daftar." });
+  };
+
+  const focusOnObject = (coords: any) => {
+    if (!coords) return;
+    // Handle different coordinate types
+    let target: [number, number];
+    if (Array.isArray(coords[0])) {
+      target = coords[0] as [number, number];
+    } else {
+      target = coords as [number, number];
+    }
+    setFocusTrigger({ coords: target, zoom: 19 });
+    toast({ title: "Fokus Lokasi", description: "Peta bergeser ke objek yang dipilih." });
   };
 
   const layers = [
@@ -136,8 +148,8 @@ export function MapControlView() {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Infrastruktur Wilayah</h1>
-          <p className="text-muted-foreground font-medium">Kelola batas RT, jalur evakuasi, dan titik fasilitas umum.</p>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Infrastruktur</h1>
+          <p className="text-muted-foreground font-medium">Buat dan kelola aset geografis wilayah secara digital.</p>
         </div>
         <div className="flex gap-3">
           {isEditing ? (
@@ -146,12 +158,12 @@ export function MapControlView() {
                 <X className="w-4 h-4" /> Batal
               </Button>
               <Button onClick={handleSaveMap} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12 px-6 text-white">
-                <Check className="w-4 h-4" /> Simpan Konfigurasi
+                <Check className="w-4 h-4" /> Simpan Permanen
               </Button>
             </>
           ) : (
             <Button onClick={() => setIsEditing(true)} className="rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-2 font-bold h-12 px-6">
-              <Edit3 className="w-4 h-4" /> Buka Mode Gambar
+              <Edit3 className="w-4 h-4" /> Aktifkan Alat Gambar
             </Button>
           )}
         </div>
@@ -164,13 +176,13 @@ export function MapControlView() {
                {isLoading ? (
                  <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/10">
                     <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-primary/40">Menyiapkan Mesin Peta...</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary/40">Inisialisasi Peta...</p>
                  </div>
                ) : (
                  <LeafletMap 
                    key={isEditing ? 'editing' : 'viewing'}
-                   center={COORDINATES} 
-                   zoom={ZOOM_LEVEL} 
+                   center={focusTrigger?.coords || COORDINATES} 
+                   zoom={focusTrigger?.zoom || ZOOM_LEVEL} 
                    layer={activeLayer} 
                    showBoundary={showBoundary}
                    editable={isEditing}
@@ -181,14 +193,6 @@ export function MapControlView() {
                  />
                )}
             </div>
-            
-            {/* Map Overlay Badge */}
-            <div className="absolute bottom-8 left-8 z-10 flex gap-2">
-               <Badge className="bg-white/80 backdrop-blur-md text-primary border-none shadow-lg px-4 py-2 rounded-xl flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="font-black text-[10px] uppercase tracking-widest">Sistem Aktif</span>
-               </Badge>
-            </div>
           </Card>
         </div>
 
@@ -197,30 +201,22 @@ export function MapControlView() {
             <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white animate-in slide-in-from-right-4">
                <div className="flex items-center gap-3 mb-4">
                   <PlusCircle className="w-5 h-5 text-accent" />
-                  <h3 className="font-black uppercase text-sm tracking-tight">Kotak Alat Gambar</h3>
+                  <h3 className="font-black uppercase text-sm tracking-tight">Alat Pembuat</h3>
                </div>
                <div className="grid grid-cols-1 gap-3">
-                  <div className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
-                     <Hexagon className="w-6 h-6 text-accent shrink-0" />
-                     <div>
-                        <p className="text-[10px] font-black uppercase mb-1">Poligon Area</p>
-                        <p className="text-[9px] opacity-70 leading-tight">Gunakan ikon segi-banyak di peta untuk menggambar batas RT atau area khusus.</p>
-                     </div>
-                  </div>
-                  <div className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
-                     <Route className="w-6 h-6 text-blue-300 shrink-0" />
-                     <div>
-                        <p className="text-[10px] font-black uppercase mb-1">Garis Jalur</p>
-                        <p className="text-[9px] opacity-70 leading-tight">Gunakan ikon garis di peta untuk menandai jalan utama atau jalur evakuasi.</p>
-                     </div>
-                  </div>
-                  <div className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
-                     <MapPin className="w-6 h-6 text-red-300 shrink-0" />
-                     <div>
-                        <p className="text-[10px] font-black uppercase mb-1">Penanda Lokasi</p>
-                        <p className="text-[9px] opacity-70 leading-tight">Gunakan ikon pin untuk menandai fasilitas seperti Balai RW atau Masjid.</p>
-                     </div>
-                  </div>
+                  {[
+                    { icon: Hexagon, label: 'Batas Wilayah', desc: 'Gunakan poligon untuk area luas.', color: 'text-accent' },
+                    { icon: Route, label: 'Jalur / Jalan', desc: 'Gunakan garis untuk rute.', color: 'text-blue-300' },
+                    { icon: MapPin, label: 'Titik Penting', desc: 'Gunakan marker untuk lokasi.', color: 'text-red-300' }
+                  ].map((tool, i) => (
+                    <div key={i} className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
+                       <tool.icon className={cn("w-6 h-6 shrink-0", tool.color)} />
+                       <div>
+                          <p className="text-[10px] font-black uppercase mb-1">{tool.label}</p>
+                          <p className="text-[9px] opacity-70 leading-tight">{tool.desc}</p>
+                       </div>
+                    </div>
+                  ))}
                </div>
             </Card>
           )}
@@ -229,9 +225,9 @@ export function MapControlView() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <Type className="w-5 h-5 text-primary" />
-                <h3 className="font-black text-primary uppercase text-sm">Daftar Objek</h3>
+                <h3 className="font-black text-primary uppercase text-sm">Daftar Inventaris</h3>
               </div>
-              <Badge variant="secondary" className="font-black text-[9px]">{tempData.lines.length + tempData.markers.length + (tempData.polygon ? 1 : 0)} Item</Badge>
+              <Badge variant="secondary" className="font-black text-[9px]">{tempData.lines.length + tempData.markers.length + (tempData.polygon ? 1 : 0)} Objek</Badge>
             </div>
             
             <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
@@ -239,11 +235,16 @@ export function MapControlView() {
                   <div className="p-4 bg-green-50 rounded-2xl space-y-2 border border-green-100 group">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
-                        <Hexagon className="w-3 h-3" /> Area Batas
+                        <Hexagon className="w-3 h-3" /> Poligon Area
                       </label>
-                      <Button onClick={() => removeObject('polygon', tempData.polygon!.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button onClick={() => focusOnObject(tempData.polygon!.coords)} size="icon" variant="ghost" className="h-6 w-6 text-green-600">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button onClick={() => removeObject('polygon', tempData.polygon!.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                     <Input 
                       value={tempData.polygon.name} 
@@ -259,11 +260,16 @@ export function MapControlView() {
                   <div key={line.id} className="p-4 bg-blue-50 rounded-2xl space-y-2 border border-blue-100 group">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
-                        <Route className="w-3 h-3" /> Jalur / Rute
+                        <Route className="w-3 h-3" /> Jalur Garis
                       </label>
-                      <Button onClick={() => removeObject('line', line.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button onClick={() => focusOnObject(line.coords)} size="icon" variant="ghost" className="h-6 w-6 text-blue-600">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button onClick={() => removeObject('line', line.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                     <Input 
                       value={line.name} 
@@ -281,9 +287,14 @@ export function MapControlView() {
                       <label className="text-[9px] font-black uppercase text-red-700 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Titik Lokasi
                       </label>
-                      <Button onClick={() => removeObject('marker', marker.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button onClick={() => focusOnObject(marker.coords)} size="icon" variant="ghost" className="h-6 w-6 text-red-600">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button onClick={() => removeObject('marker', marker.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
                     <Input 
                       value={marker.name} 
@@ -299,7 +310,7 @@ export function MapControlView() {
                   <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
                     <MousePointer2 className="w-10 h-10 mb-2" />
                     <p className="text-[10px] font-black uppercase tracking-widest">Peta Kosong</p>
-                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan alat gambar untuk menambahkan objek ke wilayah.</p>
+                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan alat gambar untuk menambahkan infrastruktur.</p>
                   </div>
                 )}
             </div>
@@ -308,7 +319,7 @@ export function MapControlView() {
           <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white">
             <div className="flex items-center gap-3 mb-4">
               <Layers className="w-5 h-5 text-primary" />
-              <h3 className="font-black text-primary uppercase text-sm">Visual Lapisan</h3>
+              <h3 className="font-black text-primary uppercase text-sm">Lapisan Peta</h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {layers.map((layer) => (
