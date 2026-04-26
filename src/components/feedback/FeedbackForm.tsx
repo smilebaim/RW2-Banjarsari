@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useFirestore, addDocumentNonBlocking, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,8 +25,17 @@ const formSchema = z.object({
 
 export function FeedbackForm() {
   const db = useFirestore();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Ensure user is signed in (anonymously) to satisfy security rules
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [user, isUserLoading, auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,6 +49,7 @@ export function FeedbackForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) return;
     setLoading(true);
     try {
       const feedbackId = doc(collection(db, 'resident_feedback')).id;
@@ -199,7 +209,7 @@ export function FeedbackForm() {
               )}
             />
 
-            <Button type="submit" className="w-full h-16 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all" disabled={loading}>
+            <Button type="submit" className="w-full h-16 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all" disabled={loading || !user}>
               {loading ? (
                 <>
                   <Loader2 className="mr-3 h-5 w-5 animate-spin" />
