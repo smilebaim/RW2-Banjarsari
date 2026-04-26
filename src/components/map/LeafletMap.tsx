@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -223,8 +224,14 @@ export default function LeafletMap({
       });
 
     } else if (drawItems.current && editable) {
+      // Logic for editing: clear and re-populate only if internal data differs significantly
+      // to avoid infinite loops, we check if the layer count matches
       const currentLayers = drawItems.current.getLayers();
-      if (currentLayers.length === 0) {
+      const expectedCount = (polygonData ? 1 : 0) + linesData.length + markersData.length;
+      
+      if (currentLayers.length !== expectedCount) {
+        drawItems.current.clearLayers();
+        
         if (polygonData && polygonData.coords.length > 0) {
           const p = L.polygon(polygonData.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
           // @ts-ignore

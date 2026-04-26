@@ -8,7 +8,6 @@ import { doc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -27,7 +26,9 @@ import {
   RefreshCcw,
   MapPin,
   Route,
-  Type
+  Type,
+  PlusCircle,
+  MousePointer2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -86,7 +87,6 @@ export function MapControlView() {
   }, [mapSettings]);
 
   const handleSaveMap = () => {
-    // Use setDocumentNonBlocking with merge: true to avoid "permission-error" on non-existent documents or partial updates
     setDocumentNonBlocking(mapSettingsRef, {
       polygon: JSON.stringify(tempData.polygon),
       lines: JSON.stringify(tempData.lines),
@@ -116,18 +116,28 @@ export function MapControlView() {
     });
   };
 
+  const removeObject = (type: 'line' | 'marker' | 'polygon', id: string) => {
+    setTempData(prev => {
+      if (type === 'polygon') return { ...prev, polygon: null };
+      if (type === 'line') return { ...prev, lines: prev.lines.filter(l => l.id !== id) };
+      if (type === 'marker') return { ...prev, markers: prev.markers.filter(m => m.id !== id) };
+      return prev;
+    });
+    toast({ title: "Objek dihapus", description: "Elemen telah dihapus dari daftar sementara." });
+  };
+
   const layers = [
-    { id: 'satellite', label: 'Satelit', icon: Globe, description: 'Citra satelit resolusi tinggi' },
-    { id: 'streets', label: 'Jalanan', icon: MapIcon, description: 'Peta jalan dan navigasi' },
-    { id: 'dark', label: 'Mode Gelap', icon: Moon, description: 'Visualisasi malam hari' },
+    { id: 'satellite', label: 'Satelit', icon: Globe },
+    { id: 'streets', label: 'Jalanan', icon: MapIcon },
+    { id: 'dark', label: 'Mode Gelap', icon: Moon },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Infrastruktur Peta</h1>
-          <p className="text-muted-foreground font-medium">Kelola batas, rute, dan label lokasi penting.</p>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Infrastruktur Wilayah</h1>
+          <p className="text-muted-foreground font-medium">Kelola batas RT, jalur evakuasi, dan titik fasilitas umum.</p>
         </div>
         <div className="flex gap-3">
           {isEditing ? (
@@ -136,20 +146,20 @@ export function MapControlView() {
                 <X className="w-4 h-4" /> Batal
               </Button>
               <Button onClick={handleSaveMap} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12 px-6 text-white">
-                <Check className="w-4 h-4" /> Simpan Perubahan
+                <Check className="w-4 h-4" /> Simpan Konfigurasi
               </Button>
             </>
           ) : (
             <Button onClick={() => setIsEditing(true)} className="rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-2 font-bold h-12 px-6">
-              <Edit3 className="w-4 h-4" /> Buka Editor Peta
+              <Edit3 className="w-4 h-4" /> Buka Mode Gambar
             </Button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[700px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[750px]">
         <div className="lg:col-span-8 h-full relative">
-          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative">
+          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative group">
             <div className="absolute inset-0 z-0">
                {isLoading ? (
                  <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/10">
@@ -171,90 +181,150 @@ export function MapControlView() {
                  />
                )}
             </div>
+            
+            {/* Map Overlay Badge */}
+            <div className="absolute bottom-8 left-8 z-10 flex gap-2">
+               <Badge className="bg-white/80 backdrop-blur-md text-primary border-none shadow-lg px-4 py-2 rounded-xl flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="font-black text-[10px] uppercase tracking-widest">Sistem Aktif</span>
+               </Badge>
+            </div>
           </Card>
         </div>
 
         <div className="lg:col-span-4 space-y-6 flex flex-col h-full overflow-y-auto pr-2">
           {isEditing && (
-            <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white animate-in slide-in-from-right-4">
-              <div className="flex items-center gap-3 mb-4">
-                <Type className="w-5 h-5 text-primary" />
-                <h3 className="font-black text-primary uppercase text-sm">Labeling Objek</h3>
-              </div>
-              <div className="space-y-4">
-                {tempData.polygon && (
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-muted-foreground ml-2">Nama Poligon Utama</label>
-                    <Input 
-                      value={tempData.polygon.name} 
-                      onChange={(e) => updateObjectName('polygon', tempData.polygon!.id, e.target.value)}
-                      className="bg-secondary/30 border-none h-10 text-xs font-bold"
-                    />
+            <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white animate-in slide-in-from-right-4">
+               <div className="flex items-center gap-3 mb-4">
+                  <PlusCircle className="w-5 h-5 text-accent" />
+                  <h3 className="font-black uppercase text-sm tracking-tight">Kotak Alat Gambar</h3>
+               </div>
+               <div className="grid grid-cols-1 gap-3">
+                  <div className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
+                     <Hexagon className="w-6 h-6 text-accent shrink-0" />
+                     <div>
+                        <p className="text-[10px] font-black uppercase mb-1">Poligon Area</p>
+                        <p className="text-[9px] opacity-70 leading-tight">Gunakan ikon segi-banyak di peta untuk menggambar batas RT atau area khusus.</p>
+                     </div>
                   </div>
-                )}
-                {tempData.lines.map(line => (
-                  <div key={line.id} className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-muted-foreground ml-2 flex items-center gap-1">
-                      <Route className="w-3 h-3" /> Nama Jalur
-                    </label>
-                    <Input 
-                      value={line.name} 
-                      onChange={(e) => updateObjectName('line', line.id, e.target.value)}
-                      className="bg-blue-50/50 border-none h-10 text-xs font-bold"
-                    />
+                  <div className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
+                     <Route className="w-6 h-6 text-blue-300 shrink-0" />
+                     <div>
+                        <p className="text-[10px] font-black uppercase mb-1">Garis Jalur</p>
+                        <p className="text-[9px] opacity-70 leading-tight">Gunakan ikon garis di peta untuk menandai jalan utama atau jalur evakuasi.</p>
+                     </div>
                   </div>
-                ))}
-                {tempData.markers.map(marker => (
-                  <div key={marker.id} className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-muted-foreground ml-2 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" /> Nama Lokasi
-                    </label>
-                    <Input 
-                      value={marker.name} 
-                      onChange={(e) => updateObjectName('marker', marker.id, e.target.value)}
-                      className="bg-red-50/50 border-none h-10 text-xs font-bold"
-                    />
+                  <div className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
+                     <MapPin className="w-6 h-6 text-red-300 shrink-0" />
+                     <div>
+                        <p className="text-[10px] font-black uppercase mb-1">Penanda Lokasi</p>
+                        <p className="text-[9px] opacity-70 leading-tight">Gunakan ikon pin untuk menandai fasilitas seperti Balai RW atau Masjid.</p>
+                     </div>
                   </div>
-                ))}
-                {tempData.lines.length === 0 && tempData.markers.length === 0 && !tempData.polygon && (
-                  <p className="text-[10px] text-center text-muted-foreground italic py-4">Gambar objek di peta untuk memberi nama.</p>
-                )}
-              </div>
+               </div>
             </Card>
           )}
 
-          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white">
-            <div className="flex items-center gap-3 mb-6">
-              <Layers className="w-5 h-5 text-primary" />
-              <h3 className="font-black text-primary uppercase text-sm">Visualisasi</h3>
+          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white flex-1 overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Type className="w-5 h-5 text-primary" />
+                <h3 className="font-black text-primary uppercase text-sm">Daftar Objek</h3>
+              </div>
+              <Badge variant="secondary" className="font-black text-[9px]">{tempData.lines.length + tempData.markers.length + (tempData.polygon ? 1 : 0)} Item</Badge>
             </div>
-            <div className="space-y-2">
+            
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                {tempData.polygon && (
+                  <div className="p-4 bg-green-50 rounded-2xl space-y-2 border border-green-100 group">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
+                        <Hexagon className="w-3 h-3" /> Area Batas
+                      </label>
+                      <Button onClick={() => removeObject('polygon', tempData.polygon!.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <Input 
+                      value={tempData.polygon.name} 
+                      onChange={(e) => updateObjectName('polygon', tempData.polygon!.id, e.target.value)}
+                      disabled={!isEditing}
+                      className="bg-white border-none h-9 text-xs font-bold shadow-sm"
+                      placeholder="Nama Area..."
+                    />
+                  </div>
+                )}
+
+                {tempData.lines.map(line => (
+                  <div key={line.id} className="p-4 bg-blue-50 rounded-2xl space-y-2 border border-blue-100 group">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
+                        <Route className="w-3 h-3" /> Jalur / Rute
+                      </label>
+                      <Button onClick={() => removeObject('line', line.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <Input 
+                      value={line.name} 
+                      onChange={(e) => updateObjectName('line', line.id, e.target.value)}
+                      disabled={!isEditing}
+                      className="bg-white border-none h-9 text-xs font-bold shadow-sm"
+                      placeholder="Nama Jalur..."
+                    />
+                  </div>
+                ))}
+
+                {tempData.markers.map(marker => (
+                  <div key={marker.id} className="p-4 bg-red-50 rounded-2xl space-y-2 border border-red-100 group">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[9px] font-black uppercase text-red-700 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> Titik Lokasi
+                      </label>
+                      <Button onClick={() => removeObject('marker', marker.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <Input 
+                      value={marker.name} 
+                      onChange={(e) => updateObjectName('marker', marker.id, e.target.value)}
+                      disabled={!isEditing}
+                      className="bg-white border-none h-9 text-xs font-bold shadow-sm"
+                      placeholder="Nama Lokasi..."
+                    />
+                  </div>
+                ))}
+
+                {!tempData.polygon && tempData.lines.length === 0 && tempData.markers.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
+                    <MousePointer2 className="w-10 h-10 mb-2" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Peta Kosong</p>
+                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan alat gambar untuk menambahkan objek ke wilayah.</p>
+                  </div>
+                )}
+            </div>
+          </Card>
+
+          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white">
+            <div className="flex items-center gap-3 mb-4">
+              <Layers className="w-5 h-5 text-primary" />
+              <h3 className="font-black text-primary uppercase text-sm">Visual Lapisan</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               {layers.map((layer) => (
                 <button
                   key={layer.id}
                   onClick={() => setActiveLayer(layer.id as MapLayer)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-xl transition-all border-2 text-left",
-                    activeLayer === layer.id ? "bg-primary border-primary text-white" : "bg-secondary/30 border-transparent text-muted-foreground"
+                    "flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all border-2",
+                    activeLayer === layer.id ? "bg-primary border-primary text-white shadow-lg" : "bg-secondary/30 border-transparent text-muted-foreground hover:bg-secondary"
                   )}
                 >
                   <layer.icon className="w-4 h-4" />
-                  <span className="font-black text-[10px] uppercase tracking-tighter">{layer.label}</span>
+                  <span className="font-black text-[8px] uppercase">{layer.label}</span>
                 </button>
               ))}
             </div>
-          </Card>
-
-          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white">
-            <h3 className="font-black uppercase text-xs mb-4 flex items-center gap-2">
-              <Info className="w-4 h-4" /> Info Editor
-            </h3>
-            <ul className="text-[10px] space-y-2 font-medium opacity-80 leading-relaxed">
-              <li>• Klik ikon <b>Marker</b> untuk menambah titik lokasi.</li>
-              <li>• Klik ikon <b>Polyline</b> untuk menggambar jalan/rute.</li>
-              <li>• Klik ikon <b>Polygon</b> untuk area batas.</li>
-              <li>• Beri nama pada daftar di atas agar muncul sebagai label di peta warga.</li>
-            </ul>
           </Card>
         </div>
       </div>
