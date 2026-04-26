@@ -83,7 +83,7 @@ export default function Home() {
   const allLines = useMemo(() => parseData(mapSettings?.lines, []), [mapSettings]);
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
-  // Handle Initial Visibility: Show only areas by default
+  // Handle Initial Visibility: Show only areas by default, hide all lines and markers
   useEffect(() => {
     if (!isInitialized && mapSettings && (allLines.length > 0 || allMarkers.length > 0)) {
       const initialHiddenLines: Record<string, boolean> = {};
@@ -217,7 +217,7 @@ export default function Home() {
               </div>
               
               <div className="space-y-3">
-                {/* 1. Areas (Polygons) */}
+                {/* 1. Areas (Polygons) - Batas RW/RT */}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-4 px-4 py-4 rounded-2xl cursor-pointer transition-colors font-black text-[10px] uppercase tracking-widest text-white/70 focus:bg-white/5 data-[state=open]:bg-white/5">
                     <Hexagon className="w-4 h-4 text-green-500" />
@@ -248,7 +248,7 @@ export default function Home() {
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
 
-                {/* 2. Lines (Roads/Infrastructure) */}
+                {/* 2. Lines (Infrastructure) - Checklist Opt-in */}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-4 px-4 py-4 rounded-2xl cursor-pointer transition-colors font-black text-[10px] uppercase tracking-widest text-white/70 focus:bg-white/5 data-[state=open]:bg-white/5">
                     <Route className="w-4 h-4 text-blue-500" />
@@ -279,7 +279,7 @@ export default function Home() {
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
 
-                {/* 3. Markers (Facilities) */}
+                {/* 3. Markers (Facilities) - Checklist Opt-in */}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-4 px-4 py-4 rounded-2xl cursor-pointer transition-colors font-black text-[10px] uppercase tracking-widest text-white/70 focus:bg-white/5 data-[state=open]:bg-white/5">
                     <MapPin className="w-4 h-4 text-red-500" />
@@ -322,7 +322,7 @@ export default function Home() {
                 <Compass className="w-6 h-6 transition-transform group-hover:scale-110" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl">
+            <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
               Kalibrasi Fokus
             </TooltipContent>
           </Tooltip>
@@ -336,7 +336,7 @@ export default function Home() {
                 <Info className="w-6 h-6 transition-transform group-hover:scale-110" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl">
+            <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
               Informasi Geografis
             </TooltipContent>
           </Tooltip>
