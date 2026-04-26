@@ -28,7 +28,8 @@ import {
   MousePointer2,
   Maximize2,
   Info,
-  Pencil
+  Pencil,
+  Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -42,6 +43,15 @@ const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
 
 const COORDINATES: [number, number] = [-5.097673729554944, 105.2921561873565];
 const ZOOM_LEVEL = 17;
+
+const COLOR_PALETTE = [
+  { value: '#22c55e', label: 'Green' },
+  { value: '#3b82f6', label: 'Blue' },
+  { value: '#ef4444', label: 'Red' },
+  { value: '#f59e0b', label: 'Orange' },
+  { value: '#8b5cf6', label: 'Purple' },
+  { value: '#06b6d4', label: 'Cyan' },
+];
 
 type MapLayer = 'satellite' | 'streets' | 'dark';
 
@@ -105,7 +115,7 @@ export function MapControlView() {
     });
   };
 
-  const updateObjectProperty = (type: 'line' | 'marker' | 'polygon', id: string, property: 'name' | 'description', value: string) => {
+  const updateObjectProperty = (type: 'line' | 'marker' | 'polygon', id: string, property: keyof MapObject, value: any) => {
     setTempData(prev => {
       if (type === 'polygon') {
         return { ...prev, polygons: prev.polygons.map(p => p.id === id ? { ...p, [property]: value } : p) };
@@ -232,9 +242,12 @@ export function MapControlView() {
                 {tempData.polygons.map(poly => (
                   <div key={poly.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-green-50 border-green-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
-                        <Hexagon className="w-3 h-3" /> Area Poligon
-                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
+                          <Hexagon className="w-3 h-3" /> Area Poligon
+                        </label>
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: poly.color || '#22c55e' }} />
+                      </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button onClick={() => focusOnObject(poly.coords)} size="icon" variant="ghost" className="h-8 w-8 text-green-600 bg-white/50 rounded-xl">
                           <Maximize2 className="w-4 h-4" />
@@ -249,7 +262,7 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Input 
                         value={poly.name} 
                         onChange={(e) => updateObjectProperty('polygon', poly.id, 'name', e.target.value)}
@@ -257,6 +270,25 @@ export function MapControlView() {
                         className="bg-white border-none h-9 text-xs font-bold shadow-sm"
                         placeholder="Nama Area..."
                       />
+                      {isEditing && (
+                        <div className="flex items-center gap-2">
+                          <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                          <div className="flex gap-1.5">
+                            {COLOR_PALETTE.map(color => (
+                              <button
+                                key={color.value}
+                                onClick={() => updateObjectProperty('polygon', poly.id, 'color', color.value)}
+                                className={cn(
+                                  "w-5 h-5 rounded-full border-2 transition-transform hover:scale-110",
+                                  poly.color === color.value ? "border-primary scale-110" : "border-transparent"
+                                )}
+                                style={{ backgroundColor: color.value }}
+                                title={color.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <Textarea 
                         value={poly.description || ''} 
                         onChange={(e) => updateObjectProperty('polygon', poly.id, 'description', e.target.value)}
@@ -271,9 +303,12 @@ export function MapControlView() {
                 {tempData.lines.map(line => (
                   <div key={line.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-blue-50 border-blue-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
-                      <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
-                        <Route className="w-3 h-3" /> Jalur Garis
-                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
+                          <Route className="w-3 h-3" /> Jalur Garis
+                        </label>
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: line.color || '#3b82f6' }} />
+                      </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button onClick={() => focusOnObject(line.coords)} size="icon" variant="ghost" className="h-8 w-8 text-blue-600 bg-white/50 rounded-xl">
                           <Maximize2 className="w-4 h-4" />
@@ -288,7 +323,7 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Input 
                         value={line.name} 
                         onChange={(e) => updateObjectProperty('line', line.id, 'name', e.target.value)}
@@ -296,6 +331,25 @@ export function MapControlView() {
                         className="bg-white border-none h-9 text-xs font-bold shadow-sm"
                         placeholder="Nama Jalur..."
                       />
+                      {isEditing && (
+                        <div className="flex items-center gap-2">
+                          <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                          <div className="flex gap-1.5">
+                            {COLOR_PALETTE.map(color => (
+                              <button
+                                key={color.value}
+                                onClick={() => updateObjectProperty('line', line.id, 'color', color.value)}
+                                className={cn(
+                                  "w-5 h-5 rounded-full border-2 transition-transform hover:scale-110",
+                                  line.color === color.value ? "border-primary scale-110" : "border-transparent"
+                                )}
+                                style={{ backgroundColor: color.value }}
+                                title={color.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <Textarea 
                         value={line.description || ''} 
                         onChange={(e) => updateObjectProperty('line', line.id, 'description', e.target.value)}

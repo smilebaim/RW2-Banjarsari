@@ -23,6 +23,7 @@ export interface MapObject {
   id: string;
   name: string;
   description?: string;
+  color?: string;
   coords: any;
   type: 'polygon' | 'line' | 'marker';
 }
@@ -86,15 +87,16 @@ export default function LeafletMap({
       const existingId = l.options.id || `obj-${Date.now()}-${index}`;
       const existingName = l.options.name || 'Objek Tanpa Nama';
       const existingDesc = l.options.description || '';
+      const existingColor = l.options.color || '#22c55e';
 
       if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
         const latlngs = l.getLatLngs();
         const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-        polygons.push({ id: existingId, name: existingName, description: existingDesc, coords, type: 'polygon' });
+        polygons.push({ id: existingId, name: existingName, description: existingDesc, color: existingColor, coords, type: 'polygon' });
       } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
         const latlngs = l.getLatLngs();
         const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
-        lines.push({ id: existingId, name: existingName, description: existingDesc, coords, type: 'line' });
+        lines.push({ id: existingId, name: existingName, description: existingDesc, color: existingColor, coords, type: 'line' });
       } else if (l instanceof L.Marker) {
         const ll = l.getLatLng();
         markers.push({ id: existingId, name: existingName, description: existingDesc, coords: [ll.lat, ll.lng], type: 'marker' });
@@ -148,6 +150,7 @@ export default function LeafletMap({
           layer.options.id = `obj-${Date.now()}`;
           layer.options.name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
           layer.options.description = '';
+          layer.options.color = type === 'polygon' ? '#22c55e' : '#3b82f6';
           drawItems.current?.addLayer(layer);
           handleDrawChange();
         });
@@ -203,8 +206,8 @@ export default function LeafletMap({
       polygonsData?.forEach(poly => {
         if (poly.coords && poly.coords.length > 0) {
           L.polygon(poly.coords as any, {
-            color: '#22c55e',
-            fillColor: '#22c55e',
+            color: poly.color || '#22c55e',
+            fillColor: poly.color || '#22c55e',
             fillOpacity: 0.2,
             weight: 3,
             dashArray: '5, 10'
@@ -215,7 +218,10 @@ export default function LeafletMap({
       });
 
       linesData?.forEach(item => {
-        L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 })
+        L.polyline(item.coords as any, { 
+          color: item.color || '#3b82f6', 
+          weight: 4 
+        })
         .bindPopup(createPopupContent(item.name, item.description))
         .addTo(featureGroupInstance.current!);
       });
@@ -230,15 +236,21 @@ export default function LeafletMap({
       const currentLayers = drawItems.current.getLayers();
       if (currentLayers.length === 0) {
         polygonsData?.forEach(poly => {
-          const p = L.polygon(poly.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
+          const p = L.polygon(poly.coords as any, { color: poly.color || '#22c55e', fillOpacity: 0.3 });
           // @ts-ignore
-          p.options.id = poly.id; p.options.name = poly.name; p.options.description = poly.description;
+          p.options.id = poly.id; 
+          p.options.name = poly.name; 
+          p.options.description = poly.description;
+          p.options.color = poly.color;
           p.addTo(drawItems.current!);
         });
         linesData?.forEach(item => {
-          const l = L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 });
+          const l = L.polyline(item.coords as any, { color: item.color || '#3b82f6', weight: 4 });
           // @ts-ignore
-          l.options.id = item.id; l.options.name = item.name; l.options.description = item.description;
+          l.options.id = item.id; 
+          l.options.name = item.name; 
+          l.options.description = item.description;
+          l.options.color = item.color;
           l.addTo(drawItems.current!);
         });
         markersData?.forEach(item => {
