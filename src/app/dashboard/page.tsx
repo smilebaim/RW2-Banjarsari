@@ -29,7 +29,8 @@ import {
   TrendingUp,
   Menu,
   Trash2,
-  Settings2
+  Settings2,
+  MessageCircle
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,10 +60,10 @@ const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
   { id: 'map', label: 'Peta Wilayah', icon: MapIcon },
   { id: 'news', label: 'Kelola Berita', icon: Newspaper },
-  { id: 'feedback', label: 'Kontrol Aspirasi', icon: Zap },
+  { id: 'feedback', label: 'Kontrol Aspirasi', icon: MessageCircle },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Struktur Pengurus', icon: Users },
-  { id: 'settings', label: 'Pengaturan', icon: Settings },
+  { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
 ];
 
 export default function DashboardPage() {
@@ -195,8 +196,8 @@ export default function DashboardPage() {
               <Lock className="w-12 h-12 text-primary" />
             </div>
             <div className="space-y-3">
-              <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
-              <p className="text-muted-foreground font-medium">Aktifkan dashboard Anda untuk mulai mengelola wilayah.</p>
+              <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
+              <p className="text-muted-foreground font-medium text-sm">Aktifkan dashboard Anda untuk mulai mengelola wilayah.</p>
             </div>
             <Button 
               onClick={handleImportDummyData} 
@@ -242,7 +243,7 @@ export default function DashboardPage() {
             }`}
           >
             <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-accent' : 'group-hover:scale-110 transition-transform'}`} />
-            <span className="font-bold text-sm">{item.label}</span>
+            <span className="font-bold text-xs uppercase tracking-widest">{item.label}</span>
           </button>
         ))}
       </nav>
@@ -252,13 +253,13 @@ export default function DashboardPage() {
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-4 px-6 py-4 rounded-2xl text-orange-600 hover:bg-orange-50 font-bold transition-all">
               <Trash2 className="w-5 h-5" />
-              Kosongkan Data
+              <span className="text-[10px] uppercase tracking-widest">Kosongkan Data</span>
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="rounded-[2.5rem] p-10">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
-              <AlertDialogDescription className="font-medium text-lg">
+              <AlertDialogTitle className="text-xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
+              <AlertDialogDescription className="font-medium">
                 Tindakan ini akan menghapus semua berita, kontak, pengurus, dan aspirasi dari database secara permanen.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -275,7 +276,7 @@ export default function DashboardPage() {
           className="w-full justify-start gap-4 px-6 py-6 rounded-2xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all font-bold"
         >
           <LogOut className="w-5 h-5" />
-          Keluar Sistem
+          <span className="text-[10px] uppercase tracking-widest">Keluar Sistem</span>
         </Button>
       </div>
     </div>
@@ -358,7 +359,7 @@ export default function DashboardPage() {
                         <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-secondary">{stat.sub}</Badge>
                       </div>
                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-                      <h3 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tighter">{stat.value}</h3>
+                      <h3 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tighter">{stat.value}</h3>
                     </CardContent>
                   </Card>
                 ))}
@@ -370,9 +371,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="lg:col-span-4 space-y-8">
                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary text-white overflow-hidden p-8">
-                      <h3 className="text-xl font-black uppercase tracking-tighter mb-4">Pengumuman Cepat</h3>
-                      <p className="text-white/70 text-sm mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga.</p>
-                      <Button onClick={() => setActiveTab('news')} className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
+                      <h3 className="text-lg font-black uppercase tracking-tighter mb-4">Pengumuman Cepat</h3>
+                      <p className="text-white/70 text-xs mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga.</p>
+                      <Button onClick={() => setActiveTab('news')} className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
                    </Card>
                 </div>
               </div>

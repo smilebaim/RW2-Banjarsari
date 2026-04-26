@@ -1,15 +1,21 @@
 
 "use client";
 
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { useState, useEffect } from 'react';
+import { useFirestore, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Zap, MessageSquare, UserCheck, ShieldCheck, ArrowRight, Settings } from 'lucide-react';
+import { Zap, MessageSquare, UserCheck, ShieldCheck, ArrowRight, Settings, Save, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 export function FeedbackAnalysisView() {
   const db = useFirestore();
+  const { toast } = useToast();
+  const [messageTemplate, setMessageTemplate] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch Officials for status monitoring
   const membersQuery = useMemoFirebase(() => query(collection(db, 'rw_management_members'), orderBy('createdAt', 'asc')), [db]);
@@ -17,7 +23,29 @@ export function FeedbackAnalysisView() {
 
   // Fetch WhatsApp Config
   const configRef = useMemoFirebase(() => doc(db, 'system_settings', 'whatsapp_config'), [db]);
-  const { data: config } = useDoc(configRef);
+  const { data: config, isLoading: isConfigLoading } = useDoc(configRef);
+
+  useEffect(() => {
+    if (config) {
+      setMessageTemplate(config.messageTemplate || '');
+    }
+  }, [config]);
+
+  const handleSaveTemplate = () => {
+    setIsSaving(true);
+    setDocumentNonBlocking(configRef, {
+      messageTemplate,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({
+        title: "Templat Disimpan",
+        description: "Format pesan WhatsApp otomatis telah diperbarui.",
+      });
+    }, 500);
+  };
 
   return (
     <div className="space-y-10">
@@ -25,26 +53,61 @@ export function FeedbackAnalysisView() {
         <div>
           <h2 className="text-2xl font-black text-primary flex items-center gap-2 uppercase tracking-tighter">
             <Zap className="w-6 h-6" />
-            Kontrol Aspirasi Digital
+            Kontrol Aspirasi & WhatsApp
           </h2>
-          <p className="text-muted-foreground font-medium text-sm">Monitoring alur aspirasi warga langsung ke WhatsApp pengurus.</p>
+          <p className="text-muted-foreground font-medium text-sm">Kelola alur komunikasi langsung warga ke pengurus melalui WhatsApp.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Status Pengurus */}
+        {/* Editor Templat Pesan */}
+        <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
+          <div className="p-8 border-b border-secondary/50 bg-secondary/10 flex items-center justify-between">
+            <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> Templat Pesan Warga
+            </h3>
+            <Button onClick={handleSaveTemplate} disabled={isSaving || isConfigLoading} size="sm" className="h-9 rounded-xl bg-primary gap-2 font-black uppercase tracking-widest text-[9px]">
+              {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+              Simpan Format
+            </Button>
+          </div>
+          <CardContent className="p-8 space-y-6">
+            <div className="space-y-3">
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-1">Isi Pesan Otomatis</label>
+              <Textarea 
+                value={messageTemplate} 
+                onChange={(e) => setMessageTemplate(e.target.value)}
+                placeholder="Contoh: Halo {{target}}, saya ingin menyampaikan..."
+                className="min-h-[160px] bg-secondary/30 border-none rounded-2xl p-6 font-medium leading-relaxed shadow-inner"
+              />
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                <div className="flex items-center gap-2 text-[9px] font-black text-primary uppercase tracking-widest mb-2">
+                  <Info className="w-3 h-3" /> Placeholder Dinamis:
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <code className="bg-white px-2 py-0.5 rounded text-[8px] font-black text-primary border border-primary/20">{{target}}</code>
+                  <span className="text-[8px] text-muted-foreground uppercase tracking-widest font-bold">Nama Pejabat</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status Pengurus & Nomor WA */}
         <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
           <div className="p-8 border-b border-secondary/50 bg-secondary/10">
-            <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-              <UserCheck className="w-4 h-4" /> Kesiapan Respon Pengurus
+            <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+              <UserCheck className="w-4 h-4" /> Daftar WhatsApp Pengurus
             </h3>
           </div>
           <CardContent className="p-0">
-            <div className="divide-y divide-secondary/50 max-h-[400px] overflow-y-auto">
+            <div className="divide-y divide-secondary/50 max-h-[440px] overflow-y-auto">
               {isLoading ? (
                 <div className="p-20 text-center"><Zap className="w-10 h-10 animate-pulse mx-auto text-primary/20" /></div>
+              ) : officials?.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground text-xs font-bold italic">Belum ada pengurus terdaftar.</div>
               ) : officials?.map((official) => (
-                <div key={official.id} className="p-6 flex items-center justify-between">
+                <div key={official.id} className="p-6 flex items-center justify-between hover:bg-secondary/5 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                       <ShieldCheck className="w-5 h-5" />
@@ -54,56 +117,42 @@ export function FeedbackAnalysisView() {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{official.role}</p>
                     </div>
                   </div>
-                  <Badge className={official.contactNumber ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
-                    {official.contactNumber ? "WA AKTIF" : "NO WA KOSONG"}
-                  </Badge>
+                  <div className="text-right">
+                    {official.contactNumber ? (
+                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none text-[8px] font-black uppercase tracking-widest">
+                        {official.contactNumber}
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="text-[8px] font-black uppercase tracking-widest">
+                        NO WA KOSONG
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
-
-        {/* Konfigurasi Pesan Aktif */}
-        <div className="space-y-8">
-          <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary text-white p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            <div className="relative space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5" />
-                </div>
-                <h3 className="font-black uppercase tracking-tighter text-xl">Templat Pesan Aktif</h3>
-              </div>
-              
-              <div className="bg-black/20 p-6 rounded-2xl italic text-sm border border-white/10 leading-relaxed">
-                "{config?.messageTemplate || 'Belum diatur...'}"
-              </div>
-
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-                <Settings className="w-3 h-3" /> Diperbarui: {config?.updatedAt ? new Date(config.updatedAt).toLocaleDateString() : '-'}
-              </div>
-            </div>
-          </Card>
-
-          <Card className="border-none shadow-xl rounded-[2.5rem] bg-zinc-900 text-white p-8">
-            <h3 className="text-lg font-black uppercase tracking-tighter mb-4 text-accent">Cara Kerja Aspirasi</h3>
-            <div className="space-y-4 text-xs font-medium opacity-80 leading-relaxed">
-              <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center font-black shrink-0">1</div>
-                <p>Warga memilih pengurus yang sedang bertugas atau relevan dengan masalah mereka.</p>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center font-black shrink-0">2</div>
-                <p>Sistem merangkai pesan otomatis berdasarkan templat yang Anda buat di tab Pengaturan.</p>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center font-black shrink-0">3</div>
-                <p>Ponsel warga akan membuka WhatsApp dan mengirim pesan tersebut langsung ke pengurus terkait.</p>
-              </div>
-            </div>
-          </Card>
-        </div>
       </div>
+
+      {/* Info Alur Kerjra */}
+      <Card className="border-none shadow-xl rounded-[2.5rem] bg-zinc-900 text-white p-8 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/30 transition-all duration-1000"></div>
+        <div className="relative flex flex-col md:flex-row items-center gap-8">
+          <div className="w-20 h-20 bg-accent rounded-3xl flex items-center justify-center text-black shrink-0 shadow-2xl">
+            <Zap className="w-10 h-10" />
+          </div>
+          <div className="space-y-2 flex-1">
+            <h3 className="text-xl font-black uppercase tracking-tighter text-accent">Alur Kerja Aspirasi Digital</h3>
+            <p className="text-xs font-medium opacity-80 leading-relaxed max-w-2xl">
+              Sistem ini tidak menyimpan pesan aspirasi di database aplikasi. Warga memilih pengurus tujuan, dan aplikasi secara otomatis merangkai pesan sesuai templat di atas, lalu membuka aplikasi WhatsApp warga untuk mengirimkannya langsung ke nomor pengurus.
+            </p>
+          </div>
+          <Button variant="outline" className="rounded-xl border-white/20 text-white hover:bg-white/10 font-black uppercase tracking-widest text-[9px] h-12 px-6">
+            Pelajari Detail <ArrowRight className="w-3.5 h-3.5 ml-2" />
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }
