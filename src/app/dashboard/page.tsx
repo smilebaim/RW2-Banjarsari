@@ -28,7 +28,8 @@ import {
   Zap,
   TrendingUp,
   Menu,
-  Trash2
+  Trash2,
+  Settings2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,7 +59,7 @@ const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
   { id: 'map', label: 'Peta Wilayah', icon: MapIcon },
   { id: 'news', label: 'Kelola Berita', icon: Newspaper },
-  { id: 'feedback', label: 'Aspirasi AI', icon: TrendingUp },
+  { id: 'feedback', label: 'Kontrol Aspirasi', icon: Zap },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Struktur Pengurus', icon: Users },
   { id: 'settings', label: 'Pengaturan', icon: Settings },
@@ -154,7 +155,7 @@ export default function DashboardPage() {
 
       await setDoc(doc(db, 'system_settings', 'whatsapp_config'), {
         phoneNumber: '6281234567890',
-        messageTemplate: 'Halo Pengurus RW 02,\n\nSaya {{name}} dari RT {{rt}} ingin menyampaikan {{type}}:\n\n{{message}}',
+        messageTemplate: 'Halo {{target}},\n\nSaya ingin menyampaikan aspirasi terkait wilayah RW 02...',
         updatedAt: new Date().toISOString()
       });
 

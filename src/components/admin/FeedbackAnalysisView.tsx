@@ -1,178 +1,108 @@
 
 "use client";
 
-import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useUser } from '@/firebase';
-import { collection, doc, query, orderBy, limit } from 'firebase/firestore';
-import { analyzeFeedback, AnalyzeFeedbackOutput } from '@/ai/flows/analyze-feedback';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, TrendingUp, MessageCircle, Flag, Calendar, User } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Zap, MessageSquare, UserCheck, ShieldCheck, ArrowRight, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function FeedbackAnalysisView() {
-  const { user } = useUser();
   const db = useFirestore();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const feedbackQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(db, 'resident_feedback'), orderBy('createdAt', 'desc'), limit(10));
-  }, [db, user]);
+  // Fetch Officials for status monitoring
+  const membersQuery = useMemoFirebase(() => query(collection(db, 'rw_management_members'), orderBy('createdAt', 'asc')), [db]);
+  const { data: officials, isLoading } = useCollection(membersQuery);
 
-  const { data: feedbacks, isLoading: isFetching } = useCollection(feedbackQuery);
-  const currentFeedback = feedbacks?.[currentIndex];
-
-  const handleAnalyze = async () => {
-    if (!currentFeedback) return;
-    setLoading(true);
-    try {
-      const result = await analyzeFeedback({ feedbackText: currentFeedback.message });
-      
-      // Update Firestore with AI analysis
-      updateDocumentNonBlocking(doc(db, 'resident_feedback', currentFeedback.id), {
-        aiAnalysisSummary: result.summary,
-        aiSentiment: result.sentiment,
-        aiIdentifiedThemes: result.themes,
-        status: result.urgentIssues.length > 0 ? 'Urgent' : 'Received',
-        updatedAt: new Date().toISOString()
-      });
-
-      toast({ title: "Analisis Selesai", description: "Hasil AI telah disimpan ke database." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Analisis Gagal", description: error.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getSentimentColor = (sentiment?: string) => {
-    switch (sentiment?.toLowerCase()) {
-      case 'positive': return 'bg-green-100 text-green-700 border-green-200';
-      case 'negative': return 'bg-red-100 text-red-700 border-red-200';
-      case 'mixed': return 'bg-orange-100 text-orange-700 border-orange-200';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200';
-    }
-  };
-
-  if (isFetching) {
-    return <div className="p-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></div>;
-  }
-
-  if (!feedbacks || feedbacks.length === 0) {
-    return (
-      <div className="p-20 text-center border-4 border-dashed border-secondary rounded-[3rem] bg-white">
-        <MessageCircle className="w-12 h-12 mx-auto text-secondary mb-4" />
-        <h3 className="text-xl font-black text-primary uppercase">Belum ada laporan masuk</h3>
-        <p className="text-muted-foreground font-medium">Aspirasi dari warga akan muncul di sini.</p>
-      </div>
-    );
-  }
+  // Fetch WhatsApp Config
+  const configRef = useMemoFirebase(() => doc(db, 'system_settings', 'whatsapp_config'), [db]);
+  const { data: config } = useDoc(configRef);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-black text-primary flex items-center gap-2 uppercase tracking-tighter">
-          <TrendingUp className="w-6 h-6" />
-          Analisis Aspirasi Warga (AI)
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {feedbacks.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentIndex(i)}
-              className={`w-3 h-3 rounded-full transition-all ${currentIndex === i ? 'bg-primary w-8' : 'bg-gray-300'}`}
-            />
-          ))}
+        <div>
+          <h2 className="text-2xl font-black text-primary flex items-center gap-2 uppercase tracking-tighter">
+            <Zap className="w-6 h-6" />
+            Kontrol Aspirasi Digital
+          </h2>
+          <p className="text-muted-foreground font-medium text-sm">Monitoring alur aspirasi warga langsung ke WhatsApp pengurus.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white">
-          <CardHeader className="bg-secondary/20 pb-8 pt-8">
-            <div className="flex justify-between items-center mb-2">
-              <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">
-                {currentFeedback.type || 'Laporan'}
-              </Badge>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
-                <Calendar className="w-3 h-3" />
-                {new Date(currentFeedback.createdAt).toLocaleDateString('id-ID')}
-              </div>
-            </div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              {currentFeedback.name || 'Warga Anonim'}
-            </CardTitle>
-            <CardDescription className="font-bold text-primary/60">RT {currentFeedback.rt || '??'}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8">
-            <blockquote className="text-xl italic text-foreground/80 leading-relaxed border-l-4 border-primary pl-6 py-2">
-              "{currentFeedback.message}"
-            </blockquote>
-            <div className="mt-10">
-              <Button 
-                onClick={handleAnalyze} 
-                className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 gap-3" 
-                disabled={loading}
-              >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
-                Analisis & Simpan Hasil AI
-              </Button>
+        {/* Status Pengurus */}
+        <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
+          <div className="p-8 border-b border-secondary/50 bg-secondary/10">
+            <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+              <UserCheck className="w-4 h-4" /> Kesiapan Respon Pengurus
+            </h3>
+          </div>
+          <CardContent className="p-0">
+            <div className="divide-y divide-secondary/50 max-h-[400px] overflow-y-auto">
+              {isLoading ? (
+                <div className="p-20 text-center"><Zap className="w-10 h-10 animate-pulse mx-auto text-primary/20" /></div>
+              ) : officials?.map((official) => (
+                <div key={official.id} className="p-6 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm leading-none mb-1">{official.name}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{official.role}</p>
+                    </div>
+                  </div>
+                  <Badge className={official.contactNumber ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
+                    {official.contactNumber ? "WA AKTIF" : "NO WA KOSONG"}
+                  </Badge>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {currentFeedback.aiAnalysisSummary ? (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-500">
-            <Card className="border-none shadow-xl rounded-[2.5rem] bg-white p-8">
-              <div className="flex items-center justify-between mb-6">
-                 <Badge className={getSentimentColor(currentFeedback.aiSentiment)}>
-                  SENTIMEN: {currentFeedback.aiSentiment?.toUpperCase() || 'PROSES'}
-                </Badge>
-                <div className="flex items-center gap-1 text-[10px] font-black text-primary/40 uppercase tracking-widest">
-                  <Sparkles className="w-3 h-3" /> Terakhir Dianalisis
+        {/* Konfigurasi Pesan Aktif */}
+        <div className="space-y-8">
+          <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary text-white p-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            <div className="relative space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5" />
                 </div>
+                <h3 className="font-black uppercase tracking-tighter text-xl">Templat Pesan Aktif</h3>
               </div>
               
-              <h3 className="text-xl font-black text-primary mb-4 uppercase tracking-tighter">Ringkasan AI</h3>
-              <p className="text-muted-foreground leading-relaxed mb-8 font-medium">
-                {currentFeedback.aiAnalysisSummary}
-              </p>
-              
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-black text-[10px] text-primary/60 mb-3 uppercase tracking-[0.2em]">Tema Teridentifikasi:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {currentFeedback.aiIdentifiedThemes?.map((theme: string, i: number) => (
-                      <Badge key={i} variant="outline" className="bg-primary/5 border-primary/20 text-primary px-3 py-1 text-[10px] font-bold">
-                        {theme}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+              <div className="bg-black/20 p-6 rounded-2xl italic text-sm border border-white/10 leading-relaxed">
+                "{config?.messageTemplate || 'Belum diatur...'}"
+              </div>
 
-                {currentFeedback.status === 'Urgent' && (
-                  <div className="p-5 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-4">
-                    <Flag className="w-5 h-5 text-red-600 shrink-0 mt-1" />
-                    <div>
-                      <h4 className="font-black text-sm text-red-700 uppercase tracking-tight">Tindakan Mendesak</h4>
-                      <p className="text-xs text-red-600/80 font-medium leading-relaxed">Sistem AI mendeteksi masalah ini memerlukan perhatian segera dari tim pengurus terkait.</p>
-                    </div>
-                  </div>
-                )}
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
+                <Settings className="w-3 h-3" /> Diperbarui: {config?.updatedAt ? new Date(config.updatedAt).toLocaleDateString() : '-'}
               </div>
-            </Card>
-          </div>
-        ) : (
-          <div className="border-4 border-dashed border-secondary rounded-[3rem] flex flex-col items-center justify-center p-12 text-center text-muted-foreground bg-white shadow-inner">
-            <Sparkles className="w-16 h-16 mb-4 opacity-20" />
-            <p className="text-lg font-bold text-primary/40 uppercase tracking-tighter">Butuh Wawasan AI?</p>
-            <p className="text-sm">Klik tombol analisis pada laporan untuk mengaktifkan kecerdasan buatan.</p>
-          </div>
-        )}
+            </div>
+          </Card>
+
+          <Card className="border-none shadow-xl rounded-[2.5rem] bg-zinc-900 text-white p-8">
+            <h3 className="text-lg font-black uppercase tracking-tighter mb-4 text-accent">Cara Kerja Aspirasi</h3>
+            <div className="space-y-4 text-xs font-medium opacity-80 leading-relaxed">
+              <div className="flex gap-4">
+                <div className="w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center font-black shrink-0">1</div>
+                <p>Warga memilih pengurus yang sedang bertugas atau relevan dengan masalah mereka.</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center font-black shrink-0">2</div>
+                <p>Sistem merangkai pesan otomatis berdasarkan templat yang Anda buat di tab Pengaturan.</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-6 h-6 rounded-full bg-accent text-black flex items-center justify-center font-black shrink-0">3</div>
+                <p>Ponsel warga akan membuka WhatsApp dan mengirim pesan tersebut langsung ke pengurus terkait.</p>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
