@@ -51,6 +51,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 const NAV_ITEMS = [
@@ -247,12 +248,12 @@ export default function DashboardPage() {
 
       <div className="pt-8 border-t border-secondary/50 space-y-4">
         <AlertDialog>
-          <AlertDialog.Trigger asChild>
+          <AlertDialogTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-4 px-6 py-4 rounded-2xl text-orange-600 hover:bg-orange-50 font-bold transition-all">
               <Trash2 className="w-5 h-5" />
               Kosongkan Data
             </Button>
-          </AlertDialog.Trigger>
+          </AlertDialogTrigger>
           <AlertDialogContent className="rounded-[2.5rem] p-10">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
