@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -20,9 +20,8 @@ import {
   Hexagon,
   Route,
   MapPin,
-  ChevronRight,
-  Eye,
-  EyeOff
+  Shield,
+  Zap,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -58,6 +57,18 @@ const ZOOM_LEVEL = 17;
 
 type MapLayerType = 'satellite' | 'streets' | 'dark';
 
+// Helper to safely parse JSON strings from Firestore outside the component
+const parseData = (val: any, fallback: any = []) => {
+  if (typeof val === 'string') {
+    try {
+      return JSON.parse(val);
+    } catch (e) {
+      return fallback;
+    }
+  }
+  return val || fallback;
+};
+
 export default function Home() {
   const db = useFirestore();
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
@@ -65,57 +76,61 @@ export default function Home() {
     lines: true,
     markers: true
   });
-  const [visibleAreaIds, setVisibleAreaIds] = useState<Record<string, boolean>>({});
+  
+  // Using "hidden" map instead of "visible" map to avoid useEffect initialization loops
+  const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
 
   // Fetch geography settings from Firestore
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings } = useDoc(mapSettingsRef);
 
-  // Helper to safely parse JSON strings from Firestore
-  const parseData = (val: any, fallback: any = []) => {
-    if (typeof val === 'string') {
-      try {
-        return JSON.parse(val);
-      } catch (e) {
-        return fallback;
-      }
-    }
-    return val || fallback;
-  };
+  // Stabilize parsed data to prevent unnecessary re-renders
+  const allPolygons = useMemo(() => 
+    parseData(mapSettings?.polygons || mapSettings?.polygon, []), 
+    [mapSettings?.polygons, mapSettings?.polygon]
+  );
+  
+  const linesData = useMemo(() => 
+    parseData(mapSettings?.lines, []), 
+    [mapSettings?.lines]
+  );
+  
+  const markersData = useMemo(() => 
+    parseData(mapSettings?.markers, []), 
+    [mapSettings?.markers]
+  );
 
-  const allPolygons = parseData(mapSettings?.polygons || mapSettings?.polygon, []);
-  const linesData = parseData(mapSettings?.lines, []);
-  const markersData = parseData(mapSettings?.markers, []);
-
-  // Initialize visibility for new polygons
-  useEffect(() => {
-    if (allPolygons.length > 0) {
-      setVisibleAreaIds(prev => {
-        const next = { ...prev };
-        allPolygons.forEach((p: any) => {
-          if (next[p.id] === undefined) next[p.id] = true;
-        });
-        return next;
-      });
-    }
-  }, [allPolygons]);
-
-  const polygonsData = allPolygons.filter((p: any) => visibleAreaIds[p.id]);
+  // Derived visibility data
+  const polygonsData = useMemo(() => 
+    allPolygons.filter((p: any) => !hiddenAreaIds[p.id]), 
+    [allPolygons, hiddenAreaIds]
+  );
 
   const totalInfra = 
     polygonsData.length + 
     (visibility.lines ? linesData.length : 0) + 
     (visibility.markers ? markersData.length : 0);
 
-  const isAnyPolygonVisible = Object.values(visibleAreaIds).some(v => v);
+  const isAnyPolygonVisible = allPolygons.some(p => !hiddenAreaIds[p.id]);
   const isAnyLayerVisible = isAnyPolygonVisible || visibility.lines || visibility.markers;
 
-  const toggleAllPolygons = (checked: boolean) => {
-    const next: Record<string, boolean> = {};
-    allPolygons.forEach((p: any) => {
-      next[p.id] = checked;
-    });
-    setVisibleAreaIds(next);
+  const toggleAllPolygons = (show: boolean) => {
+    if (show) {
+      setHiddenAreaIds({});
+    } else {
+      const next: Record<string, boolean> = {};
+      allPolygons.forEach((p: any) => {
+        next[p.id] = true;
+      });
+      setHiddenAreaIds(next);
+    }
+  };
+
+  const toggleSinglePolygon = (id: string, isVisible: boolean) => {
+    setHiddenAreaIds(prev => ({
+      ...prev,
+      [id]: !isVisible
+    }));
   };
 
   return (
@@ -127,7 +142,7 @@ export default function Home() {
           layer={activeLayer} 
           locked={false}
           showBoundary={true}
-          showPolygons={true} // Controlled by filtered polygonsData
+          showPolygons={true}
           showLines={visibility.lines}
           showMarkers={visibility.markers}
           polygonsData={polygonsData}
@@ -239,7 +254,7 @@ export default function Home() {
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Pilih Data Wilayah</p>
               </div>
               
-              {/* Areas Sub-Menu for individual control */}
+              {/* Areas Sub-Menu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white">
                   <Hexagon className="w-4 h-4 text-green-500" />
@@ -257,8 +272,8 @@ export default function Home() {
                   {allPolygons.map((p: any) => (
                     <DropdownMenuCheckboxItem
                       key={p.id}
-                      checked={visibleAreaIds[p.id]}
-                      onCheckedChange={(checked) => setVisibleAreaIds(prev => ({ ...prev, [p.id]: !!checked }))}
+                      checked={!hiddenAreaIds[p.id]}
+                      onCheckedChange={(checked) => toggleSinglePolygon(p.id, !!checked)}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-[10px] font-bold uppercase text-white/70"
                     >
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#22c55e' }} />
@@ -287,26 +302,35 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {[
-            { icon: Compass, label: 'Kompas', tooltip: 'Kalibrasi Orientasi', onClick: () => {} },
-            { icon: Info, label: 'Info Wilayah', tooltip: 'Detail Geografis', onClick: () => {} }
-          ].map((tool, idx) => (
-            <Tooltip key={idx}>
-              <TooltipTrigger asChild>
-                <Button 
-                  size="icon" 
-                  variant="secondary" 
-                  onClick={tool.onClick}
-                  className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white transition-all duration-500 group"
-                >
-                  <tool.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl">
-                {tool.tooltip}
-              </TooltipContent>
-            </Tooltip>
-          ))}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white transition-all duration-500 group"
+              >
+                <Compass className="w-5 h-5 transition-transform group-hover:scale-110" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl">
+              Kalibrasi Orientasi
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white transition-all duration-500 group"
+              >
+                <Info className="w-5 h-5 transition-transform group-hover:scale-110" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl">
+              Detail Geografis
+            </TooltipContent>
+          </Tooltip>
         </TooltipProvider>
       </div>
 
