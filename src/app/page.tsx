@@ -21,7 +21,8 @@ import {
   Layers,
   Check,
   Eye,
-  EyeOff
+  EyeOff,
+  ChevronRight
 } from 'lucide-react';
 import {
   Tooltip,
@@ -34,9 +35,6 @@ import {
   DropdownMenuContent,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
@@ -89,18 +87,21 @@ export default function Home() {
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
   // Initial Visibility Logic: 
-  // - Show Polygons (Areas) by default
-  // - Hide all Lines and Markers by default (Opt-in via checklist)
+  // - Show Polygons (Batas Wilayah RW) by default (hiddenAreaIds remains empty)
+  // - Uncheck/Hide all Lines and Markers by default
   useEffect(() => {
     if (!isInitialized && mapSettings && (allPolygons.length > 0 || allLines.length > 0 || allMarkers.length > 0)) {
+      // Hide all lines by default
       const initialHiddenLines: Record<string, boolean> = {};
       allLines.forEach((l: any) => { initialHiddenLines[l.id] = true; });
       
+      // Hide all markers by default
       const initialHiddenMarkers: Record<string, boolean> = {};
       allMarkers.forEach((m: any) => { initialHiddenMarkers[m.id] = true; });
 
       setHiddenLineIds(initialHiddenLines);
       setHiddenMarkerIds(initialHiddenMarkers);
+      setHiddenAreaIds({}); // Ensure areas are shown (checked)
       setIsInitialized(true);
     }
   }, [mapSettings, allPolygons, allLines, allMarkers, isInitialized]);
@@ -224,30 +225,30 @@ export default function Home() {
                 </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
-                Kontrol Data Layer
+                Data Infrastruktur
               </TooltipContent>
             </Tooltip>
             
             <DropdownMenuContent side="right" align="center" className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-[2.5rem] p-4 min-w-[340px] shadow-2xl animate-in zoom-in-95 duration-300">
               <div className="px-5 py-4 mb-4 border-b border-white/5">
                 <p className="text-[12px] font-black text-white uppercase tracking-[0.3em]">Inventaris Wilayah</p>
-                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-1">Gunakan Checklist untuk Layer</p>
+                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-1">Checklist untuk menampilkan data</p>
               </div>
               
               <div className="space-y-4">
-                {/* 1. Area RT Checklist Group */}
+                {/* 1. Batas Wilayah RW (CHECKED BY DEFAULT) */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
                       <Hexagon className="w-4 h-4 text-green-500" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Area Per RT</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Batas Wilayah RW</span>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-green-500 hover:text-white rounded-lg">Pilih Semua</Button>
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Reset</Button>
                     </div>
                   </div>
-                  <ScrollArea className="h-[200px] pr-2">
+                  <ScrollArea className="h-[150px] pr-2">
                     <div className="space-y-1">
                       {allPolygons.map((p: any) => (
                         <DropdownMenuCheckboxItem
@@ -266,7 +267,7 @@ export default function Home() {
 
                 <DropdownMenuSeparator className="bg-white/5" />
 
-                {/* 2. Infrastructure Checklist Group */}
+                {/* 2. Jalur & Drainase (UNCHECKED BY DEFAULT) */}
                 <div className="space-y-2">
                    <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
@@ -274,20 +275,20 @@ export default function Home() {
                       <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Jalur & Drainase</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-blue-500 hover:text-white rounded-lg">Pilih Semua</Button>
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Hide All</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-blue-500 hover:text-white rounded-lg">Aktifkan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
                     </div>
                   </div>
-                  <ScrollArea className="h-[150px] pr-2">
+                  <ScrollArea className="h-[120px] pr-2">
                     <div className="space-y-1">
                       {allLines.map((l: any) => (
                         <DropdownMenuCheckboxItem
                           key={l.id}
                           checked={!hiddenLineIds[l.id]}
                           onCheckedChange={(checked) => toggleSingle('line', l.id, !!checked)}
-                          className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white"
+                          className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
-                          <div className="w-6 h-1 rounded-full" style={{ backgroundColor: l.color || '#3b82f6' }} />
+                          <div className="w-6 h-1 rounded-full group-hover:scale-x-110 transition-transform" style={{ backgroundColor: l.color || '#3b82f6' }} />
                           <span className="truncate flex-1 tracking-[0.2em]">{l.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
@@ -297,7 +298,7 @@ export default function Home() {
 
                 <DropdownMenuSeparator className="bg-white/5" />
 
-                {/* 3. Facilities Checklist Group */}
+                {/* 3. Fasilitas (UNCHECKED BY DEFAULT) */}
                 <div className="space-y-2">
                    <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
@@ -305,20 +306,20 @@ export default function Home() {
                       <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Titik Fasilitas</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500 hover:text-white rounded-lg">Pilih Semua</Button>
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Hide All</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500 hover:text-white rounded-lg">Aktifkan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
                     </div>
                   </div>
-                  <ScrollArea className="h-[150px] pr-2">
+                  <ScrollArea className="h-[120px] pr-2">
                     <div className="space-y-1">
                       {allMarkers.map((m: any) => (
                         <DropdownMenuCheckboxItem
                           key={m.id}
                           checked={!hiddenMarkerIds[m.id]}
                           onCheckedChange={(checked) => toggleSingle('marker', m.id, !!checked)}
-                          className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white"
+                          className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
-                          <MapPin className="w-3.5 h-3.5" style={{ color: m.color || '#ef4444' }} />
+                          <MapPin className="w-3.5 h-3.5 group-hover:scale-125 transition-transform" style={{ color: m.color || '#ef4444' }} />
                           <span className="truncate flex-1 tracking-[0.2em]">{m.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
@@ -371,8 +372,8 @@ export default function Home() {
                <div className="relative w-4 h-4 rounded-full bg-green-500 shadow-[0_0_15px_#22c55e]" />
              </div>
              <div className="flex flex-col">
-               <span className="text-[12px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1">{totalInfraVisible} Infrastruktur Aktif</span>
-               <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Sistem Pemetaan Terkoneksi</span>
+               <span className="text-[12px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1">{totalInfraVisible} Sistem Aktif</span>
+               <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Sinkronisasi Layer Berhasil</span>
              </div>
            </div>
 
@@ -397,9 +398,6 @@ export default function Home() {
              )}>
                {markersData.length} Fasilitas
              </Badge>
-             {totalInfraVisible === 0 && (
-               <span className="text-[10px] font-black text-white/20 uppercase tracking-widest animate-pulse">Menunggu Input Checklist...</span>
-             )}
            </div>
         </div>
       </div>
@@ -410,3 +408,4 @@ export default function Home() {
     </div>
   );
 }
+
