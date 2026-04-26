@@ -19,7 +19,7 @@ const navItems = [
   { label: 'Pengurus', href: '/directory', icon: Users },
   { label: 'Aspirasi', href: '/feedback', icon: MessageSquare },
   { label: 'Kontak', href: '/contacts', icon: Phone },
-  { label: 'Admin', href: '/admin', icon: ShieldCheck },
+  { label: 'Dashboard', href: '/dashboard', icon: ShieldCheck },
 ];
 
 export function Dock() {

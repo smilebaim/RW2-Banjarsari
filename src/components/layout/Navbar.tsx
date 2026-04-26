@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Home, Newspaper, Users, MessageSquare, Phone, ShieldCheck } from 'lucide-react';
 
@@ -32,10 +33,10 @@ export function Navbar() {
             </Link>
           ))}
           <Link
-            href="/admin"
+            href="/dashboard"
             className="px-4 py-2 bg-accent/80 backdrop-blur-md text-accent-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            Portal Pengurus
+            Dashboard
           </Link>
         </div>
       </div>

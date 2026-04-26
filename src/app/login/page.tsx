@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -29,7 +30,7 @@ export default function LoginPage() {
         title: "Login Berhasil",
         description: "Selamat datang kembali di Portal Pengurus.",
       });
-      router.push('/admin');
+      router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: "destructive",
