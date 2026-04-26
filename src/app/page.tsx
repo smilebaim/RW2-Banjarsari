@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -69,10 +69,11 @@ const parseData = (val: any, fallback: any = []) => {
 export default function Home() {
   const db = useFirestore();
   
-  // States for hidden individual objects
+  // Visibility States
   const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
   const [hiddenLineIds, setHiddenLineIds] = useState<Record<string, boolean>>({});
   const [hiddenMarkerIds, setHiddenMarkerIds] = useState<Record<string, boolean>>({});
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings } = useDoc(mapSettingsRef);
@@ -82,13 +83,27 @@ export default function Home() {
   const allLines = useMemo(() => parseData(mapSettings?.lines, []), [mapSettings]);
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
+  // Handle Initial Visibility: Show only areas by default
+  useEffect(() => {
+    if (!isInitialized && mapSettings && (allLines.length > 0 || allMarkers.length > 0)) {
+      const initialHiddenLines: Record<string, boolean> = {};
+      allLines.forEach((l: any) => { initialHiddenLines[l.id] = true; });
+      
+      const initialHiddenMarkers: Record<string, boolean> = {};
+      allMarkers.forEach((m: any) => { initialHiddenMarkers[m.id] = true; });
+
+      setHiddenLineIds(initialHiddenLines);
+      setHiddenMarkerIds(initialHiddenMarkers);
+      setIsInitialized(true);
+    }
+  }, [mapSettings, allLines, allMarkers, isInitialized]);
+
   // Filtered data based on visibility toggles
   const polygonsData = useMemo(() => allPolygons.filter((p: any) => !hiddenAreaIds[p.id]), [allPolygons, hiddenAreaIds]);
   const linesData = useMemo(() => allLines.filter((l: any) => !hiddenLineIds[l.id]), [allLines, hiddenLineIds]);
   const markersData = useMemo(() => allMarkers.filter((m: any) => !hiddenMarkerIds[m.id]), [allMarkers, hiddenMarkerIds]);
 
   const totalInfraVisible = polygonsData.length + linesData.length + markersData.length;
-  const isAnyLayerActive = totalInfraVisible > 0;
 
   const toggleAll = (type: 'area' | 'line' | 'marker', show: boolean) => {
     const next: Record<string, boolean> = {};
@@ -184,7 +199,7 @@ export default function Home() {
                     size="icon" 
                     className={cn(
                       "w-14 h-14 rounded-2xl bg-black/40 backdrop-blur-3xl shadow-2xl border border-white/10 transition-all duration-500 group",
-                      isAnyLayerActive ? 'text-primary' : 'text-white/30'
+                      totalInfraVisible > 0 ? 'text-primary' : 'text-white/30'
                     )}
                   >
                     <Database className="w-6 h-6 transition-transform group-hover:scale-110" />
