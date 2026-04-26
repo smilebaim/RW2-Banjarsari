@@ -77,22 +77,21 @@ export default function Home() {
 
   useEffect(() => {
     if (!isInitialized && mapSettings && (allPolygons.length > 0 || allLines.length > 0 || allMarkers.length > 0)) {
+      // Initialize all objects as hidden (unchecked) by default
       const initialHiddenAreas: Record<string, boolean> = {};
       allPolygons.forEach((p: any) => {
-        const name = p.name?.toLowerCase() || '';
-        // Only show "Batas Wilayah RW 2" and exclude anything with "RT"
-        const isRW2Boundary = (name.includes('rw 2') || name.includes('rw 02') || name.includes('batas')) && !name.includes('rt');
-        
-        if (!isRW2Boundary) {
-          initialHiddenAreas[p.id] = true;
-        }
+        initialHiddenAreas[p.id] = true;
       });
       
       const initialHiddenLines: Record<string, boolean> = {};
-      allLines.forEach((l: any) => { initialHiddenLines[l.id] = true; });
+      allLines.forEach((l: any) => {
+        initialHiddenLines[l.id] = true;
+      });
       
       const initialHiddenMarkers: Record<string, boolean> = {};
-      allMarkers.forEach((m: any) => { initialHiddenMarkers[m.id] = true; });
+      allMarkers.forEach((m: any) => {
+        initialHiddenMarkers[m.id] = true;
+      });
 
       setHiddenAreaIds(initialHiddenAreas);
       setHiddenLineIds(initialHiddenLines);
@@ -153,7 +152,7 @@ export default function Home() {
       </div>
 
       <TooltipProvider delayDuration={0}>
-        {/* Floating Header HUD (Top) - Ultra Wide Edition */}
+        {/* Floating Header HUD (Top) - Responsive Lebar Edition */}
         <div className="absolute top-6 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
           <div className="w-full max-w-[420px] sm:w-fit sm:min-w-[420px] bg-black/60 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-white/10 rounded-[1.75rem] p-1.5 flex items-center justify-between pointer-events-auto transition-all hover:bg-black/80 hover:border-primary/50 group">
             <div className="flex items-center gap-4 sm:gap-12 px-4 sm:px-10 py-2">
