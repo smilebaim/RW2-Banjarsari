@@ -220,20 +220,33 @@ export default function LeafletMap({
   useEffect(() => {
     if (!mapInstance.current) return;
 
-    const createPopup = (item: MapObject) => `
-      <div class="p-5 min-w-[280px] bg-black/40 text-white rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl">
-        <div class="flex items-center gap-2 mb-4">
-          <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/70 px-3 py-1.5 rounded-full border border-white/5">
-            ${item.category || 'INFRASTRUKTUR'}
-          </span>
+    const createPopup = (item: MapObject) => {
+      const accentColor = item.color || '#22c55e';
+      return `
+        <div class="p-0 min-w-[300px] bg-black/20 text-white rounded-[1.75rem] border border-white/10 shadow-2xl backdrop-blur-2xl overflow-hidden">
+          <div class="h-1.5 w-full" style="background-color: ${accentColor}; box-shadow: 0 4px 12px ${accentColor}44;"></div>
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-[8px] font-black uppercase tracking-[0.25em] bg-white/5 text-white/50 px-3 py-1.5 rounded-lg border border-white/5">
+                ${item.category || 'INFRASTRUKTUR'}
+              </span>
+              <div class="h-1.5 w-1.5 rounded-full animate-pulse" style="background-color: ${accentColor};"></div>
+            </div>
+            <h4 class="font-black text-white uppercase text-xl mb-3 tracking-tighter leading-none">${item.name}</h4>
+            ${item.description ? `
+              <div class="space-y-2 mt-4 pt-4 border-t border-white/5">
+                <span class="text-[7px] font-bold text-white/30 uppercase tracking-widest">Keterangan Wilayah</span>
+                <p class="text-[11px] text-white/60 font-medium leading-relaxed">${item.description}</p>
+              </div>
+            ` : ''}
+            <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
+               <span class="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] font-mono">ID // ${item.id.substring(0, 8)}</span>
+               <span class="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">Banjarsari OS</span>
+            </div>
+          </div>
         </div>
-        <h4 class="font-black text-white uppercase text-lg mb-2 tracking-tight leading-none">${item.name}</h4>
-        ${item.description ? `<p class="text-[11px] text-white/50 font-medium italic border-t border-white/5 pt-4 mt-4 leading-relaxed">${item.description}</p>` : ''}
-        <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-           <span class="text-[7px] font-black text-white/30 uppercase tracking-[0.3em]">Banjarsari Connect v1.0</span>
-        </div>
-      </div>
-    `;
+      `;
+    };
 
     if (!editable && featureGroupInstance.current) {
       featureGroupInstance.current.clearLayers();
