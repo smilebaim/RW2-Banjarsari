@@ -81,16 +81,17 @@ const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') 
   if (typeof window === 'undefined') return L.divIcon();
   return L.divIcon({
     html: `
-      <div class="relative group">
-        <div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.3)] border-2 border-white transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_20px_35px_-10px_rgba(0,0,0,0.4)]">
+      <div class="relative flex flex-col items-center group">
+        <div class="flex items-center justify-center w-10 h-10 bg-black/60 backdrop-blur-xl rounded-[1rem] border-2 transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-110" 
+             style="border-color: ${color}; box-shadow: 0 0 15px ${color}66;">
           ${getIconSVG(iconName, color)}
         </div>
-        <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45 border-r-2 border-b-2 border-white shadow-md"></div>
+        <div class="w-1.5 h-1.5 rounded-full mt-1.5 animate-pulse" style="background-color: ${color}; box-shadow: 0 0 10px ${color};"></div>
       </div>
     `,
     className: 'custom-map-icon',
-    iconSize: [40, 46],
-    iconAnchor: [20, 46]
+    iconSize: [40, 52],
+    iconAnchor: [20, 52]
   });
 };
 
@@ -220,14 +221,17 @@ export default function LeafletMap({
     if (!mapInstance.current) return;
 
     const createPopup = (item: MapObject) => `
-      <div class="p-4 min-w-[240px] font-sans">
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-[9px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary px-3 py-1 rounded-lg">
-            ${item.category || 'Umum'}
+      <div class="p-5 min-w-[280px] bg-black/90 text-white rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/70 px-3 py-1.5 rounded-full border border-white/5">
+            ${item.category || 'INFRASTRUKTUR'}
           </span>
         </div>
-        <h4 class="font-black text-primary uppercase text-base mb-1 tracking-tight">${item.name}</h4>
-        ${item.description ? `<p class="text-[11px] text-muted-foreground font-medium italic border-t border-secondary pt-3 mt-3 leading-relaxed">${item.description}</p>` : ''}
+        <h4 class="font-black text-white uppercase text-lg mb-2 tracking-tight leading-none">${item.name}</h4>
+        ${item.description ? `<p class="text-[11px] text-white/50 font-medium italic border-t border-white/5 pt-4 mt-4 leading-relaxed">${item.description}</p>` : ''}
+        <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+           <span class="text-[7px] font-black text-white/30 uppercase tracking-[0.3em]">Banjarsari Connect v1.0</span>
+        </div>
       </div>
     `;
 
@@ -236,12 +240,12 @@ export default function LeafletMap({
       if (!showBoundary) return;
       if (showPolygons) {
         polygonsData?.forEach(p => {
-          if (p.coords?.length) L.polygon(p.coords, { color: p.color || '#22c55e', fillOpacity: 0.2, weight: 3, dashArray: '5, 10' }).bindPopup(createPopup(p)).addTo(featureGroupInstance.current!);
+          if (p.coords?.length) L.polygon(p.coords, { color: p.color || '#22c55e', fillOpacity: 0.15, weight: 2, dashArray: '4, 8' }).bindPopup(createPopup(p)).addTo(featureGroupInstance.current!);
         });
       }
       if (showLines) {
         linesData?.forEach(l => {
-          if (l.coords?.length) L.polyline(l.coords, { color: l.color || '#3b82f6', weight: 4 }).bindPopup(createPopup(l)).addTo(featureGroupInstance.current!);
+          if (l.coords?.length) L.polyline(l.coords, { color: l.color || '#3b82f6', weight: 3 }).bindPopup(createPopup(l)).addTo(featureGroupInstance.current!);
         });
       }
       if (showMarkers) {
@@ -274,5 +278,5 @@ export default function LeafletMap({
     }
   }, [showBoundary, showPolygons, showLines, showMarkers, polygonsData, linesData, markersData, editable]);
 
-  return <div ref={mapRef} className="w-full h-full relative overflow-hidden bg-secondary/5" />;
+  return <div ref={mapRef} className="w-full h-full relative overflow-hidden" />;
 }
