@@ -221,7 +221,7 @@ export default function LeafletMap({
     if (!mapInstance.current) return;
 
     const createPopup = (item: MapObject) => `
-      <div class="p-5 min-w-[280px] bg-black/90 text-white rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl">
+      <div class="p-5 min-w-[280px] bg-black/40 text-white rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-xl">
         <div class="flex items-center gap-2 mb-4">
           <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-white/10 text-white/70 px-3 py-1.5 rounded-full border border-white/5">
             ${item.category || 'INFRASTRUKTUR'}
