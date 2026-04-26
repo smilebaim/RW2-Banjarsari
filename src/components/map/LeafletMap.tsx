@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -79,7 +80,7 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
 };
 
 const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') return L.divIcon(); // Fallback for SSR safety
   const safeName = iconName || 'pin';
   const safeColor = color || '#ef4444';
   
@@ -126,7 +127,7 @@ export default function LeafletMap({
       const existingName = l.options.name || 'Objek Tanpa Nama';
       const existingDesc = l.options.description || '';
       const existingColor = l.options.color || (l instanceof L.Marker ? '#ef4444' : '#22c55e');
-      const existingIcon = l.options.icon || 'pin';
+      const existingIcon = l.options.iconName || 'pin'; // Read from custom property
 
       if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
         const latlngs = l.getLatLngs();
@@ -173,7 +174,9 @@ export default function LeafletMap({
             polyline: {
               shapeOptions: { color: '#3b82f6', weight: 4 }
             },
-            marker: true,
+            marker: {
+              icon: createLeafletIcon('pin', '#ef4444')
+            },
             circle: false,
             rectangle: false,
             circlemarker: false
@@ -186,11 +189,18 @@ export default function LeafletMap({
         mapInstance.current.on(L.Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
           const type = layer instanceof L.Polygon ? 'polygon' : layer instanceof L.Marker ? 'marker' : 'line';
+          
+          // Setup custom properties WITHOUT overwriting standard ones like 'icon'
           layer.options.id = `obj-${Date.now()}`;
           layer.options.name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
           layer.options.description = '';
           layer.options.color = type === 'polygon' ? '#22c55e' : type === 'line' ? '#3b82f6' : '#ef4444';
-          layer.options.icon = 'pin';
+          
+          if (type === 'marker') {
+            layer.options.iconName = 'pin';
+            // We don't overwrite layer.options.icon here because it was set during creation
+          }
+          
           drawItems.current?.addLayer(layer);
           handleDrawChange();
         });
@@ -309,12 +319,18 @@ export default function LeafletMap({
             const icon = createLeafletIcon(item.icon, item.color);
             if (icon && drawItems.current) {
               const m = L.marker(item.coords as any, { icon });
+              // Store custom properties without overwriting 'icon'
               // @ts-ignore
               m.options.id = item.id; 
+              // @ts-ignore
               m.options.name = item.name; 
+              // @ts-ignore
               m.options.description = item.description;
+              // @ts-ignore
               m.options.color = item.color;
-              m.options.icon = item.icon;
+              // @ts-ignore
+              m.options.iconName = item.icon; // Use a different property name
+              
               m.addTo(drawItems.current!);
             }
           }
