@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -144,7 +143,7 @@ export default function LeafletMap({
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
-        zoomControl: !locked,
+        zoomControl: false, // We use custom zoom buttons in sidebar
         attributionControl: false,
         scrollWheelZoom: !locked,
         dragging: !locked,
@@ -192,6 +191,13 @@ export default function LeafletMap({
       }
     };
   }, [center, zoom, editable, locked]);
+
+  // Handle programmatic zoom changes from external buttons
+  useEffect(() => {
+    if (mapInstance.current && mapInstance.current.getZoom() !== zoom) {
+      mapInstance.current.setZoom(zoom);
+    }
+  }, [zoom]);
 
   useEffect(() => {
     if (mapInstance.current) {

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -11,10 +10,11 @@ import {
   Compass, 
   ShieldCheck, 
   Activity,
-  Hexagon,
   MapPin,
   Zap,
   Layers,
+  Plus,
+  Minus
 } from 'lucide-react';
 import {
   Tooltip,
@@ -45,7 +45,7 @@ const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
 });
 
 const COORDINATES: [number, number] = [-5.097673729554944, 105.2921561873565];
-const ZOOM_LEVEL = 17;
+const INITIAL_ZOOM = 17;
 
 const parseData = (val: any, fallback: any = []) => {
   if (typeof val === 'string') {
@@ -65,6 +65,7 @@ export default function Home() {
   const [hiddenLineIds, setHiddenLineIds] = useState<Record<string, boolean>>({});
   const [hiddenMarkerIds, setHiddenMarkerIds] = useState<Record<string, boolean>>({});
   const [isInitialized, setIsInitialized] = useState(false);
+  const [zoom, setZoom] = useState(INITIAL_ZOOM);
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings } = useDoc(mapSettingsRef);
@@ -129,12 +130,15 @@ export default function Home() {
     });
   };
 
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 1, 19));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 1, 5));
+
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-[#020403]">
       <div className="absolute inset-0 z-0">
         <LeafletMap 
           center={COORDINATES} 
-          zoom={ZOOM_LEVEL} 
+          zoom={zoom} 
           layer="satellite" 
           locked={false}
           showBoundary={true}
@@ -186,7 +190,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Sidebar Controls (Left) - Smaller Icons */}
+        {/* Sidebar Controls (Left) - Smaller Icons with Integrated Zoom */}
         <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
           <DropdownMenu>
             <Tooltip>
@@ -286,6 +290,36 @@ export default function Home() {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                onClick={handleZoomIn}
+                className="w-11 h-11 rounded-xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/40 hover:bg-primary hover:text-white transition-all duration-500 group"
+              >
+                <Plus className="w-5 h-5 transition-transform group-hover:scale-125" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
+              Zoom In
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                onClick={handleZoomOut}
+                className="w-11 h-11 rounded-xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/40 hover:bg-primary hover:text-white transition-all duration-500 group"
+              >
+                <Minus className="w-5 h-5 transition-transform group-hover:scale-125" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
+              Zoom Out
+            </TooltipContent>
+          </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
