@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -71,9 +72,11 @@ export default function DashboardPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Real-time counts for summary
-  const newsRef = useMemoFirebase(() => query(collection(db, 'announcements_management')), [db]);
-  const feedbackRef = useMemoFirebase(() => query(collection(db, 'resident_feedback')), [db]);
+  // Protected counts for summary - only fetch if user is logged in
+  const newsRef = useMemoFirebase(() => user ? query(collection(db, 'announcements_management')) : null, [db, user]);
+  const feedbackRef = useMemoFirebase(() => user ? query(collection(db, 'resident_feedback')) : null, [db, user]);
+  
+  // Publicly readable counts
   const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
   const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
 
@@ -133,7 +136,6 @@ export default function DashboardPage() {
     if (!user) return;
     setIsProcessing(true);
     try {
-      // 1. Setup Admin Role (Crucial for rules)
       await setDoc(doc(db, 'admin_roles', user.uid), {
         id: user.uid,
         username: user.email?.split('@')[0] || 'admin',
@@ -143,7 +145,6 @@ export default function DashboardPage() {
         updatedAt: new Date().toISOString()
       });
 
-      // 2. Setup Default Map Settings (Prevents Permission Errors on first edit)
       await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
         polygons: JSON.stringify([{ id: 'initial-poly', name: 'RW 02 Banjarsari', description: 'Area utama RW 02 Banjarsari.', color: '#22c55e', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon' }]),
         lines: "[]",

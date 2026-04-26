@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, useUser } from '@/firebase';
 import { collection, doc, query, orderBy, limit } from 'firebase/firestore';
 import { analyzeFeedback, AnalyzeFeedbackOutput } from '@/ai/flows/analyze-feedback';
 import { Button } from '@/components/ui/button';
@@ -11,14 +12,16 @@ import { Sparkles, Loader2, TrendingUp, MessageCircle, Flag, Calendar, User } fr
 import { useToast } from '@/hooks/use-toast';
 
 export function FeedbackAnalysisView() {
+  const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const feedbackQuery = useMemoFirebase(() => {
+    if (!user) return null;
     return query(collection(db, 'resident_feedback'), orderBy('createdAt', 'desc'), limit(10));
-  }, [db]);
+  }, [db, user]);
 
   const { data: feedbacks, isLoading: isFetching } = useCollection(feedbackQuery);
   const currentFeedback = feedbacks?.[currentIndex];

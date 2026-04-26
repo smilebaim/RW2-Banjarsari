@@ -31,8 +31,9 @@ export function AdminNewsManager() {
   const [status, setStatus] = useState('Published');
 
   const newsQuery = useMemoFirebase(() => {
+    if (!user) return null;
     return query(collection(db, 'announcements_management'), orderBy('createdAt', 'desc'));
-  }, [db]);
+  }, [db, user]);
 
   const { data: news, isLoading } = useCollection(newsQuery);
 
