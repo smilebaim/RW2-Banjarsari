@@ -153,41 +153,43 @@ export default function Home() {
       </div>
 
       <TooltipProvider delayDuration={0}>
-        {/* Floating Header HUD (Top) - Proportional Edition */}
+        {/* Floating Header HUD (Top) - Proportional & Elegant Edition */}
         <div className="absolute top-6 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
-          <div className="w-fit bg-black/50 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[1.5rem] p-1 flex items-center gap-2 pointer-events-auto transition-all hover:bg-black/70 hover:border-primary/40 group">
-            <div className="flex items-center gap-3 pl-4 pr-2 py-1.5">
-              <div className="relative flex h-2 w-2">
+          <div className="w-fit min-w-[280px] bg-black/60 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-white/10 rounded-[1.75rem] p-1.5 flex items-center justify-between pointer-events-auto transition-all hover:bg-black/80 hover:border-primary/50 group">
+            <div className="flex items-center gap-5 px-6 py-2">
+              <div className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_8px_rgba(var(--primary),1)]"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary shadow-[0_0_10px_rgba(var(--primary),1)]"></span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">RW 02 Banjarsari</span>
-                <span className="text-[8px] font-bold text-primary tracking-[0.2em] leading-none flex items-center gap-1.5 uppercase">
-                  <Zap className="w-2 h-2" /> Portal Digital
+                <span className="text-[11px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1.5">RW 02 Banjarsari</span>
+                <span className="text-[9px] font-bold text-primary tracking-[0.25em] leading-none flex items-center gap-2 uppercase">
+                  <Zap className="w-2.5 h-2.5" /> Portal Digital
                 </span>
               </div>
             </div>
             
-            <div className="h-6 w-px bg-white/10 mx-1" />
-            
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="rounded-2xl w-10 h-10 text-white/50 hover:bg-primary hover:text-white transition-all duration-500" 
-                  asChild
-                >
-                  <Link href="/login">
-                    <ShieldCheck className="w-4.5 h-4.5" />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-white border-none font-black text-[9px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
-                Dashboard
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2 pr-1">
+              <div className="h-8 w-px bg-white/10 mx-2" />
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="rounded-2xl w-10 h-10 text-white/50 hover:bg-primary hover:text-white transition-all duration-500" 
+                    asChild
+                  >
+                    <Link href="/login">
+                      <ShieldCheck className="w-4.5 h-4.5" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-white border-none font-black text-[9px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
+                  Dashboard
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
         </div>
 
