@@ -20,7 +20,8 @@ import {
   Hexagon,
   Route,
   MapPin,
-  Zap,
+  Check,
+  X,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -106,7 +107,7 @@ export default function Home() {
     (visibility.lines ? linesData.length : 0) + 
     (visibility.markers ? markersData.length : 0);
 
-  const isAnyPolygonVisible = allPolygons.some(p => !hiddenAreaIds[p.id]);
+  const isAnyPolygonVisible = allPolygons.length > 0 && allPolygons.some(p => !hiddenAreaIds[p.id]);
   const isAnyLayerVisible = isAnyPolygonVisible || visibility.lines || visibility.markers;
 
   const toggleAllPolygons = (show: boolean) => {
@@ -121,10 +122,10 @@ export default function Home() {
     }
   };
 
-  const toggleSinglePolygon = (id: string, isVisible: boolean) => {
+  const toggleSinglePolygon = (id: string) => {
     setHiddenAreaIds(prev => ({
       ...prev,
-      [id]: !isVisible
+      [id]: !prev[id]
     }));
   };
 
@@ -202,7 +203,7 @@ export default function Home() {
                 Visual Peta
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent side="right" align="center" className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[150px]">
+            <DropdownMenuContent side="right" align="center" className="bg-black/80 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[150px]">
               {[
                 { id: 'satellite', label: 'Satelit', icon: Globe },
                 { id: 'streets', label: 'Jalanan', icon: MapIcon },
@@ -241,9 +242,9 @@ export default function Home() {
                 Data Layer
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent side="right" align="center" className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[220px]">
-              <div className="px-4 py-2 mb-1 border-b border-white/10">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Pilih Data Wilayah</p>
+            <DropdownMenuContent side="right" align="center" className="bg-black/90 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[240px]">
+              <div className="px-4 py-3 mb-1 border-b border-white/10">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Kontrol Infrastruktur</p>
               </div>
               
               <DropdownMenuSub>
@@ -251,26 +252,44 @@ export default function Home() {
                   <Hexagon className="w-4 h-4 text-green-500" />
                   Area Wilayah
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="bg-black/90 backdrop-blur-3xl border-white/10 rounded-2xl p-2 min-w-[180px]">
-                   <DropdownMenuCheckboxItem
-                    checked={isAnyPolygonVisible}
-                    onCheckedChange={(checked) => toggleAllPolygons(!!checked)}
-                    className="flex items-center gap-3 px-4 py-2 rounded-xl cursor-pointer font-black text-[9px] uppercase tracking-widest text-primary focus:bg-white/5"
-                  >
-                    Tampilkan Semua
-                  </DropdownMenuCheckboxItem>
+                <DropdownMenuSubContent className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-2xl p-2 min-w-[200px]">
+                   <div className="grid grid-cols-2 gap-1 p-1 mb-2">
+                     <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleAllPolygons(true)}
+                        className="h-8 text-[9px] font-black uppercase tracking-tighter bg-white/5 hover:bg-primary hover:text-white rounded-lg"
+                      >
+                       Pilih Semua
+                     </Button>
+                     <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleAllPolygons(false)}
+                        className="h-8 text-[9px] font-black uppercase tracking-tighter bg-white/5 hover:bg-red-500 hover:text-white rounded-lg"
+                      >
+                       Sembunyikan
+                     </Button>
+                   </div>
                   <DropdownMenuSeparator className="bg-white/10" />
-                  {allPolygons.map((p: any) => (
-                    <DropdownMenuCheckboxItem
-                      key={p.id}
-                      checked={!hiddenAreaIds[p.id]}
-                      onCheckedChange={(checked) => toggleSinglePolygon(p.id, !!checked)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-[10px] font-bold uppercase text-white/70"
-                    >
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#22c55e' }} />
-                      {p.name}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {allPolygons.map((p: any) => (
+                      <DropdownMenuCheckboxItem
+                        key={p.id}
+                        checked={!hiddenAreaIds[p.id]}
+                        onCheckedChange={() => toggleSinglePolygon(p.id)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-[10px] font-bold uppercase text-white/70 focus:bg-white/5"
+                      >
+                        <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: p.color || '#22c55e' }} />
+                        <span className="truncate">{p.name}</span>
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </div>
+                  {allPolygons.length === 0 && (
+                    <div className="p-4 text-center">
+                      <p className="text-[8px] font-bold text-white/30 uppercase">Tidak ada area</p>
+                    </div>
+                  )}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
