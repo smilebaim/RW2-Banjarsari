@@ -10,7 +10,7 @@ import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
 import { 
   Users, 
   MessageSquare, 
@@ -26,7 +26,8 @@ import {
   Lock,
   Zap,
   TrendingUp,
-  Menu
+  Menu,
+  Trash2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
@@ -57,7 +69,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
-  const [isSeeding, setIsSeeding] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
@@ -74,9 +86,41 @@ export default function DashboardPage() {
     router.push('/');
   };
 
+  const clearAllData = async () => {
+    setIsProcessing(true);
+    try {
+      const collections = [
+        'announcements_management',
+        'announcements_public',
+        'rw_management_members',
+        'important_contacts',
+        'resident_feedback'
+      ];
+
+      for (const colName of collections) {
+        const querySnapshot = await getDocs(collection(db, colName));
+        const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+      }
+
+      toast({
+        title: "Data Dihapus",
+        description: "Semua data dummy telah dihapus dari database.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Menghapus",
+        description: error.message,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleImportDummyData = async () => {
     if (!user) return;
-    setIsSeeding(true);
+    setIsProcessing(true);
     try {
       await setDoc(doc(db, 'admin_roles', user.uid), {
         id: user.uid,
@@ -91,35 +135,11 @@ export default function DashboardPage() {
         {
           id: 'news-1',
           title: 'Peresmian Portal Digital Banjarsari Connect',
-          content: 'Kami dengan bangga memperkenalkan portal Banjarsari Connect untuk memudahkan komunikasi antar warga. Portal ini mencakup fitur berita, aspirasi, dan peta wilayah.',
+          content: 'Kami dengan bangga memperkenalkan portal Banjarsari Connect untuk memudahkan komunikasi antar warga.',
           summary: 'RW 02 Banjarsari resmi meluncurkan portal digital untuk transparansi layanan.',
           publicationDate: new Date().toISOString(),
           status: 'Published',
           category: 'Informasi',
-          authorAdminUserId: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'news-2',
-          title: 'Agenda Gotong Royong Kebersihan Saluran Air',
-          content: 'Dihimbau kepada seluruh warga RW 02 untuk mengikuti kegiatan gotong royong pada hari Minggu besok pukul 07.00 WIB guna mengantisipasi musim penghujan.',
-          summary: 'Kegiatan gotong royong rutin warga untuk kebersihan lingkungan.',
-          publicationDate: new Date().toISOString(),
-          status: 'Published',
-          category: 'Kegiatan',
-          authorAdminUserId: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'news-3',
-          title: 'Sosialisasi Keamanan Lingkungan (Siskamling)',
-          content: 'Rapat koordinasi keamanan akan dilaksanakan di Balai RW untuk membahas jadwal ronda baru dan pengadaan CCTV di titik-titik rawan.',
-          summary: 'Peningkatan sistem keamanan lingkungan melalui koordinasi warga.',
-          publicationDate: new Date().toISOString(),
-          status: 'Published',
-          category: 'Keamanan',
           authorAdminUserId: user.uid,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -138,27 +158,7 @@ export default function DashboardPage() {
           role: 'Ketua RW 02',
           contactNumber: '081234567890',
           email: 'sutrisno@banjarsari.id',
-          description: 'Berkomitmen pada transparansi pengelolaan dana dan inovasi digital wilayah.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'member-2',
-          name: 'Budi Hartono',
-          role: 'Sekretaris',
-          contactNumber: '081299887766',
-          email: 'budi@banjarsari.id',
-          description: 'Mengelola administrasi dan persuratan warga dengan tertib dan terdigitalisasi.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'member-3',
-          name: 'Siti Aminah',
-          role: 'Bendahara',
-          contactNumber: '081255443322',
-          email: 'siti@banjarsari.id',
-          description: 'Bertanggung jawab atas laporan keuangan dan iuran rutin bulanan warga secara transparan.',
+          description: 'Berkomitmen pada transparansi pengelolaan dana.',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
@@ -174,27 +174,8 @@ export default function DashboardPage() {
           name: 'Puskesmas Banjarsari',
           category: 'Kesehatan',
           phoneNumber: '0725-41234',
-          address: 'Jl. Ahmad Yani No. 10, Banjarsari',
-          description: 'Layanan kesehatan masyarakat terdekat.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'contact-2',
-          name: 'Polsek Metro Utara',
-          category: 'Keamanan',
-          phoneNumber: '0725-45678',
-          address: 'Jl. Jendral Sudirman, Metro Utara',
-          description: 'Layanan pengamanan dan laporan kepolisian.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'contact-3',
-          name: 'Call Center PLN Metro',
-          category: 'Utilitas',
-          phoneNumber: '123 / 0725-55555',
-          description: 'Layanan gangguan listrik 24 jam.',
+          address: 'Jl. Ahmad Yani No. 10',
+          description: 'Layanan kesehatan masyarakat.',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
@@ -204,40 +185,9 @@ export default function DashboardPage() {
         await setDoc(doc(db, 'important_contacts', contact.id), contact);
       }
 
-      const feedbacks = [
-        {
-          id: 'fb-1',
-          name: 'Bpk. Ahmad Fauzi',
-          rt: '02',
-          phone: '085211112222',
-          type: 'Issue Report',
-          subject: 'Lampu Jalan Padam',
-          message: 'Lampu penerangan jalan di gang Mawar RT 02 padam sudah 3 hari, mohon segera ditindaklanjuti demi keamanan.',
-          status: 'New',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'fb-2',
-          name: 'Ibu Ratna',
-          rt: '01',
-          phone: '085233334444',
-          type: 'Aspiration',
-          subject: 'Usulan Taman Bermain',
-          message: 'Usul untuk pemanfaatan lahan kosong di belakang balai RW untuk dijadikan taman bermain ramah anak.',
-          status: 'New',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      for (const fb of feedbacks) {
-        await setDoc(doc(db, 'resident_feedback', fb.id), fb);
-      }
-
       toast({
         title: "Import Berhasil",
-        description: "Data dummy lengkap (Berita, Pengurus, Kontak, Aspirasi) telah dimuat.",
+        description: "Data contoh telah dimuat.",
       });
     } catch (error: any) {
       toast({
@@ -246,7 +196,7 @@ export default function DashboardPage() {
         description: error.message,
       });
     } finally {
-      setIsSeeding(false);
+      setIsProcessing(false);
     }
   };
 
@@ -272,14 +222,14 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-3">
               <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
-              <p className="text-muted-foreground font-medium">Aktifkan dashboard Anda dan muat data infrastruktur wilayah untuk pertama kali.</p>
+              <p className="text-muted-foreground font-medium">Aktifkan dashboard Anda untuk mulai mengelola wilayah.</p>
             </div>
             <Button 
               onClick={handleImportDummyData} 
-              disabled={isSeeding}
+              disabled={isProcessing}
               className="w-full h-16 rounded-2xl bg-primary text-white text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 gap-4"
             >
-              {isSeeding ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" />}
+              {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" />}
               Aktifkan Portal Admin
             </Button>
             <Button variant="ghost" onClick={handleLogout} className="text-muted-foreground font-bold">
@@ -323,7 +273,28 @@ export default function DashboardPage() {
         ))}
       </nav>
 
-      <div className="pt-8 border-t border-secondary/50">
+      <div className="pt-8 border-t border-secondary/50 space-y-4">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start gap-4 px-6 py-4 rounded-2xl text-orange-600 hover:bg-orange-50 font-bold transition-all">
+              <Trash2 className="w-5 h-5" />
+              Kosongkan Data
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="rounded-[2.5rem] p-10">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
+              <AlertDialogDescription className="font-medium text-lg">
+                Tindakan ini akan menghapus semua berita, kontak, pengurus, dan aspirasi dari database secara permanen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-8 gap-4">
+              <AlertDialogCancel className="rounded-xl h-12 font-bold">Batal</AlertDialogCancel>
+              <AlertDialogAction onClick={clearAllData} className="rounded-xl h-12 bg-red-600 hover:bg-red-700 font-bold">Hapus Sekarang</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <Button 
           variant="ghost" 
           onClick={handleLogout}
@@ -367,8 +338,8 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4 lg:gap-6">
             <div className="flex gap-2">
-              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50 hidden md:flex" onClick={handleImportDummyData} disabled={isSeeding}>
-                <Database className={`w-5 h-5 text-primary ${isSeeding ? 'animate-spin' : ''}`} />
+              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50 hidden md:flex" onClick={handleImportDummyData} disabled={isProcessing}>
+                <Database className={`w-5 h-5 text-primary ${isProcessing ? 'animate-spin' : ''}`} />
               </Button>
               <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50">
                 <Settings className="w-5 h-5 text-muted-foreground" />
@@ -394,11 +365,6 @@ export default function DashboardPage() {
                 <div>
                   <h1 className="text-3xl lg:text-4xl font-black text-primary mb-2 uppercase tracking-tighter">Ringkasan Aktivitas</h1>
                   <p className="text-muted-foreground font-medium text-sm lg:text-base">Monitoring aktivitas wilayah RW 02 secara real-time.</p>
-                </div>
-                <div className="hidden md:flex gap-4">
-                  <div className="text-primary font-black text-xs uppercase tracking-[0.3em] bg-white px-6 py-3 rounded-2xl shadow-sm border border-secondary/50">
-                    {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                  </div>
                 </div>
               </div>
 
@@ -431,7 +397,7 @@ export default function DashboardPage() {
                 <div className="lg:col-span-4 space-y-8">
                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary text-white overflow-hidden p-8">
                       <h3 className="text-xl font-black uppercase tracking-tighter mb-4">Pengumuman Cepat</h3>
-                      <p className="text-white/70 text-sm mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga dalam hitungan detik.</p>
+                      <p className="text-white/70 text-sm mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga.</p>
                       <Button onClick={() => setActiveTab('news')} className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
                    </Card>
                 </div>
