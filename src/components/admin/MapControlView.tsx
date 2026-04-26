@@ -27,7 +27,8 @@ import {
   PlusCircle,
   MousePointer2,
   Maximize2,
-  Info
+  Info,
+  Pencil
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -139,12 +140,17 @@ export function MapControlView() {
     setFocusTrigger({ coords: target, zoom: 19 });
   };
 
+  const startEditObject = (coords: any) => {
+    focusOnObject(coords);
+    setIsEditing(true);
+  };
+
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Infrastruktur</h1>
-          <p className="text-muted-foreground font-medium">Buat batas area, jalur jalan, dan titik lokasi penting.</p>
+          <p className="text-muted-foreground font-medium">Kelola batas area, jalur jalan, dan titik lokasi penting.</p>
         </div>
         <div className="flex gap-3">
           {isEditing ? (
@@ -196,7 +202,7 @@ export function MapControlView() {
             <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white animate-in slide-in-from-right-4">
                <div className="flex items-center gap-3 mb-4">
                   <PlusCircle className="w-5 h-5 text-accent" />
-                  <h3 className="font-black uppercase text-sm tracking-tight">Alat Pemetaan</h3>
+                  <h3 className="font-black uppercase text-sm tracking-tight">Alat Pemetaan Baru</h3>
                </div>
                <div className="grid grid-cols-3 gap-3">
                   {[
@@ -224,17 +230,22 @@ export function MapControlView() {
             
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 {tempData.polygons.map(poly => (
-                  <div key={poly.id} className="p-4 bg-green-50 rounded-2xl space-y-3 border border-green-100 group">
+                  <div key={poly.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-green-50 border-green-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
                         <Hexagon className="w-3 h-3" /> Area Poligon
                       </label>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(poly.coords)} size="icon" variant="ghost" className="h-6 w-6 text-green-600">
-                          <Maximize2 className="w-3.5 h-3.5" />
+                        <Button onClick={() => focusOnObject(poly.coords)} size="icon" variant="ghost" className="h-8 w-8 text-green-600 bg-white/50 rounded-xl">
+                          <Maximize2 className="w-4 h-4" />
                         </Button>
-                        <Button onClick={() => removeObject('polygon', poly.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
-                          <Trash2 className="w-3.5 h-3.5" />
+                        {!isEditing && (
+                          <Button onClick={() => startEditObject(poly.coords)} size="icon" variant="ghost" className="h-8 w-8 text-primary bg-white/50 rounded-xl">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button onClick={() => removeObject('polygon', poly.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-400 bg-white/50 rounded-xl">
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -251,24 +262,29 @@ export function MapControlView() {
                         onChange={(e) => updateObjectProperty('polygon', poly.id, 'description', e.target.value)}
                         disabled={!isEditing}
                         className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
-                        placeholder="Keterangan area (Opsional)..."
+                        placeholder="Keterangan area..."
                       />
                     </div>
                   </div>
                 ))}
 
                 {tempData.lines.map(line => (
-                  <div key={line.id} className="p-4 bg-blue-50 rounded-2xl space-y-3 border border-blue-100 group">
+                  <div key={line.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-blue-50 border-blue-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
                         <Route className="w-3 h-3" /> Jalur Garis
                       </label>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(line.coords)} size="icon" variant="ghost" className="h-6 w-6 text-blue-600">
-                          <Maximize2 className="w-3.5 h-3.5" />
+                        <Button onClick={() => focusOnObject(line.coords)} size="icon" variant="ghost" className="h-8 w-8 text-blue-600 bg-white/50 rounded-xl">
+                          <Maximize2 className="w-4 h-4" />
                         </Button>
-                        <Button onClick={() => removeObject('line', line.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
-                          <Trash2 className="w-3.5 h-3.5" />
+                        {!isEditing && (
+                          <Button onClick={() => startEditObject(line.coords)} size="icon" variant="ghost" className="h-8 w-8 text-primary bg-white/50 rounded-xl">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button onClick={() => removeObject('line', line.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-400 bg-white/50 rounded-xl">
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -285,24 +301,29 @@ export function MapControlView() {
                         onChange={(e) => updateObjectProperty('line', line.id, 'description', e.target.value)}
                         disabled={!isEditing}
                         className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
-                        placeholder="Keterangan jalur (Opsional)..."
+                        placeholder="Keterangan jalur..."
                       />
                     </div>
                   </div>
                 ))}
 
                 {tempData.markers.map(marker => (
-                  <div key={marker.id} className="p-4 bg-red-50 rounded-2xl space-y-3 border border-red-100 group">
+                  <div key={marker.id} className={cn("p-4 rounded-2xl space-y-3 border transition-all group", isEditing ? "bg-red-50 border-red-100" : "bg-secondary/20 border-transparent")}>
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-red-700 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Titik Lokasi
                       </label>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(marker.coords)} size="icon" variant="ghost" className="h-6 w-6 text-red-600">
-                          <Maximize2 className="w-3.5 h-3.5" />
+                        <Button onClick={() => focusOnObject(marker.coords)} size="icon" variant="ghost" className="h-8 w-8 text-red-600 bg-white/50 rounded-xl">
+                          <Maximize2 className="w-4 h-4" />
                         </Button>
-                        <Button onClick={() => removeObject('marker', marker.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
-                          <Trash2 className="w-3.5 h-3.5" />
+                        {!isEditing && (
+                          <Button onClick={() => startEditObject(marker.coords)} size="icon" variant="ghost" className="h-8 w-8 text-primary bg-white/50 rounded-xl">
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button onClick={() => removeObject('marker', marker.id)} size="icon" variant="ghost" className="h-8 w-8 text-red-400 bg-white/50 rounded-xl">
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -319,7 +340,7 @@ export function MapControlView() {
                         onChange={(e) => updateObjectProperty('marker', marker.id, 'description', e.target.value)}
                         disabled={!isEditing}
                         className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
-                        placeholder="Keterangan lokasi (Opsional)..."
+                        placeholder="Keterangan lokasi..."
                       />
                     </div>
                   </div>
@@ -329,7 +350,7 @@ export function MapControlView() {
                   <div className="flex flex-col items-center justify-center py-10 text-center opacity-30">
                     <MousePointer2 className="w-10 h-10 mb-2" />
                     <p className="text-[10px] font-black uppercase tracking-widest">Peta Kosong</p>
-                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan alat gambar di peta untuk menambah objek.</p>
+                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan toolbar gambar untuk menambah elemen infrastruktur baru.</p>
                   </div>
                 )}
             </div>
