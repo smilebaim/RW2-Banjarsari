@@ -5,21 +5,22 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useFirestore, useDoc, useMemoFirebase, addDocumentNonBlocking, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useFirestore, useDoc, useMemoFirebase, useCollection, addDocumentNonBlocking, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
+import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, Send, Loader2, Info, MessageSquare } from 'lucide-react';
+import { CheckCircle2, Send, Loader2, Info, MessageSquare, UserCheck } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
   phone: z.string().min(10, 'Nomor telepon tidak valid'),
   rt: z.string().min(1, 'Pilih RT asal'),
   type: z.string().min(1, 'Pilih jenis laporan'),
+  officialId: z.string().min(1, 'Pilih pejabat tujuan'),
   message: z.string().min(10, 'Pesan minimal 10 karakter'),
 });
 
@@ -30,7 +31,11 @@ export function FeedbackForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch WhatsApp Config
+  // Fetch Officials (Management Members)
+  const membersQuery = useMemoFirebase(() => query(collection(db, 'rw_management_members'), orderBy('createdAt', 'asc')), [db]);
+  const { data: officials, isLoading: isLoadingOfficials } = useCollection(membersQuery);
+
+  // Fetch WhatsApp Config for Template
   const configRef = useMemoFirebase(() => doc(db, 'system_settings', 'whatsapp_config'), [db]);
   const { data: waConfig } = useDoc(configRef);
 
@@ -47,6 +52,7 @@ export function FeedbackForm() {
       phone: '',
       rt: '',
       type: '',
+      officialId: '',
       message: '',
     },
   });
@@ -55,13 +61,17 @@ export function FeedbackForm() {
     if (!user) return;
     setLoading(true);
     try {
+      const selectedOfficial = officials?.find(o => o.id === values.officialId);
+      const targetPhone = selectedOfficial?.contactNumber || waConfig?.phoneNumber;
+
       const feedbackId = doc(collection(db, 'resident_feedback')).id;
       const feedbackData = {
         ...values,
         id: feedbackId,
+        targetOfficialName: selectedOfficial?.name || 'Umum',
         submissionDate: new Date().toISOString(),
         status: 'New',
-        subject: `${values.type} - Dari RT ${values.rt}`,
+        subject: `${values.type} - Dari RT ${values.rt} (Ditujukan ke: ${selectedOfficial?.name || 'Umum'})`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -69,15 +79,17 @@ export function FeedbackForm() {
       addDocumentNonBlocking(collection(db, 'resident_feedback'), feedbackData);
       
       // WhatsApp Integration
-      if (waConfig?.phoneNumber && waConfig?.messageTemplate) {
+      if (targetPhone && waConfig?.messageTemplate) {
         let text = waConfig.messageTemplate;
         text = text.replace('{{name}}', values.name);
         text = text.replace('{{rt}}', values.rt);
         text = text.replace('{{type}}', values.type);
         text = text.replace('{{message}}', values.message);
+        // Custom placeholder for official name if needed
+        text = text.replace('{{target}}', selectedOfficial?.name || 'Pengurus');
         
         const encodedText = encodeURIComponent(text);
-        const waUrl = `https://wa.me/${waConfig.phoneNumber}?text=${encodedText}`;
+        const waUrl = `https://wa.me/${targetPhone.replace(/[^0-9]/g, '')}?text=${encodedText}`;
         
         // Open WA in new tab
         window.open(waUrl, '_blank');
@@ -101,7 +113,7 @@ export function FeedbackForm() {
           </div>
           <h2 className="text-4xl font-black text-primary mb-6 uppercase tracking-tighter">Berhasil Terkirim!</h2>
           <p className="text-muted-foreground max-w-sm mx-auto mb-12 text-lg font-medium leading-relaxed">
-            Aspirasi Anda telah tersimpan di sistem dan diteruskan ke WhatsApp pengurus RW 02.
+            Aspirasi Anda telah tersimpan di sistem dan diteruskan ke WhatsApp pengurus yang Anda tuju.
           </p>
           <Button onClick={() => {
             setSubmitted(false);
@@ -206,6 +218,36 @@ export function FeedbackForm() {
 
             <FormField
               control={form.control}
+              name="officialId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <UserCheck className="w-3 h-3" /> Pejabat / Pengurus Tujuan
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-secondary/40 border-none h-14 rounded-2xl focus:ring-primary shadow-inner font-bold">
+                        <SelectValue placeholder={isLoadingOfficials ? "Memuat daftar pengurus..." : "Pilih Pengurus Tujuan"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                      {officials?.map((official) => (
+                        <SelectItem key={official.id} value={official.id}>
+                          {official.name} - {official.role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-[9px] font-bold">
+                    Pesan Anda akan langsung dikirim ke WhatsApp pengurus yang dipilih.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="message"
               render={({ field }) => (
                 <FormItem>
@@ -213,22 +255,16 @@ export function FeedbackForm() {
                   <FormControl>
                     <Textarea 
                       placeholder="Sampaikan aspirasi atau laporan Anda secara mendetail..." 
-                      className="min-h-[180px] bg-secondary/40 border-none rounded-[2rem] resize-none focus-visible:ring-primary shadow-inner p-6 font-medium leading-relaxed" 
+                      className="min-h-[150px] bg-secondary/40 border-none rounded-[2rem] resize-none focus-visible:ring-primary shadow-inner p-6 font-medium leading-relaxed" 
                       {...field} 
                     />
                   </FormControl>
-                  <div className="flex items-start gap-2 mt-2">
-                    <Info className="w-3 h-3 text-primary mt-1" />
-                    <FormDescription className="text-[10px] font-bold">
-                      Aspirasi ini akan secara otomatis diteruskan ke WhatsApp Pengurus RW 02.
-                    </FormDescription>
-                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" className="w-full h-16 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all" disabled={loading || !user}>
+            <Button type="submit" className="w-full h-16 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-all" disabled={loading || !user || isLoadingOfficials}>
               {loading ? (
                 <>
                   <Loader2 className="mr-3 h-5 w-5 animate-spin" />
