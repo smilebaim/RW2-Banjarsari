@@ -3,14 +3,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { FeedbackAnalysisView } from '@/components/admin/FeedbackAnalysisView';
 import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
-import { doc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, collection, getDocs, query } from 'firebase/firestore';
 import { 
   Users, 
   MessageSquare, 
@@ -72,6 +72,17 @@ export default function DashboardPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Real-time counts for summary
+  const newsRef = useMemoFirebase(() => query(collection(db, 'announcements_management')), [db]);
+  const feedbackRef = useMemoFirebase(() => query(collection(db, 'resident_feedback')), [db]);
+  const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
+  const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
+
+  const { data: newsItems } = useCollection(newsRef);
+  const { data: feedbackItems } = useCollection(feedbackRef);
+  const { data: contactItems } = useCollection(contactsRef);
+  const { data: memberItems } = useCollection(membersRef);
+
   const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
   const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
 
@@ -105,7 +116,7 @@ export default function DashboardPage() {
 
       toast({
         title: "Data Dihapus",
-        description: "Semua data dummy telah dihapus dari database.",
+        description: "Semua data telah berhasil dihapus.",
       });
     } catch (error: any) {
       toast({
@@ -307,6 +318,13 @@ export default function DashboardPage() {
     </div>
   );
 
+  const stats = [
+    { label: 'Total Pengurus', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
+    { label: 'Laporan Masuk', value: feedbackItems?.length || 0, sub: 'Perlu Tindak Lanjut', icon: MessageSquare, color: 'bg-orange-500' },
+    { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terpublikasi', icon: Newspaper, color: 'bg-primary' },
+    { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Layanan Terdaftar', icon: Phone, color: 'bg-green-600' },
+  ];
+
   return (
     <div className="flex min-h-screen bg-[#F8FAF9]">
       <aside className="w-80 bg-white border-r border-secondary/50 p-8 hidden lg:flex flex-col shadow-sm sticky top-0 h-screen">
@@ -332,7 +350,7 @@ export default function DashboardPage() {
 
             <div className="relative w-48 md:w-96 group hidden sm:block">
               <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
-              <Input placeholder="Cari data warga..." className="pl-12 bg-secondary/30 border-none h-12 rounded-2xl" />
+              <Input placeholder="Cari data wilayah..." className="pl-12 bg-secondary/30 border-none h-12 rounded-2xl" />
             </div>
           </div>
 
@@ -369,12 +387,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-                {[
-                  { label: 'Total Warga', value: '1,240', sub: '+12 Bulan ini', icon: Users, color: 'bg-blue-500' },
-                  { label: 'Laporan Baru', value: '12', sub: 'Perlu tindak lanjut', icon: MessageSquare, color: 'bg-orange-500' },
-                  { label: 'Berita Aktif', value: '8', sub: '2 Draft belum rilis', icon: Newspaper, color: 'bg-primary' },
-                  { label: 'Keamanan', value: '100%', sub: 'Sistem Terpantau', icon: ShieldCheck, color: 'bg-green-600' },
-                ].map((stat, i) => (
+                {stats.map((stat, i) => (
                   <Card key={i} className="border-none shadow-xl rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white">
                     <CardContent className="p-6 lg:p-8">
                       <div className="flex items-start justify-between mb-6">
