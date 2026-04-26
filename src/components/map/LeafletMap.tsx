@@ -74,7 +74,7 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
     trees: `<path d="M10 10v.01"/><path d="M14 10v.01"/><path d="M10 14v.01"/><path d="M14 14v.01"/><path d="M18 10h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1"/><path d="M12 2v8"/><path d="M9 2h6"/>`
   };
   const path = icons[iconName] || icons.pin;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 };
 
 const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
@@ -82,16 +82,16 @@ const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') 
   return L.divIcon({
     html: `
       <div class="relative flex flex-col items-center group">
-        <div class="flex items-center justify-center w-10 h-10 bg-black/60 backdrop-blur-xl rounded-[1rem] border-2 transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-110" 
-             style="border-color: ${color}; box-shadow: 0 0 15px ${color}66;">
+        <div class="flex items-center justify-center w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl border border-white/10 transition-all duration-500 group-hover:-translate-y-1.5 group-hover:scale-110" 
+             style="box-shadow: 0 0 12px ${color}33;">
           ${getIconSVG(iconName, color)}
         </div>
-        <div class="w-1.5 h-1.5 rounded-full mt-1.5 animate-pulse" style="background-color: ${color}; box-shadow: 0 0 10px ${color};"></div>
+        <div class="w-1 h-1 rounded-full mt-1 animate-pulse" style="background-color: ${color}; box-shadow: 0 0 8px ${color};"></div>
       </div>
     `,
     className: 'custom-map-icon',
-    iconSize: [40, 52],
-    iconAnchor: [20, 52]
+    iconSize: [36, 48],
+    iconAnchor: [18, 48]
   });
 };
 
