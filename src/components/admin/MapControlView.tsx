@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Layers, 
@@ -25,7 +26,8 @@ import {
   Type,
   PlusCircle,
   MousePointer2,
-  Maximize2
+  Maximize2,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -102,16 +104,16 @@ export function MapControlView() {
     });
   };
 
-  const updateObjectName = (type: 'line' | 'marker' | 'polygon', id: string, newName: string) => {
+  const updateObjectProperty = (type: 'line' | 'marker' | 'polygon', id: string, property: 'name' | 'description', value: string) => {
     setTempData(prev => {
       if (type === 'polygon') {
-        return { ...prev, polygons: prev.polygons.map(p => p.id === id ? { ...p, name: newName } : p) };
+        return { ...prev, polygons: prev.polygons.map(p => p.id === id ? { ...p, [property]: value } : p) };
       }
       if (type === 'line') {
-        return { ...prev, lines: prev.lines.map(l => l.id === id ? { ...l, name: newName } : l) };
+        return { ...prev, lines: prev.lines.map(l => l.id === id ? { ...l, [property]: value } : l) };
       }
       if (type === 'marker') {
-        return { ...prev, markers: prev.markers.map(m => m.id === id ? { ...m, name: newName } : m) };
+        return { ...prev, markers: prev.markers.map(m => m.id === id ? { ...m, [property]: value } : m) };
       }
       return prev;
     });
@@ -136,12 +138,6 @@ export function MapControlView() {
     }
     setFocusTrigger({ coords: target, zoom: 19 });
   };
-
-  const layers = [
-    { id: 'satellite', label: 'Satelit', icon: Globe },
-    { id: 'streets', label: 'Jalanan', icon: MapIcon },
-    { id: 'dark', label: 'Mode Gelap', icon: Moon },
-  ];
 
   return (
     <div className="space-y-8 pb-20">
@@ -169,7 +165,7 @@ export function MapControlView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[700px]">
-        <div className="lg:col-span-8 h-[600px] lg:h-full relative">
+        <div className="lg:col-span-7 h-[600px] lg:h-full relative">
           <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative">
             <div className="absolute inset-0 z-0">
                {isLoading ? (
@@ -195,26 +191,22 @@ export function MapControlView() {
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-6 flex flex-col h-full">
+        <div className="lg:col-span-5 space-y-6 flex flex-col h-full">
           {isEditing && (
             <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white animate-in slide-in-from-right-4">
                <div className="flex items-center gap-3 mb-4">
                   <PlusCircle className="w-5 h-5 text-accent" />
-                  <h3 className="font-black uppercase text-sm tracking-tight">Cara Menambah Objek</h3>
+                  <h3 className="font-black uppercase text-sm tracking-tight">Alat Pemetaan</h3>
                </div>
-               <p className="text-[10px] opacity-80 leading-relaxed mb-4 font-medium">Gunakan toolbar di sebelah kiri peta untuk mulai menggambar:</p>
-               <div className="space-y-3">
+               <div className="grid grid-cols-3 gap-3">
                   {[
-                    { icon: Hexagon, label: 'Alat Poligon', desc: 'Klik titik demi titik untuk area luas.', color: 'text-accent' },
-                    { icon: Route, label: 'Alat Garis', desc: 'Klik untuk membuat jalur/jalan.', color: 'text-blue-300' },
-                    { icon: MapPin, label: 'Alat Penanda', desc: 'Klik 1x di peta untuk titik lokasi.', color: 'text-red-300' }
+                    { icon: Hexagon, label: 'Area', color: 'text-accent' },
+                    { icon: Route, label: 'Jalur', color: 'text-blue-300' },
+                    { icon: MapPin, label: 'Titik', color: 'text-red-300' }
                   ].map((tool, i) => (
-                    <div key={i} className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
-                       <tool.icon className={cn("w-6 h-6 shrink-0", tool.color)} />
-                       <div>
-                          <p className="text-[10px] font-black uppercase mb-1">{tool.label}</p>
-                          <p className="text-[9px] opacity-70 leading-tight">{tool.desc}</p>
-                       </div>
+                    <div key={i} className="bg-white/10 p-3 rounded-2xl flex flex-col items-center gap-2 border border-white/10">
+                       <tool.icon className={cn("w-5 h-5", tool.color)} />
+                       <p className="text-[9px] font-black uppercase">{tool.label}</p>
                     </div>
                   ))}
                </div>
@@ -232,7 +224,7 @@ export function MapControlView() {
             
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 {tempData.polygons.map(poly => (
-                  <div key={poly.id} className="p-4 bg-green-50 rounded-2xl space-y-2 border border-green-100 group">
+                  <div key={poly.id} className="p-4 bg-green-50 rounded-2xl space-y-3 border border-green-100 group">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
                         <Hexagon className="w-3 h-3" /> Area Poligon
@@ -246,18 +238,27 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
-                    <Input 
-                      value={poly.name} 
-                      onChange={(e) => updateObjectName('polygon', poly.id, e.target.value)}
-                      disabled={!isEditing}
-                      className="bg-white border-none h-9 text-xs font-bold shadow-sm"
-                      placeholder="Nama Area..."
-                    />
+                    <div className="space-y-2">
+                      <Input 
+                        value={poly.name} 
+                        onChange={(e) => updateObjectProperty('polygon', poly.id, 'name', e.target.value)}
+                        disabled={!isEditing}
+                        className="bg-white border-none h-9 text-xs font-bold shadow-sm"
+                        placeholder="Nama Area..."
+                      />
+                      <Textarea 
+                        value={poly.description || ''} 
+                        onChange={(e) => updateObjectProperty('polygon', poly.id, 'description', e.target.value)}
+                        disabled={!isEditing}
+                        className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
+                        placeholder="Keterangan area (Opsional)..."
+                      />
+                    </div>
                   </div>
                 ))}
 
                 {tempData.lines.map(line => (
-                  <div key={line.id} className="p-4 bg-blue-50 rounded-2xl space-y-2 border border-blue-100 group">
+                  <div key={line.id} className="p-4 bg-blue-50 rounded-2xl space-y-3 border border-blue-100 group">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-blue-700 flex items-center gap-1">
                         <Route className="w-3 h-3" /> Jalur Garis
@@ -271,18 +272,27 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
-                    <Input 
-                      value={line.name} 
-                      onChange={(e) => updateObjectName('line', line.id, e.target.value)}
-                      disabled={!isEditing}
-                      className="bg-white border-none h-9 text-xs font-bold shadow-sm"
-                      placeholder="Nama Jalur..."
-                    />
+                    <div className="space-y-2">
+                      <Input 
+                        value={line.name} 
+                        onChange={(e) => updateObjectProperty('line', line.id, 'name', e.target.value)}
+                        disabled={!isEditing}
+                        className="bg-white border-none h-9 text-xs font-bold shadow-sm"
+                        placeholder="Nama Jalur..."
+                      />
+                      <Textarea 
+                        value={line.description || ''} 
+                        onChange={(e) => updateObjectProperty('line', line.id, 'description', e.target.value)}
+                        disabled={!isEditing}
+                        className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
+                        placeholder="Keterangan jalur (Opsional)..."
+                      />
+                    </div>
                   </div>
                 ))}
 
                 {tempData.markers.map(marker => (
-                  <div key={marker.id} className="p-4 bg-red-50 rounded-2xl space-y-2 border border-red-100 group">
+                  <div key={marker.id} className="p-4 bg-red-50 rounded-2xl space-y-3 border border-red-100 group">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-red-700 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Titik Lokasi
@@ -296,13 +306,22 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
-                    <Input 
-                      value={marker.name} 
-                      onChange={(e) => updateObjectName('marker', marker.id, e.target.value)}
-                      disabled={!isEditing}
-                      className="bg-white border-none h-9 text-xs font-bold shadow-sm"
-                      placeholder="Nama Lokasi..."
-                    />
+                    <div className="space-y-2">
+                      <Input 
+                        value={marker.name} 
+                        onChange={(e) => updateObjectProperty('marker', marker.id, 'name', e.target.value)}
+                        disabled={!isEditing}
+                        className="bg-white border-none h-9 text-xs font-bold shadow-sm"
+                        placeholder="Nama Lokasi..."
+                      />
+                      <Textarea 
+                        value={marker.description || ''} 
+                        onChange={(e) => updateObjectProperty('marker', marker.id, 'description', e.target.value)}
+                        disabled={!isEditing}
+                        className="bg-white border-none min-h-[60px] text-[10px] font-medium shadow-sm resize-none"
+                        placeholder="Keterangan lokasi (Opsional)..."
+                      />
+                    </div>
                   </div>
                 ))}
 

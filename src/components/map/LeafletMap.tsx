@@ -22,6 +22,7 @@ export type MapLayerType = 'satellite' | 'streets' | 'dark';
 export interface MapObject {
   id: string;
   name: string;
+  description?: string;
   coords: any;
   type: 'polygon' | 'line' | 'marker';
 }
@@ -73,7 +74,6 @@ export default function LeafletMap({
   const featureGroupInstance = useRef<L.FeatureGroup | null>(null);
   const drawItems = useRef<L.FeatureGroup | null>(null);
 
-  // Function to sync draw items back to parent state
   const handleDrawChange = () => {
     if (!drawItems.current || !onDataChange) return;
     const layers = drawItems.current.getLayers();
@@ -83,28 +83,27 @@ export default function LeafletMap({
     const markers: MapObject[] = [];
 
     layers.forEach((l: any, index: number) => {
-      // Prioritize existing ID/Name if available on the layer object
       const existingId = l.options.id || `obj-${Date.now()}-${index}`;
       const existingName = l.options.name || 'Objek Tanpa Nama';
+      const existingDesc = l.options.description || '';
 
       if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
         const latlngs = l.getLatLngs();
         const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-        polygons.push({ id: existingId, name: existingName, coords, type: 'polygon' });
+        polygons.push({ id: existingId, name: existingName, description: existingDesc, coords, type: 'polygon' });
       } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
         const latlngs = l.getLatLngs();
         const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
-        lines.push({ id: existingId, name: existingName, coords, type: 'line' });
+        lines.push({ id: existingId, name: existingName, description: existingDesc, coords, type: 'line' });
       } else if (l instanceof L.Marker) {
         const ll = l.getLatLng();
-        markers.push({ id: existingId, name: existingName, coords: [ll.lat, ll.lng], type: 'marker' });
+        markers.push({ id: existingId, name: existingName, description: existingDesc, coords: [ll.lat, ll.lng], type: 'marker' });
       }
     });
 
     onDataChange({ polygons, lines, markers });
   };
 
-  // Initialize Map
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
@@ -146,11 +145,9 @@ export default function LeafletMap({
         mapInstance.current.on(L.Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
           const type = layer instanceof L.Polygon ? 'polygon' : layer instanceof L.Marker ? 'marker' : 'line';
-          
-          // Assign initial properties to the layer
           layer.options.id = `obj-${Date.now()}`;
           layer.options.name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
-          
+          layer.options.description = '';
           drawItems.current?.addLayer(layer);
           handleDrawChange();
         });
@@ -175,7 +172,6 @@ export default function LeafletMap({
     };
   }, [center, zoom, editable, locked]);
 
-  // Handle Tile Layer updates
   useEffect(() => {
     if (mapInstance.current) {
       if (tileLayerInstance.current) {
@@ -188,9 +184,17 @@ export default function LeafletMap({
     }
   }, [layer]);
 
-  // Sync Features
   useEffect(() => {
     if (!mapInstance.current) return;
+
+    const createPopupContent = (name: string, desc?: string) => {
+      return `
+        <div class="p-3 min-w-[200px]">
+          <h4 class="font-black text-primary uppercase text-sm mb-1">${name}</h4>
+          ${desc ? `<p class="text-xs text-muted-foreground font-medium italic">${desc}</p>` : ''}
+        </div>
+      `;
+    };
 
     if (!editable && featureGroupInstance.current) {
       featureGroupInstance.current.clearLayers();
@@ -205,43 +209,42 @@ export default function LeafletMap({
             weight: 3,
             dashArray: '5, 10'
           })
-          .bindTooltip(poly.name, { sticky: true, className: 'font-bold bg-white/90 p-2 rounded-xl border-none shadow-xl' })
+          .bindPopup(createPopupContent(poly.name, poly.description))
           .addTo(featureGroupInstance.current!);
         }
       });
 
       linesData?.forEach(item => {
         L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 })
-        .bindTooltip(item.name, { sticky: true, className: 'font-bold bg-white/90 p-2 rounded-xl border-none shadow-xl' })
+        .bindPopup(createPopupContent(item.name, item.description))
         .addTo(featureGroupInstance.current!);
       });
 
       markersData?.forEach(item => {
         L.marker(item.coords as any)
-        .bindPopup(`<div class="p-2"><b class="text-primary">${item.name}</b></div>`)
+        .bindPopup(createPopupContent(item.name, item.description))
         .addTo(featureGroupInstance.current!);
       });
 
     } else if (drawItems.current && editable) {
-      // Sync initial data to drawItems only if they are empty (avoids double re-rendering)
       const currentLayers = drawItems.current.getLayers();
-      if (currentLayers.length === 0 && (polygonsData.length > 0 || linesData.length > 0 || markersData.length > 0)) {
+      if (currentLayers.length === 0) {
         polygonsData?.forEach(poly => {
           const p = L.polygon(poly.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
           // @ts-ignore
-          p.options.id = poly.id; p.options.name = poly.name;
+          p.options.id = poly.id; p.options.name = poly.name; p.options.description = poly.description;
           p.addTo(drawItems.current!);
         });
         linesData?.forEach(item => {
           const l = L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 });
           // @ts-ignore
-          l.options.id = item.id; l.options.name = item.name;
+          l.options.id = item.id; l.options.name = item.name; l.options.description = item.description;
           l.addTo(drawItems.current!);
         });
         markersData?.forEach(item => {
           const m = L.marker(item.coords as any);
           // @ts-ignore
-          m.options.id = item.id; m.options.name = item.name;
+          m.options.id = item.id; m.options.name = item.name; m.options.description = item.description;
           m.addTo(drawItems.current!);
         });
       }
