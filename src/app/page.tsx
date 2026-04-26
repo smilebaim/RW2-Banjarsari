@@ -69,7 +69,7 @@ const parseData = (val: any, fallback: any = []) => {
 export default function Home() {
   const db = useFirestore();
   
-  // Visibility States
+  // Visibility States: Stores IDs of items that should be HIDDEN
   const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
   const [hiddenLineIds, setHiddenLineIds] = useState<Record<string, boolean>>({});
   const [hiddenMarkerIds, setHiddenMarkerIds] = useState<Record<string, boolean>>({});
@@ -83,9 +83,10 @@ export default function Home() {
   const allLines = useMemo(() => parseData(mapSettings?.lines, []), [mapSettings]);
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
-  // Handle Initial Visibility: Show only areas by default, hide all lines and markers
+  // Handle Initial Visibility: Show Areas by default, Hide all lines and markers
   useEffect(() => {
-    if (!isInitialized && mapSettings && (allLines.length > 0 || allMarkers.length > 0)) {
+    if (!isInitialized && mapSettings) {
+      // Hide all lines and markers on start
       const initialHiddenLines: Record<string, boolean> = {};
       allLines.forEach((l: any) => { initialHiddenLines[l.id] = true; });
       
@@ -109,6 +110,7 @@ export default function Home() {
     const next: Record<string, boolean> = {};
     const items = type === 'area' ? allPolygons : type === 'line' ? allLines : allMarkers;
     
+    // If show is false, add all IDs to the hidden record
     if (!show) {
       items.forEach((p: any) => { next[p.id] = true; });
     }
@@ -122,8 +124,13 @@ export default function Home() {
     const setter = type === 'area' ? setHiddenAreaIds : type === 'line' ? setHiddenLineIds : setHiddenMarkerIds;
     setter(prev => {
       const next = { ...prev };
-      if (isChecked) delete next[id];
-      else next[id] = true;
+      if (isChecked) {
+        // If checked, remove from hidden list
+        delete next[id];
+      } else {
+        // If unchecked, add to hidden list
+        next[id] = true;
+      }
       return next;
     });
   };
@@ -217,7 +224,7 @@ export default function Home() {
               </div>
               
               <div className="space-y-3">
-                {/* 1. Areas (Polygons) - Batas RW/RT */}
+                {/* 1. Areas (Polygons) - RW/RT Boundaries */}
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="flex items-center gap-4 px-4 py-4 rounded-2xl cursor-pointer transition-colors font-black text-[10px] uppercase tracking-widest text-white/70 focus:bg-white/5 data-[state=open]:bg-white/5">
                     <Hexagon className="w-4 h-4 text-green-500" />
