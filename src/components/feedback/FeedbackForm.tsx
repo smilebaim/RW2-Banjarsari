@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
-import { collection, doc, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase, useCollection, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,10 +20,6 @@ export function FeedbackForm() {
   const membersQuery = useMemoFirebase(() => query(collection(db, 'rw_management_members'), orderBy('createdAt', 'asc')), [db]);
   const { data: officials, isLoading: isLoadingOfficials } = useCollection(membersQuery);
 
-  // Fetch WhatsApp Config for Template (if needed for greeting)
-  const configRef = useMemoFirebase(() => doc(db, 'system_settings', 'whatsapp_config'), [db]);
-  const { data: waConfig } = useDoc(configRef);
-
   useEffect(() => {
     if (!isUserLoading && !user) {
       initiateAnonymousSignIn(auth);
@@ -38,18 +34,8 @@ export function FeedbackForm() {
     if (selectedOfficial && selectedOfficial.contactNumber) {
       const targetPhone = selectedOfficial.contactNumber.replace(/[^0-9]/g, '');
       
-      // Default greeting
-      let text = waConfig?.messageTemplate || "Halo {{target}}, saya ingin menyampaikan aspirasi...";
-      text = text.replace('{{target}}', selectedOfficial.name);
-      // Remove other placeholders since they are no longer collected in the form
-      text = text.replace('{{name}}', '(Warga)');
-      text = text.replace('{{rt}}', '??');
-      text = text.replace('{{type}}', 'Aspirasi');
-      text = text.replace('{{message}}', '...');
-
-      const encodedText = encodeURIComponent(text);
-      const waUrl = `https://wa.me/${targetPhone}?text=${encodedText}`;
-      
+      // Open WhatsApp chat directly
+      const waUrl = `https://wa.me/${targetPhone}`;
       window.open(waUrl, '_blank');
     }
     setLoading(false);
@@ -84,7 +70,7 @@ export function FeedbackForm() {
               </SelectContent>
             </Select>
             <p className="text-[10px] text-muted-foreground font-medium leading-relaxed italic px-2">
-              Anda akan langsung diarahkan ke chat WhatsApp pengurus yang dipilih untuk menyampaikan aspirasi secara pribadi.
+              Anda akan langsung dialihkan ke WhatsApp untuk berkomunikasi langsung dengan pengurus yang dipilih.
             </p>
           </div>
 
@@ -98,7 +84,7 @@ export function FeedbackForm() {
             ) : (
               <>
                 <Send className="mr-3 h-4 w-4" />
-                Lanjutkan ke WhatsApp
+                Hubungi via WhatsApp
               </>
             )}
           </Button>

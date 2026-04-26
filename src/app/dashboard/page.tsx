@@ -10,7 +10,6 @@ import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
-import { SystemSettings } from '@/components/admin/SystemSettings';
 import { doc, setDoc, deleteDoc, collection, getDocs, query } from 'firebase/firestore';
 import { 
   Users, 
@@ -61,7 +60,6 @@ const NAV_ITEMS = [
   { id: 'feedback', label: 'Kontrol Aspirasi', icon: MessageCircle },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Struktur Pengurus', icon: Users },
-  { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
 ];
 
 export default function DashboardPage() {
@@ -151,12 +149,6 @@ export default function DashboardPage() {
         markers: "[]",
         updatedAt: new Date().toISOString()
       }, { merge: true });
-
-      await setDoc(doc(db, 'system_settings', 'whatsapp_config'), {
-        phoneNumber: '6281234567890',
-        messageTemplate: 'Halo {{target}},\n\nSaya ingin menyampaikan aspirasi terkait wilayah RW 02...',
-        updatedAt: new Date().toISOString()
-      });
 
       toast({
         title: "Inisialisasi Berhasil",
@@ -258,12 +250,12 @@ export default function DashboardPage() {
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
               <AlertDialogDescription className="font-medium">
-                Tindakan ini akan menghapus semua berita, kontak, pengurus, dan aspirasi dari database secara permanen.
+                Tindakan ini akan menghapus semua berita, kontak, pengurus, dan data infrastruktur secara permanen.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-8 gap-4">
               <AlertDialogCancel className="rounded-xl h-12 font-bold">Batal</AlertDialogCancel>
-              <AlertDialogAction onClick={clearAllData} className="rounded-xl h-12 bg-red-600 hover:bg-red-700 font-bold">Hapus Sekarang</AlertDialogAction>
+              <AlertDialogAction onClick={clearAllData} className="rounded-xl h-12 bg-red-600 hover:bg-red-700 font-bold text-white">Hapus Sekarang</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -344,9 +336,9 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                 {[
                   { label: 'Total Pengurus', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
-                  { label: 'Laporan Masuk', value: feedbackItems?.length || 0, sub: 'Perlu Tindak Lanjut', icon: MessageSquare, color: 'bg-orange-500' },
                   { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terpublikasi', icon: Newspaper, color: 'bg-primary' },
                   { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Layanan Terdaftar', icon: Phone, color: 'bg-green-600' },
+                  { label: 'Status Peta', value: 'Aktif', sub: 'Infrastruktur OK', icon: MapIcon, color: 'bg-orange-500' },
                 ].map((stat, i) => (
                   <Card key={i} className="border-none shadow-xl rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white">
                     <CardContent className="p-6 lg:p-8">
@@ -383,7 +375,6 @@ export default function DashboardPage() {
           {activeTab === 'contacts' && <ContactManager />}
           {activeTab === 'feedback' && <FeedbackAnalysisView />}
           {activeTab === 'users' && <ManagementMemberManager />}
-          {activeTab === 'settings' && <SystemSettings />}
         </div>
       </main>
     </div>
