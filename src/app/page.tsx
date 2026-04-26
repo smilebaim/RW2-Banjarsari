@@ -87,21 +87,31 @@ export default function Home() {
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
   // Initial Visibility Logic: 
-  // - Show Polygons (Batas Wilayah RW) by default (hiddenAreaIds remains empty)
-  // - Uncheck/Hide all Lines and Markers by default
+  // - Show ONLY "Batas Wilayah RW 2" by default.
+  // - Hide all RTs, Lines, and Markers by default.
   useEffect(() => {
     if (!isInitialized && mapSettings && (allPolygons.length > 0 || allLines.length > 0 || allMarkers.length > 0)) {
-      // Hide all lines by default
+      // 1. Logic for Areas (Polygons)
+      const initialHiddenAreas: Record<string, boolean> = {};
+      allPolygons.forEach((p: any) => {
+        const name = p.name?.toLowerCase() || '';
+        // If it's NOT the main boundary, hide it
+        if (!name.includes('rw 2') && !name.includes('rw 02') && !name.includes('batas')) {
+          initialHiddenAreas[p.id] = true;
+        }
+      });
+      
+      // 2. Hide all lines by default
       const initialHiddenLines: Record<string, boolean> = {};
       allLines.forEach((l: any) => { initialHiddenLines[l.id] = true; });
       
-      // Hide all markers by default
+      // 3. Hide all markers by default
       const initialHiddenMarkers: Record<string, boolean> = {};
       allMarkers.forEach((m: any) => { initialHiddenMarkers[m.id] = true; });
 
+      setHiddenAreaIds(initialHiddenAreas);
       setHiddenLineIds(initialHiddenLines);
       setHiddenMarkerIds(initialHiddenMarkers);
-      setHiddenAreaIds({}); // Ensure areas are shown (checked)
       setIsInitialized(true);
     }
   }, [mapSettings, allPolygons, allLines, allMarkers, isInitialized]);
@@ -236,12 +246,12 @@ export default function Home() {
               </div>
               
               <div className="space-y-4">
-                {/* 1. Batas Wilayah RW (CHECKED BY DEFAULT) */}
+                {/* 1. Area Wilayah & Batas RW */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
                       <Hexagon className="w-4 h-4 text-green-500" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Batas Wilayah RW</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Area & Batas RW</span>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-green-500 hover:text-white rounded-lg">Pilih Semua</Button>
@@ -267,7 +277,7 @@ export default function Home() {
 
                 <DropdownMenuSeparator className="bg-white/5" />
 
-                {/* 2. Jalur & Drainase (UNCHECKED BY DEFAULT) */}
+                {/* 2. Jalur & Drainase */}
                 <div className="space-y-2">
                    <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
@@ -298,7 +308,7 @@ export default function Home() {
 
                 <DropdownMenuSeparator className="bg-white/5" />
 
-                {/* 3. Fasilitas (UNCHECKED BY DEFAULT) */}
+                {/* 3. Fasilitas */}
                 <div className="space-y-2">
                    <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
@@ -341,7 +351,7 @@ export default function Home() {
                 <Compass className="w-7 h-7 transition-transform group-hover:rotate-180 duration-1000" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl">
+            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
               Kalibrasi Fokus
             </TooltipContent>
           </Tooltip>
@@ -356,7 +366,7 @@ export default function Home() {
                 <Info className="w-7 h-7 transition-transform group-hover:scale-110" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl">
+            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
               Info Geografis
             </TooltipContent>
           </Tooltip>
@@ -408,4 +418,3 @@ export default function Home() {
     </div>
   );
 }
-
