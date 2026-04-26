@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -152,45 +153,45 @@ export default function Home() {
       </div>
 
       <TooltipProvider delayDuration={0}>
-        {/* Floating Header HUD (Top) - Smaller Version */}
+        {/* Floating Header HUD (Top) - Proportional Edition */}
         <div className="absolute top-6 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
-          <div className="w-fit bg-black/40 backdrop-blur-3xl shadow-[0_4px_24px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[1.2rem] p-0.5 flex items-center gap-1.5 pointer-events-auto transition-all hover:bg-black/60 hover:border-primary/30 group">
-            <div className="flex items-center gap-2 pl-3 pr-2 py-1">
-              <div className="relative flex h-1.5 w-1.5">
+          <div className="w-fit bg-black/50 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[1.5rem] p-1 flex items-center gap-2 pointer-events-auto transition-all hover:bg-black/70 hover:border-primary/40 group">
+            <div className="flex items-center gap-3 pl-4 pr-2 py-1.5">
+              <div className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary shadow-[0_0_6px_rgba(var(--primary),1)]"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_8px_rgba(var(--primary),1)]"></span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] font-black text-white uppercase tracking-[0.1em] leading-none mb-0.5">RW 02 Banjarsari</span>
-                <span className="text-[7px] font-bold text-primary tracking-widest leading-none flex items-center gap-1 uppercase">
-                  <Zap className="w-1.5 h-1.5" /> Portal Digital
+                <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">RW 02 Banjarsari</span>
+                <span className="text-[8px] font-bold text-primary tracking-[0.2em] leading-none flex items-center gap-1.5 uppercase">
+                  <Zap className="w-2 h-2" /> Portal Digital
                 </span>
               </div>
             </div>
             
-            <div className="h-4 w-px bg-white/10 mx-0.5" />
+            <div className="h-6 w-px bg-white/10 mx-1" />
             
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
                   size="icon" 
                   variant="ghost" 
-                  className="rounded-full w-8 h-8 text-white/50 hover:bg-primary hover:text-white transition-all duration-500" 
+                  className="rounded-2xl w-10 h-10 text-white/50 hover:bg-primary hover:text-white transition-all duration-500" 
                   asChild
                 >
                   <Link href="/login">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <ShieldCheck className="w-4.5 h-4.5" />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-primary text-white border-none font-black text-[8px] uppercase tracking-widest mb-4 px-3 py-1.5 rounded-lg shadow-2xl">
+              <TooltipContent className="bg-primary text-white border-none font-black text-[9px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
                 Dashboard
               </TooltipContent>
             </Tooltip>
           </div>
         </div>
 
-        {/* Sidebar Controls (Left) - Smaller Icons with Integrated Zoom */}
+        {/* Sidebar Controls (Left) - Compact HUD Toolbar */}
         <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
           <DropdownMenu>
             <Tooltip>
