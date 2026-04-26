@@ -22,6 +22,7 @@ import {
   MapPin,
   Check,
   X,
+  ChevronRight,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -41,6 +42,7 @@ import {
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
@@ -250,9 +252,9 @@ export default function Home() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white">
                   <Hexagon className="w-4 h-4 text-green-500" />
-                  Area Wilayah
+                  Area per RT
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-2xl p-2 min-w-[200px]">
+                <DropdownMenuSubContent className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-2xl p-2 min-w-[220px]">
                    <div className="grid grid-cols-2 gap-1 p-1 mb-2">
                      <Button 
                         variant="ghost" 
@@ -272,22 +274,24 @@ export default function Home() {
                      </Button>
                    </div>
                   <DropdownMenuSeparator className="bg-white/10" />
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {allPolygons.map((p: any) => (
-                      <DropdownMenuCheckboxItem
-                        key={p.id}
-                        checked={!hiddenAreaIds[p.id]}
-                        onCheckedChange={() => toggleSinglePolygon(p.id)}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-[10px] font-bold uppercase text-white/70 focus:bg-white/5"
-                      >
-                        <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: p.color || '#22c55e' }} />
-                        <span className="truncate">{p.name}</span>
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </div>
+                  <ScrollArea className="h-[250px]">
+                    <div className="space-y-1">
+                      {allPolygons.map((p: any) => (
+                        <DropdownMenuCheckboxItem
+                          key={p.id}
+                          checked={!hiddenAreaIds[p.id]}
+                          onCheckedChange={() => toggleSinglePolygon(p.id)}
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer text-[9px] font-bold uppercase text-white/70 focus:bg-white/5"
+                        >
+                          <div className="w-2.5 h-2.5 rounded-full border border-white/10" style={{ backgroundColor: p.color || '#22c55e' }} />
+                          <span className="truncate flex-1">{p.name}</span>
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </div>
+                  </ScrollArea>
                   {allPolygons.length === 0 && (
                     <div className="p-4 text-center">
-                      <p className="text-[8px] font-bold text-white/30 uppercase">Tidak ada area</p>
+                      <p className="text-[8px] font-bold text-white/30 uppercase">Tidak ada area RT</p>
                     </div>
                   )}
                 </DropdownMenuSubContent>
@@ -356,7 +360,7 @@ export default function Home() {
                {polygonsData.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500 text-[8px] font-black uppercase tracking-widest px-2">
-                     {polygonsData.length} Area
+                     {polygonsData.length} Area RT
                    </Badge>
                  </div>
                )}
