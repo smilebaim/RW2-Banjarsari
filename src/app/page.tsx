@@ -17,7 +17,11 @@ import {
   Moon,
   Database,
   Eye,
-  Activity
+  Activity,
+  CheckCircle2,
+  Hexagon,
+  Route,
+  MapPin
 } from 'lucide-react';
 import {
   Tooltip,
@@ -30,6 +34,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
@@ -51,7 +57,11 @@ type MapLayerType = 'satellite' | 'streets' | 'dark';
 export default function Home() {
   const db = useFirestore();
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
-  const [showInfra, setShowInfra] = useState(true);
+  const [visibility, setVisibility] = useState({
+    polygons: true,
+    lines: true,
+    markers: true
+  });
 
   // Fetch geography settings from Firestore
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
@@ -73,7 +83,12 @@ export default function Home() {
   const linesData = parseData(mapSettings?.lines, []);
   const markersData = parseData(mapSettings?.markers, []);
 
-  const totalInfra = polygonsData.length + linesData.length + markersData.length;
+  const totalInfra = 
+    (visibility.polygons ? polygonsData.length : 0) + 
+    (visibility.lines ? linesData.length : 0) + 
+    (visibility.markers ? markersData.length : 0);
+
+  const isAnyLayerVisible = visibility.polygons || visibility.lines || visibility.markers;
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
@@ -83,7 +98,10 @@ export default function Home() {
           zoom={ZOOM_LEVEL} 
           layer={activeLayer} 
           locked={false}
-          showBoundary={showInfra}
+          showBoundary={true}
+          showPolygons={visibility.polygons}
+          showLines={visibility.lines}
+          showMarkers={visibility.markers}
           polygonsData={polygonsData}
           linesData={linesData}
           markersData={markersData}
@@ -168,14 +186,65 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Layer Selector Tool */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    variant="secondary" 
+                    className={`w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 transition-all duration-500 group ${
+                      isAnyLayerVisible ? 'text-primary' : 'text-white/30'
+                    } hover:bg-primary hover:text-white`}
+                  >
+                    <Database className="w-5 h-5 transition-transform group-hover:scale-110" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-black/90 backdrop-blur-md text-white border border-white/10 font-bold text-[10px] uppercase tracking-widest ml-4 px-4 py-2 rounded-xl">
+                Data Layer
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent side="right" align="center" className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[200px]">
+              <div className="px-4 py-2 mb-1 border-b border-white/10">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Pilih Data Wilayah</p>
+              </div>
+              <DropdownMenuCheckboxItem
+                checked={visibility.polygons}
+                onCheckedChange={(checked) => setVisibility(v => ({ ...v, polygons: !!checked }))}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white"
+              >
+                <Hexagon className="w-4 h-4 text-green-500" />
+                Area Wilayah
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibility.lines}
+                onCheckedChange={(checked) => setVisibility(v => ({ ...v, lines: !!checked }))}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white"
+              >
+                <Route className="w-4 h-4 text-blue-500" />
+                Jaringan Jalan
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={visibility.markers}
+                onCheckedChange={(checked) => setVisibility(v => ({ ...v, markers: !!checked }))}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white"
+              >
+                <MapPin className="w-4 h-4 text-red-500" />
+                Titik Fasilitas
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem 
+                onClick={() => setVisibility({ polygons: true, lines: true, markers: true })}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-colors font-black text-[9px] uppercase tracking-widest text-primary hover:bg-white/5"
+              >
+                Tampilkan Semua
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {[
-            { 
-              icon: showInfra ? Eye : Database, 
-              label: 'Infrastruktur', 
-              tooltip: showInfra ? 'Sembunyikan Aset' : 'Tampilkan Aset',
-              onClick: () => setShowInfra(!showInfra),
-              active: showInfra
-            },
             { icon: Compass, label: 'Kompas', tooltip: 'Kalibrasi Orientasi', onClick: () => {} },
             { icon: Info, label: 'Info Wilayah', tooltip: 'Detail Geografis', onClick: () => {} }
           ].map((tool, idx) => (
@@ -185,9 +254,7 @@ export default function Home() {
                   size="icon" 
                   variant="secondary" 
                   onClick={tool.onClick}
-                  className={`w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 transition-all duration-500 group ${
-                    tool.active ? 'bg-primary text-white border-primary/50' : 'text-white/70 hover:bg-primary hover:text-white'
-                  }`}
+                  className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white transition-all duration-500 group"
                 >
                   <tool.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
                 </Button>
@@ -201,7 +268,7 @@ export default function Home() {
       </div>
 
       {/* Bottom Infrastructure Summary Bar */}
-      {totalInfra > 0 && showInfra && (
+      {isAnyLayerVisible && totalInfra >= 0 && (
         <div className="absolute bottom-32 inset-x-0 z-20 flex justify-center pointer-events-none px-4">
           <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-6 pointer-events-auto animate-in slide-in-from-bottom-10 duration-700">
              <div className="flex items-center gap-2">
@@ -210,21 +277,21 @@ export default function Home() {
              </div>
              <div className="h-4 w-px bg-white/10" />
              <div className="flex gap-4">
-               {polygonsData.length > 0 && (
+               {visibility.polygons && polygonsData.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500 text-[8px] font-black uppercase tracking-widest px-2">
                      {polygonsData.length} Area
                    </Badge>
                  </div>
                )}
-               {linesData.length > 0 && (
+               {visibility.lines && linesData.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Badge variant="outline" className="bg-blue-500/10 border-blue-500/20 text-blue-500 text-[8px] font-black uppercase tracking-widest px-2">
                      {linesData.length} Jalur
                    </Badge>
                  </div>
                )}
-               {markersData.length > 0 && (
+               {visibility.markers && markersData.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Badge variant="outline" className="bg-red-500/10 border-red-500/20 text-red-500 text-[8px] font-black uppercase tracking-widest px-2">
                      {markersData.length} Titik

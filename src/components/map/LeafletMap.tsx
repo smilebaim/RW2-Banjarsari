@@ -36,6 +36,9 @@ interface LeafletMapProps {
   zoom: number;
   layer?: MapLayerType;
   showBoundary?: boolean;
+  showPolygons?: boolean;
+  showLines?: boolean;
+  showMarkers?: boolean;
   editable?: boolean;
   polygonsData?: MapObject[];
   linesData?: MapObject[];
@@ -103,6 +106,9 @@ export default function LeafletMap({
   zoom, 
   layer = 'satellite', 
   showBoundary = true, 
+  showPolygons = true,
+  showLines = true,
+  showMarkers = true,
   editable = false,
   polygonsData = [],
   linesData = [],
@@ -260,41 +266,47 @@ export default function LeafletMap({
       featureGroupInstance.current.clearLayers();
       if (!showBoundary) return;
 
-      polygonsData?.forEach(poly => {
-        if (poly.coords && poly.coords.length > 0) {
-          L.polygon(poly.coords as any, {
-            color: poly.color || '#22c55e',
-            fillColor: poly.color || '#22c55e',
-            fillOpacity: 0.2,
-            weight: 3,
-            dashArray: '5, 10'
-          })
-          .bindPopup(createPopupContent(poly))
-          .addTo(featureGroupInstance.current!);
-        }
-      });
+      if (showPolygons) {
+        polygonsData?.forEach(poly => {
+          if (poly.coords && poly.coords.length > 0) {
+            L.polygon(poly.coords as any, {
+              color: poly.color || '#22c55e',
+              fillColor: poly.color || '#22c55e',
+              fillOpacity: 0.2,
+              weight: 3,
+              dashArray: '5, 10'
+            })
+            .bindPopup(createPopupContent(poly))
+            .addTo(featureGroupInstance.current!);
+          }
+        });
+      }
 
-      linesData?.forEach(item => {
-        if (item.coords && item.coords.length > 0) {
-          L.polyline(item.coords as any, { 
-            color: item.color || '#3b82f6', 
-            weight: 4 
-          })
-          .bindPopup(createPopupContent(item))
-          .addTo(featureGroupInstance.current!);
-        }
-      });
-
-      markersData?.forEach(item => {
-        if (item.coords) {
-          const icon = createLeafletIcon(item.icon, item.color);
-          if (icon) {
-            L.marker(item.coords as any, { icon })
+      if (showLines) {
+        linesData?.forEach(item => {
+          if (item.coords && item.coords.length > 0) {
+            L.polyline(item.coords as any, { 
+              color: item.color || '#3b82f6', 
+              weight: 4 
+            })
             .bindPopup(createPopupContent(item))
             .addTo(featureGroupInstance.current!);
           }
-        }
-      });
+        });
+      }
+
+      if (showMarkers) {
+        markersData?.forEach(item => {
+          if (item.coords) {
+            const icon = createLeafletIcon(item.icon, item.color);
+            if (icon) {
+              L.marker(item.coords as any, { icon })
+              .bindPopup(createPopupContent(item))
+              .addTo(featureGroupInstance.current!);
+            }
+          }
+        });
+      }
 
     } else if (drawItems.current && editable) {
       const currentLayers = drawItems.current.getLayers();
@@ -347,7 +359,7 @@ export default function LeafletMap({
         });
       }
     }
-  }, [showBoundary, polygonsData, linesData, markersData, editable]);
+  }, [showBoundary, showPolygons, showLines, showMarkers, polygonsData, linesData, markersData, editable]);
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-secondary/5">
