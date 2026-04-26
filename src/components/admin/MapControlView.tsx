@@ -104,12 +104,11 @@ export function MapControlView() {
   const [isEditing, setIsEditing] = useState(false);
   const [focusTrigger, setFocusTrigger] = useState<{ coords: [number, number], zoom: number } | null>(null);
   
-  const [tempData, setTempData] = {
+  const [stateData, setStateData] = useState({
     polygons: [] as MapObject[],
     lines: [] as MapObject[],
     markers: [] as MapObject[]
-  };
-  const [stateData, setStateData] = useState(tempData);
+  });
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
   const { data: mapSettings, isLoading } = useDoc(mapSettingsRef);
