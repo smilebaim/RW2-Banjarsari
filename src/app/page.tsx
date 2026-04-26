@@ -23,6 +23,7 @@ import {
   Check,
   X,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -78,7 +79,7 @@ export default function Home() {
     markers: true
   });
   
-  // Menggunakan record untuk menyimpan ID area yang disembunyikan
+  // State for hidden polygons (area per RT)
   const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
@@ -99,6 +100,7 @@ export default function Home() {
     [mapSettings?.markers]
   );
 
+  // Filter out polygons based on hiddenAreaIds
   const polygonsData = useMemo(() => 
     allPolygons.filter((p: any) => !hiddenAreaIds[p.id]), 
     [allPolygons, hiddenAreaIds]
@@ -124,11 +126,16 @@ export default function Home() {
     }
   };
 
-  const toggleSinglePolygon = (id: string) => {
-    setHiddenAreaIds(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  const toggleSinglePolygon = (id: string, isChecked: boolean) => {
+    setHiddenAreaIds(prev => {
+      const next = { ...prev };
+      if (isChecked) {
+        delete next[id];
+      } else {
+        next[id] = true;
+      }
+      return next;
+    });
   };
 
   return (
@@ -149,6 +156,7 @@ export default function Home() {
         />
       </div>
 
+      {/* Header Info */}
       <div className="absolute top-8 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
         <div className="w-fit bg-white/5 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border border-white/10 rounded-full p-1.5 flex items-center gap-2 pointer-events-auto transition-all hover:bg-white/10">
           <div className="flex items-center gap-3 pl-5 pr-3 py-1">
@@ -186,8 +194,10 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Floating Controls */}
       <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
         <TooltipProvider delayDuration={0}>
+          {/* Base Layer Switcher */}
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -195,7 +205,7 @@ export default function Home() {
                   <Button 
                     size="icon" 
                     variant="secondary" 
-                    className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white hover:border-primary/50 transition-all duration-500 group"
+                    className="w-12 h-12 rounded-2xl bg-white/5 backdrop-blur-3xl shadow-2xl border border-white/5 text-white/70 hover:bg-primary hover:text-white transition-all duration-500 group"
                   >
                     <Layers className="w-5 h-5 transition-transform group-hover:scale-110" />
                   </Button>
@@ -225,6 +235,7 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Data Layer Checklist */}
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -246,13 +257,14 @@ export default function Home() {
             </Tooltip>
             <DropdownMenuContent side="right" align="center" className="bg-black/90 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[240px]">
               <div className="px-4 py-3 mb-1 border-b border-white/10">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Kontrol Infrastruktur</p>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Daftar Inventaris Wilayah</p>
               </div>
               
+              {/* Checklist Sub-menu for Areas (RT) */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white">
                   <Hexagon className="w-4 h-4 text-green-500" />
-                  Area per RT
+                  Pilih Area (per RT)
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-2xl p-2 min-w-[220px]">
                    <div className="grid grid-cols-2 gap-1 p-1 mb-2">
@@ -274,29 +286,31 @@ export default function Home() {
                      </Button>
                    </div>
                   <DropdownMenuSeparator className="bg-white/10" />
-                  <ScrollArea className="h-[250px]">
+                  <ScrollArea className="h-[300px]">
                     <div className="space-y-1">
-                      {allPolygons.map((p: any) => (
-                        <DropdownMenuCheckboxItem
-                          key={p.id}
-                          checked={!hiddenAreaIds[p.id]}
-                          onCheckedChange={() => toggleSinglePolygon(p.id)}
-                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer text-[9px] font-bold uppercase text-white/70 focus:bg-white/5"
-                        >
-                          <div className="w-2.5 h-2.5 rounded-full border border-white/10" style={{ backgroundColor: p.color || '#22c55e' }} />
-                          <span className="truncate flex-1">{p.name}</span>
-                        </DropdownMenuCheckboxItem>
-                      ))}
+                      {allPolygons.length > 0 ? (
+                        allPolygons.map((p: any) => (
+                          <DropdownMenuCheckboxItem
+                            key={p.id}
+                            checked={!hiddenAreaIds[p.id]}
+                            onCheckedChange={(checked) => toggleSinglePolygon(p.id, checked)}
+                            className="flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer text-[9px] font-bold uppercase text-white/70 focus:bg-white/5"
+                          >
+                            <div className="w-2.5 h-2.5 rounded-full border border-white/10" style={{ backgroundColor: p.color || '#22c55e' }} />
+                            <span className="truncate flex-1">{p.name}</span>
+                          </DropdownMenuCheckboxItem>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center">
+                          <p className="text-[8px] font-bold text-white/30 uppercase italic">Tidak ada area RT terdaftar</p>
+                        </div>
+                      )}
                     </div>
                   </ScrollArea>
-                  {allPolygons.length === 0 && (
-                    <div className="p-4 text-center">
-                      <p className="text-[8px] font-bold text-white/30 uppercase">Tidak ada area RT</p>
-                    </div>
-                  )}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
+              {/* Main Infrastructure Checklist */}
               <DropdownMenuCheckboxItem
                 checked={visibility.lines}
                 onCheckedChange={(checked) => setVisibility(v => ({ ...v, lines: !!checked }))}
@@ -305,6 +319,7 @@ export default function Home() {
                 <Route className="w-4 h-4 text-blue-500" />
                 Jaringan Jalan
               </DropdownMenuCheckboxItem>
+              
               <DropdownMenuCheckboxItem
                 checked={visibility.markers}
                 onCheckedChange={(checked) => setVisibility(v => ({ ...v, markers: !!checked }))}
@@ -316,6 +331,7 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Other Tools */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -348,6 +364,7 @@ export default function Home() {
         </TooltipProvider>
       </div>
 
+      {/* Connection Status Panel */}
       {isAnyLayerVisible && (
         <div className="absolute bottom-32 inset-x-0 z-20 flex justify-center pointer-events-none px-4">
           <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-6 pointer-events-auto animate-in slide-in-from-bottom-10 duration-700">
@@ -360,7 +377,7 @@ export default function Home() {
                {polygonsData.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500 text-[8px] font-black uppercase tracking-widest px-2">
-                     {polygonsData.length} Area RT
+                     {polygonsData.length} Area Aktif
                    </Badge>
                  </div>
                )}
@@ -383,6 +400,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Ambient Overlays */}
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-[5]"></div>
       <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none z-[5]"></div>
     </div>
