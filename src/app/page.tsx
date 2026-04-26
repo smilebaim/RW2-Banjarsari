@@ -50,12 +50,7 @@ export default function Home() {
     return val || fallback;
   };
 
-  // Modern multi-polygon support
-  const polygonsData = parseData(mapSettings?.polygon || mapSettings?.polygons, []);
-  // Support for legacy single polygon if it exists
-  const legacyPolygon = parseData(mapSettings?.polygon, null);
-  const normalizedPolygons = Array.isArray(polygonsData) ? polygonsData : (legacyPolygon ? [legacyPolygon] : []);
-
+  const polygonsData = parseData(mapSettings?.polygons || mapSettings?.polygon, []);
   const linesData = parseData(mapSettings?.lines, []);
   const markersData = parseData(mapSettings?.markers, []);
 
@@ -68,7 +63,7 @@ export default function Home() {
           layer={activeLayer} 
           locked={true}
           showBoundary={true}
-          polygonsData={normalizedPolygons}
+          polygonsData={polygonsData}
           linesData={linesData}
           markersData={markersData}
         />

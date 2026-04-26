@@ -98,7 +98,7 @@ export function MapControlView() {
     setIsEditing(false);
     toast({
       title: "Konfigurasi Disimpan",
-      description: "Data infrastruktur wilayah telah diperbarui di database.",
+      description: "Seluruh elemen infrastruktur telah diperbarui.",
     });
   };
 
@@ -124,7 +124,6 @@ export function MapControlView() {
       if (type === 'marker') return { ...prev, markers: prev.markers.filter(m => m.id !== id) };
       return prev;
     });
-    toast({ title: "Elemen Dihapus", description: "Objek telah dihapus dari daftar." });
   };
 
   const focusOnObject = (coords: any) => {
@@ -136,7 +135,6 @@ export function MapControlView() {
       target = coords as [number, number];
     }
     setFocusTrigger({ coords: target, zoom: 19 });
-    toast({ title: "Fokus Lokasi", description: "Peta bergeser ke objek yang dipilih." });
   };
 
   const layers = [
@@ -150,7 +148,7 @@ export function MapControlView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
           <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Infrastruktur</h1>
-          <p className="text-muted-foreground font-medium">Buat dan kelola aset geografis wilayah secara digital.</p>
+          <p className="text-muted-foreground font-medium">Buat batas area, jalur jalan, dan titik lokasi penting.</p>
         </div>
         <div className="flex gap-3">
           {isEditing ? (
@@ -159,7 +157,7 @@ export function MapControlView() {
                 <X className="w-4 h-4" /> Batal
               </Button>
               <Button onClick={handleSaveMap} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12 px-6 text-white">
-                <Check className="w-4 h-4" /> Simpan Permanen
+                <Check className="w-4 h-4" /> Simpan Data Peta
               </Button>
             </>
           ) : (
@@ -170,9 +168,9 @@ export function MapControlView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[750px]">
-        <div className="lg:col-span-8 h-full relative">
-          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative group">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[700px]">
+        <div className="lg:col-span-8 h-[600px] lg:h-full relative">
+          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative">
             <div className="absolute inset-0 z-0">
                {isLoading ? (
                  <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/10">
@@ -197,18 +195,19 @@ export function MapControlView() {
           </Card>
         </div>
 
-        <div className="lg:col-span-4 space-y-6 flex flex-col h-full overflow-y-auto pr-2">
+        <div className="lg:col-span-4 space-y-6 flex flex-col h-full">
           {isEditing && (
             <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-primary text-white animate-in slide-in-from-right-4">
                <div className="flex items-center gap-3 mb-4">
                   <PlusCircle className="w-5 h-5 text-accent" />
-                  <h3 className="font-black uppercase text-sm tracking-tight">Alat Pembuat</h3>
+                  <h3 className="font-black uppercase text-sm tracking-tight">Cara Menambah Objek</h3>
                </div>
-               <div className="grid grid-cols-1 gap-3">
+               <p className="text-[10px] opacity-80 leading-relaxed mb-4 font-medium">Gunakan toolbar di sebelah kiri peta untuk mulai menggambar:</p>
+               <div className="space-y-3">
                   {[
-                    { icon: Hexagon, label: 'Batas Wilayah / Area', desc: 'Gunakan poligon untuk area luas.', color: 'text-accent' },
-                    { icon: Route, label: 'Jalur / Jalan', desc: 'Gunakan garis untuk rute.', color: 'text-blue-300' },
-                    { icon: MapPin, label: 'Titik Penting', desc: 'Gunakan marker untuk lokasi.', color: 'text-red-300' }
+                    { icon: Hexagon, label: 'Alat Poligon', desc: 'Klik titik demi titik untuk area luas.', color: 'text-accent' },
+                    { icon: Route, label: 'Alat Garis', desc: 'Klik untuk membuat jalur/jalan.', color: 'text-blue-300' },
+                    { icon: MapPin, label: 'Alat Penanda', desc: 'Klik 1x di peta untuk titik lokasi.', color: 'text-red-300' }
                   ].map((tool, i) => (
                     <div key={i} className="bg-white/10 p-4 rounded-2xl flex items-start gap-3 border border-white/10">
                        <tool.icon className={cn("w-6 h-6 shrink-0", tool.color)} />
@@ -222,16 +221,16 @@ export function MapControlView() {
             </Card>
           )}
 
-          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white flex-1 overflow-hidden flex flex-col">
+          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white flex-1 overflow-hidden flex flex-col min-h-[400px]">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <Type className="w-5 h-5 text-primary" />
-                <h3 className="font-black text-primary uppercase text-sm">Daftar Inventaris</h3>
+                <h3 className="font-black text-primary uppercase text-sm">Inventaris Objek</h3>
               </div>
-              <Badge variant="secondary" className="font-black text-[9px]">{tempData.polygons.length + tempData.lines.length + tempData.markers.length} Objek</Badge>
+              <Badge variant="secondary" className="font-black text-[9px]">{tempData.polygons.length + tempData.lines.length + tempData.markers.length} Elemen</Badge>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 {tempData.polygons.map(poly => (
                   <div key={poly.id} className="p-4 bg-green-50 rounded-2xl space-y-2 border border-green-100 group">
                     <div className="flex justify-between items-center">
@@ -308,34 +307,12 @@ export function MapControlView() {
                 ))}
 
                 {tempData.polygons.length === 0 && tempData.lines.length === 0 && tempData.markers.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
+                  <div className="flex flex-col items-center justify-center py-10 text-center opacity-30">
                     <MousePointer2 className="w-10 h-10 mb-2" />
                     <p className="text-[10px] font-black uppercase tracking-widest">Peta Kosong</p>
-                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan alat gambar untuk menambahkan infrastruktur.</p>
+                    <p className="text-[8px] max-w-[150px] leading-tight mt-1">Gunakan alat gambar di peta untuk menambah objek.</p>
                   </div>
                 )}
-            </div>
-          </Card>
-
-          <Card className="border-none shadow-xl rounded-[2.5rem] p-6 bg-white">
-            <div className="flex items-center gap-3 mb-4">
-              <Layers className="w-5 h-5 text-primary" />
-              <h3 className="font-black text-primary uppercase text-sm">Lapisan Peta</h3>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {layers.map((layer) => (
-                <button
-                  key={layer.id}
-                  onClick={() => setActiveLayer(layer.id as MapLayer)}
-                  className={cn(
-                    "flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all border-2",
-                    activeLayer === layer.id ? "bg-primary border-primary text-white shadow-lg" : "bg-secondary/30 border-transparent text-muted-foreground hover:bg-secondary"
-                  )}
-                >
-                  <layer.icon className="w-4 h-4" />
-                  <span className="font-black text-[8px] uppercase">{layer.label}</span>
-                </button>
-              ))}
             </div>
           </Card>
         </div>

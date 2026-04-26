@@ -22,7 +22,7 @@ export type MapLayerType = 'satellite' | 'streets' | 'dark';
 export interface MapObject {
   id: string;
   name: string;
-  coords: any; // Can be [number, number] or [number, number][] or [number, number][][]
+  coords: any;
   type: 'polygon' | 'line' | 'marker';
 }
 
@@ -73,6 +73,37 @@ export default function LeafletMap({
   const featureGroupInstance = useRef<L.FeatureGroup | null>(null);
   const drawItems = useRef<L.FeatureGroup | null>(null);
 
+  // Function to sync draw items back to parent state
+  const handleDrawChange = () => {
+    if (!drawItems.current || !onDataChange) return;
+    const layers = drawItems.current.getLayers();
+    
+    const polygons: MapObject[] = [];
+    const lines: MapObject[] = [];
+    const markers: MapObject[] = [];
+
+    layers.forEach((l: any, index: number) => {
+      // Prioritize existing ID/Name if available on the layer object
+      const existingId = l.options.id || `obj-${Date.now()}-${index}`;
+      const existingName = l.options.name || 'Objek Tanpa Nama';
+
+      if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
+        const latlngs = l.getLatLngs();
+        const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
+        polygons.push({ id: existingId, name: existingName, coords, type: 'polygon' });
+      } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
+        const latlngs = l.getLatLngs();
+        const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
+        lines.push({ id: existingId, name: existingName, coords, type: 'line' });
+      } else if (l instanceof L.Marker) {
+        const ll = l.getLatLng();
+        markers.push({ id: existingId, name: existingName, coords: [ll.lat, ll.lng], type: 'marker' });
+      }
+    });
+
+    onDataChange({ polygons, lines, markers });
+  };
+
   // Initialize Map
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
@@ -81,10 +112,6 @@ export default function LeafletMap({
         attributionControl: false,
         scrollWheelZoom: !locked,
         dragging: !locked,
-        doubleClickZoom: !locked,
-        boxZoom: !locked,
-        touchZoom: !locked,
-        keyboard: !locked,
       }).setView(center, zoom);
 
       drawItems.current = new L.FeatureGroup().addTo(mapInstance.current);
@@ -115,44 +142,14 @@ export default function LeafletMap({
 
         mapInstance.current.addControl(drawControl);
 
-        const handleDrawChange = () => {
-          if (!drawItems.current) return;
-          const layers = drawItems.current.getLayers();
-          
-          const polygons: MapObject[] = [];
-          const lines: MapObject[] = [];
-          const markers: MapObject[] = [];
-
-          layers.forEach((l: any, index: number) => {
-            const existingId = l.options.id || `temp-${Date.now()}-${index}`;
-            const existingName = l.options.name || 'Objek Tanpa Nama';
-
-            if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
-              const latlngs = l.getLatLngs();
-              const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-              polygons.push({ id: existingId, name: existingName, coords, type: 'polygon' });
-            } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
-              const latlngs = l.getLatLngs();
-              const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
-              lines.push({ id: existingId, name: existingName, coords, type: 'line' });
-            } else if (l instanceof L.Marker) {
-              const ll = l.getLatLng();
-              markers.push({ id: existingId, name: existingName, coords: [ll.lat, ll.lng], type: 'marker' });
-            }
-          });
-
-          onDataChange?.({ polygons, lines, markers });
-        };
-
         // @ts-ignore
         mapInstance.current.on(L.Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
-          const id = `obj-${Date.now()}`;
           const type = layer instanceof L.Polygon ? 'polygon' : layer instanceof L.Marker ? 'marker' : 'line';
-          const name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
           
-          layer.options.id = id;
-          layer.options.name = name;
+          // Assign initial properties to the layer
+          layer.options.id = `obj-${Date.now()}`;
+          layer.options.name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
           
           drawItems.current?.addLayer(layer);
           handleDrawChange();
@@ -166,16 +163,17 @@ export default function LeafletMap({
 
       setTimeout(() => {
         mapInstance.current?.invalidateSize();
-      }, 100);
+      }, 200);
     }
 
     return () => {
       if (mapInstance.current) {
+        mapInstance.current.off();
         mapInstance.current.remove();
         mapInstance.current = null;
       }
     };
-  }, [center, zoom, editable, locked, onDataChange]);
+  }, [center, zoom, editable, locked]);
 
   // Handle Tile Layer updates
   useEffect(() => {
@@ -207,37 +205,32 @@ export default function LeafletMap({
             weight: 3,
             dashArray: '5, 10'
           })
-          .bindTooltip(poly.name, { sticky: true, className: 'font-bold' })
+          .bindTooltip(poly.name, { sticky: true, className: 'font-bold bg-white/90 p-2 rounded-xl border-none shadow-xl' })
           .addTo(featureGroupInstance.current!);
         }
       });
 
       linesData?.forEach(item => {
         L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 })
-        .bindTooltip(item.name, { sticky: true, className: 'font-bold' })
+        .bindTooltip(item.name, { sticky: true, className: 'font-bold bg-white/90 p-2 rounded-xl border-none shadow-xl' })
         .addTo(featureGroupInstance.current!);
       });
 
       markersData?.forEach(item => {
         L.marker(item.coords as any)
-        .bindPopup(`<b>${item.name}</b>`)
+        .bindPopup(`<div class="p-2"><b class="text-primary">${item.name}</b></div>`)
         .addTo(featureGroupInstance.current!);
       });
 
     } else if (drawItems.current && editable) {
+      // Sync initial data to drawItems only if they are empty (avoids double re-rendering)
       const currentLayers = drawItems.current.getLayers();
-      const expectedCount = polygonsData.length + linesData.length + markersData.length;
-      
-      if (currentLayers.length !== expectedCount) {
-        drawItems.current.clearLayers();
-        
+      if (currentLayers.length === 0 && (polygonsData.length > 0 || linesData.length > 0 || markersData.length > 0)) {
         polygonsData?.forEach(poly => {
-          if (poly.coords && poly.coords.length > 0) {
-            const p = L.polygon(poly.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
-            // @ts-ignore
-            p.options.id = poly.id; p.options.name = poly.name;
-            p.addTo(drawItems.current!);
-          }
+          const p = L.polygon(poly.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
+          // @ts-ignore
+          p.options.id = poly.id; p.options.name = poly.name;
+          p.addTo(drawItems.current!);
         });
         linesData?.forEach(item => {
           const l = L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 });
