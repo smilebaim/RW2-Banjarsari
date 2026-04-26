@@ -1,25 +1,8 @@
-rules_version = '2';
 
-/**
- * BANJARSARI CONNECT - FIRESTORE SECURITY RULES
- * 
- * CORE PHILOSOPHY:
- * This ruleset implements a robust administrative dashboard and public-facing community portal. 
- * It relies on Structural Segregation to separate administrative data from public community 
- * information, and uses a Database-level Access Control (DBAC) model for role-based authorization.
- *
- * DATA STRUCTURE:
- * - /admin_roles: Registry of administrative users (ID = Firebase Auth UID).
- * - /announcements_management: Administrative master collection for all news/updates.
- * - /announcements_public: Read-only mirror for residents containing only "Published" content.
- * - /resident_feedback: Inbox for community aspirations and issue reports.
- * - /rw_management_members & /important_contacts: Publicly viewable directory information.
- */
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- HELPER FUNCTIONS ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -33,71 +16,49 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isAdminWithExistingDoc() {
-      return isAdmin() && resource != null;
-    }
-
-    // --- COLLECTION RULES ---
-
-    /**
-     * @description Registry of users with administrative access.
-     * @path /admin_roles/{adminUserId}
-     * @allow (get) Owner or admin; (list) Admin only; (create) Owner for bootstrap; (update/delete) Admin only.
-     */
     match /admin_roles/{adminUserId} {
       allow get: if isOwner(adminUserId) || isAdmin();
       allow list: if isAdmin();
-      // Allow a user to create their own admin role document for bootstrapping purposes
       allow create: if isOwner(adminUserId);
-      allow update: if isAdminWithExistingDoc() && request.resource.data.id == resource.data.id;
-      allow delete: if isAdminWithExistingDoc();
+      allow update: if isAdmin() && request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin();
     }
 
-    /**
-     * @description Profiles of RW 2 management team members.
-     */
     match /rw_management_members/{memberId} {
       allow get, list: if true;
       allow create: if isAdmin();
-      allow update, delete: if isAdminWithExistingDoc();
+      allow update, delete: if isAdmin();
     }
 
-    /**
-     * @description Master management collection for all announcements.
-     */
     match /announcements_management/{announcementId} {
       allow get, list: if isAdmin();
-      allow create: if isAdmin() && request.resource.data.authorAdminUserId == request.auth.uid;
-      allow update: if isAdminWithExistingDoc() && request.resource.data.authorAdminUserId == resource.data.authorAdminUserId;
-      allow delete: if isAdminWithExistingDoc();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
-    /**
-     * @description Public mirror of published announcements.
-     */
     match /announcements_public/{announcementId} {
       allow get, list: if true;
       allow create: if isAdmin();
-      allow update, delete: if isAdminWithExistingDoc();
+      allow update, delete: if isAdmin();
     }
 
-    /**
-     * @description Collection for resident feedback.
-     */
     match /resident_feedback/{feedbackId} {
-      allow create: if isSignedIn() && request.resource.data.id == feedbackId;
+      allow create: if isSignedIn();
       allow get, list: if isAdmin();
-      allow update: if isAdminWithExistingDoc();
-      allow delete: if isAdminWithExistingDoc();
+      allow update, delete: if isAdmin();
     }
 
-    /**
-     * @description Directory of essential local services and emergency contacts.
-     */
     match /important_contacts/{contactId} {
       allow get, list: if true;
       allow create: if isAdmin();
-      allow update, delete: if isAdminWithExistingDoc();
+      allow update, delete: if isAdmin();
+    }
+
+    match /map_settings/{settingId} {
+      allow get: if true;
+      allow list: if true;
+      allow write: if isAdmin();
     }
   }
 }

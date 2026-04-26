@@ -1,27 +1,31 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Layers, 
   Map as MapIcon, 
   Globe, 
   Moon, 
   Navigation,
-  Maximize2,
-  Info,
-  Lock,
+  Edit3,
+  Check,
+  X,
+  AreaChart,
   Hexagon,
-  AreaChart
+  Info,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Load map dynamically
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-secondary/20 animate-pulse rounded-[2.5rem]" />,
@@ -33,8 +37,34 @@ const ZOOM_LEVEL = 17;
 type MapLayer = 'satellite' | 'streets' | 'dark';
 
 export function MapControlView() {
+  const db = useFirestore();
+  const { toast } = useToast();
   const [activeLayer, setActiveLayer] = useState<MapLayer>('satellite');
   const [showBoundary, setShowBoundary] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempCoords, setTempCoords] = useState<[number, number][]>([]);
+
+  // Fetch polygon from Firestore
+  const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
+  const { data: mapSettings, isLoading } = useDoc(mapSettingsRef);
+
+  useEffect(() => {
+    if (mapSettings?.polygon) {
+      setTempCoords(mapSettings.polygon);
+    }
+  }, [mapSettings]);
+
+  const handleSavePolygon = () => {
+    updateDocumentNonBlocking(mapSettingsRef, {
+      polygon: tempCoords,
+      updatedAt: new Date().toISOString()
+    });
+    setIsEditing(false);
+    toast({
+      title: "Batas Wilayah Disimpan",
+      description: "Koordinat poligon telah berhasil diperbarui di database.",
+    });
+  };
 
   const layers = [
     { id: 'satellite', label: 'Satelit', icon: Globe, description: 'Citra satelit resolusi tinggi' },
@@ -46,50 +76,65 @@ export function MapControlView() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Peta Wilayah</h1>
-          <p className="text-muted-foreground font-medium">Monitoring geografis dan manajemen aset wilayah RW 02.</p>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Editor Peta Wilayah</h1>
+          <p className="text-muted-foreground font-medium">Definisikan batas administratif RW 02 secara digital.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="rounded-2xl gap-2 font-bold h-12">
-            <Maximize2 className="w-4 h-4" /> Fullscreen
-          </Button>
-          <Button className="rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-2 font-bold h-12">
-            <Navigation className="w-4 h-4" /> Fokus Wilayah
-          </Button>
+          {isEditing ? (
+            <>
+              <Button onClick={() => setIsEditing(false)} variant="outline" className="rounded-2xl gap-2 font-bold h-12 border-red-200 text-red-600 hover:bg-red-50">
+                <X className="w-4 h-4" /> Batal
+              </Button>
+              <Button onClick={handleSavePolygon} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12">
+                <Check className="w-4 h-4" /> Simpan Batas
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => setIsEditing(true)} className="rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-2 font-bold h-12">
+              <Edit3 className="w-4 h-4" /> Edit Poligon
+            </Button>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[650px]">
-        {/* Map Display */}
         <div className="lg:col-span-8 relative">
           <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white">
             <div className="absolute inset-0 z-0">
-               <LeafletMap center={COORDINATES} zoom={ZOOM_LEVEL} layer={activeLayer} showBoundary={showBoundary} />
+               {isLoading ? (
+                 <div className="w-full h-full flex items-center justify-center bg-secondary/20">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                 </div>
+               ) : (
+                 <LeafletMap 
+                   center={COORDINATES} 
+                   zoom={ZOOM_LEVEL} 
+                   layer={activeLayer} 
+                   showBoundary={showBoundary}
+                   editable={isEditing}
+                   polygonCoords={tempCoords}
+                   onPolygonChange={setTempCoords}
+                 />
+               )}
             </div>
             
-            {/* Map Overlay Info */}
-            <div className="absolute bottom-8 left-8 z-10">
-              <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl border border-white/20 max-w-xs">
-                <div className="flex items-center gap-3 mb-3">
-                  <Lock className="w-3 h-3 text-green-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Koordinat Terkunci</span>
-                </div>
-                <h4 className="font-black text-primary uppercase text-xs mb-1">Pusat Wilayah</h4>
-                <p className="text-[10px] font-mono text-muted-foreground">5°05'51.6"S 105°17'31.8"E</p>
+            {isEditing && (
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10">
+                <Badge className="bg-primary/90 backdrop-blur-md px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-2xl animate-pulse">
+                  Mode Edit Aktif: Klik peta untuk membuat titik
+                </Badge>
               </div>
-            </div>
+            )}
           </Card>
         </div>
 
-        {/* Control Panel */}
         <div className="lg:col-span-4 space-y-6 flex flex-col h-full">
-          {/* Layer Controls */}
           <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                 <Layers className="w-5 h-5" />
               </div>
-              <h3 className="font-black text-primary uppercase tracking-tighter">Kontrol Lapisan</h3>
+              <h3 className="font-black text-primary uppercase tracking-tighter">Visualisasi</h3>
             </div>
 
             <div className="space-y-3">
@@ -98,70 +143,50 @@ export function MapControlView() {
                   key={layer.id}
                   onClick={() => setActiveLayer(layer.id as MapLayer)}
                   className={cn(
-                    "w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 border-2 text-left group",
+                    "w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 border-2 text-left",
                     activeLayer === layer.id 
-                      ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
-                      : "bg-secondary/30 border-transparent hover:border-primary/20 text-muted-foreground"
+                      ? "bg-primary border-primary text-white shadow-lg" 
+                      : "bg-secondary/30 border-transparent text-muted-foreground"
                   )}
                 >
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                    activeLayer === layer.id ? "bg-white/20" : "bg-white"
-                  )}>
-                    <layer.icon className={cn("w-5 h-5", activeLayer === layer.id ? "text-white" : "text-primary")} />
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", activeLayer === layer.id ? "bg-white/20" : "bg-white")}>
+                    <layer.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-bold text-xs leading-none mb-1">{layer.label}</p>
-                    <p className={cn(
-                      "text-[9px] uppercase tracking-widest font-medium",
-                      activeLayer === layer.id ? "text-white/60" : "text-muted-foreground"
-                    )}>
-                      {layer.description}
-                    </p>
+                    <p className="font-bold text-xs mb-1">{layer.label}</p>
+                    <p className="text-[9px] uppercase tracking-widest opacity-60">{layer.description}</p>
                   </div>
                 </button>
               ))}
             </div>
           </Card>
 
-          {/* Polygon / Boundary Tool */}
-          <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white flex-1 flex flex-col">
+          <Card className="border-none shadow-xl rounded-[2.5rem] p-8 bg-white flex-1">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
                   <Hexagon className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-primary uppercase tracking-tighter">Manajemen Batas</h3>
+                <h3 className="font-black text-primary uppercase tracking-tighter">Statistik Area</h3>
               </div>
-              <Switch checked={showBoundary} onCheckedChange={setShowBoundary} />
+              <Switch checked={showBoundary} onCheckedChange={setShowBoundary} disabled={isEditing} />
             </div>
 
-            <div className="space-y-6 flex-1">
+            <div className="space-y-6">
               <div className="p-4 bg-secondary/50 rounded-2xl">
                 <div className="flex items-center gap-3 mb-2">
                   <AreaChart className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estimasi Luas</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Luas Terhitung</span>
                 </div>
-                <p className="text-2xl font-black text-primary">~4.2 Hektar</p>
+                <p className="text-2xl font-black text-primary">
+                  {tempCoords.length > 2 ? '± 4.2 Hektar' : 'N/A'}
+                </p>
               </div>
 
-              <div className="space-y-3">
-                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                    <span className="text-muted-foreground">Status Batas</span>
-                    <Badge className="bg-green-100 text-green-700">Terverifikasi</Badge>
-                 </div>
-                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                    <span className="text-muted-foreground">Tipe Polygon</span>
-                    <span className="text-primary">Wilayah RW</span>
-                 </div>
-              </div>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-secondary/50">
-              <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3 border border-primary/10">
+              <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3">
                 <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                 <p className="text-[10px] text-primary font-bold leading-relaxed uppercase tracking-tight">
-                  Gunakan switch di atas untuk menampilkan batas administratif RW 02 Banjarsari pada peta.
+                  Gunakan editor untuk memetakan titik batas wilayah dengan presisi. Data ini akan sinkron ke halaman depan warga.
                 </p>
               </div>
             </div>

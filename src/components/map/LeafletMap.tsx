@@ -4,6 +4,12 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
+
+// Importing leaflet-draw only on client side
+if (typeof window !== 'undefined') {
+  require('leaflet-draw');
+}
 
 export type MapLayerType = 'satellite' | 'streets' | 'dark';
 
@@ -12,6 +18,10 @@ interface LeafletMapProps {
   zoom: number;
   layer?: MapLayerType;
   showBoundary?: boolean;
+  editable?: boolean;
+  polygonCoords?: [number, number][];
+  onPolygonChange?: (coords: [number, number][]) => void;
+  locked?: boolean;
 }
 
 const TILE_LAYERS = {
@@ -21,58 +31,100 @@ const TILE_LAYERS = {
 };
 
 const ATTRIBUTIONS = {
-  satellite: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-  streets: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  dark: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  satellite: 'Tiles &copy; Esri',
+  streets: '&copy; OpenStreetMap',
+  dark: '&copy; OpenStreetMap &copy; CARTO',
 };
 
-// Default Boundary for RW 02 Banjarsari
-const RW_BOUNDARY_COORDS: [number, number][] = [
-  [-5.0968, 105.2912],
-  [-5.0968, 105.2932],
-  [-5.0984, 105.2932],
-  [-5.0984, 105.2912],
-];
-
-export default function LeafletMap({ center, zoom, layer = 'satellite', showBoundary = false }: LeafletMapProps) {
+export default function LeafletMap({ 
+  center, 
+  zoom, 
+  layer = 'satellite', 
+  showBoundary = false, 
+  editable = false,
+  polygonCoords,
+  onPolygonChange,
+  locked = false
+}: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const tileLayerInstance = useRef<L.TileLayer | null>(null);
   const boundaryInstance = useRef<L.Polygon | null>(null);
+  const drawItems = useRef<L.FeatureGroup | null>(null);
 
-  // Initialize Map
   useEffect(() => {
     if (typeof window !== 'undefined' && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, {
-        zoomControl: false,
+        zoomControl: !locked,
         attributionControl: false,
-        scrollWheelZoom: false,
-        dragging: false,
-        doubleClickZoom: false,
-        boxZoom: false,
-        touchZoom: false,
-        keyboard: false,
-        tap: false,
+        scrollWheelZoom: !locked,
+        dragging: !locked,
+        doubleClickZoom: !locked,
+        boxZoom: !locked,
+        touchZoom: !locked,
+        keyboard: !locked,
       }).setView(center, zoom);
+
+      drawItems.current = new L.FeatureGroup().addTo(mapInstance.current);
+
+      if (editable) {
+        const drawControl = new (L as any).Control.Draw({
+          edit: {
+            featureGroup: drawItems.current,
+            poly: {
+              allowIntersection: false
+            }
+          },
+          draw: {
+            polygon: {
+              allowIntersection: false,
+              showArea: true
+            },
+            polyline: false,
+            rectangle: false,
+            circle: false,
+            marker: false,
+            circlemarker: false
+          }
+        });
+
+        mapInstance.current.addControl(drawControl);
+
+        mapInstance.current.on((L as any).Draw.Event.CREATED, (e: any) => {
+          const layer = e.layer;
+          drawItems.current?.clearLayers();
+          drawItems.current?.addLayer(layer);
+          const coords = layer.getLatLngs()[0].map((ll: any) => [ll.lat, ll.lng]);
+          onPolygonChange?.(coords);
+        });
+
+        mapInstance.current.on((L as any).Draw.Event.EDITED, (e: any) => {
+          const layers = e.layers;
+          layers.eachLayer((layer: any) => {
+            const coords = layer.getLatLngs()[0].map((ll: any) => [ll.lat, ll.lng]);
+            onPolygonChange?.(coords);
+          });
+        });
+
+        mapInstance.current.on((L as any).Draw.Event.DELETED, () => {
+          onPolygonChange?.([]);
+        });
+      }
     }
 
     return () => {
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
-        tileLayerInstance.current = null;
-        boundaryInstance.current = null;
       }
     };
-  }, [center, zoom]);
+  }, [center, zoom, editable, locked, onPolygonChange]);
 
-  // Handle Layer Changes
   useEffect(() => {
     if (mapInstance.current) {
       if (tileLayerInstance.current) {
         mapInstance.current.removeLayer(tileLayerInstance.current);
       }
-
       tileLayerInstance.current = L.tileLayer(TILE_LAYERS[layer], {
         maxZoom: 19,
         attribution: ATTRIBUTIONS[layer],
@@ -80,16 +132,15 @@ export default function LeafletMap({ center, zoom, layer = 'satellite', showBoun
     }
   }, [layer]);
 
-  // Handle Boundary Visibility
   useEffect(() => {
-    if (mapInstance.current) {
+    if (mapInstance.current && !editable) {
       if (boundaryInstance.current) {
         mapInstance.current.removeLayer(boundaryInstance.current);
         boundaryInstance.current = null;
       }
 
-      if (showBoundary) {
-        boundaryInstance.current = L.polygon(RW_BOUNDARY_COORDS, {
+      if (showBoundary && polygonCoords && polygonCoords.length > 0) {
+        boundaryInstance.current = L.polygon(polygonCoords as any, {
           color: '#22c55e',
           fillColor: '#22c55e',
           fillOpacity: 0.2,
@@ -97,13 +148,19 @@ export default function LeafletMap({ center, zoom, layer = 'satellite', showBoun
           dashArray: '5, 10'
         }).addTo(mapInstance.current);
       }
+    } else if (mapInstance.current && editable && drawItems.current) {
+        drawItems.current.clearLayers();
+        if (polygonCoords && polygonCoords.length > 0) {
+            const poly = L.polygon(polygonCoords as any);
+            drawItems.current.addLayer(poly);
+        }
     }
-  }, [showBoundary]);
+  }, [showBoundary, polygonCoords, editable]);
 
   return (
     <div className="w-full h-full relative group">
-      <div ref={mapRef} className="w-full h-full z-0 grayscale-[0.2] contrast-[1.1]" />
-      <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-10" />
+      <div ref={mapRef} className="w-full h-full z-0 contrast-[1.1]" />
+      {!editable && <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-10" />}
     </div>
   );
 }

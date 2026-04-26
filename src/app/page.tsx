@@ -1,9 +1,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Layers, Compass, Info, ShieldCheck, Globe, Map as MapIcon, Moon } from 'lucide-react';
 import {
@@ -19,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-// Load map dynamically to avoid hydration issues with Leaflet
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-[#0a0a0a] animate-pulse" />,
@@ -31,16 +32,26 @@ const ZOOM_LEVEL = 17;
 type MapLayerType = 'satellite' | 'streets' | 'dark';
 
 export default function Home() {
+  const db = useFirestore();
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
+
+  // Fetch polygon from Firestore for public view
+  const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
+  const { data: mapSettings } = useDoc(mapSettingsRef);
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
-      {/* Full Screen Satellite Map Layer */}
       <div className="absolute inset-0 z-0">
-        <LeafletMap center={COORDINATES} zoom={ZOOM_LEVEL} layer={activeLayer} />
+        <LeafletMap 
+          center={COORDINATES} 
+          zoom={ZOOM_LEVEL} 
+          layer={activeLayer} 
+          locked={true}
+          showBoundary={true}
+          polygonCoords={mapSettings?.polygon}
+        />
       </div>
 
-      {/* Top Floating Dock */}
       <div className="absolute top-8 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
         <div className="w-fit bg-white/5 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border border-white/10 rounded-full p-1.5 flex items-center gap-2 pointer-events-auto transition-all hover:bg-white/10">
           <div className="flex items-center gap-3 pl-5 pr-3 py-1">
@@ -78,10 +89,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Side Tools - Left Oriented */}
       <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
         <TooltipProvider delayDuration={0}>
-          {/* Layer Selector Tool */}
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -141,7 +150,6 @@ export default function Home() {
         </TooltipProvider>
       </div>
 
-      {/* Ambient Gradient Overlays */}
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-[5]"></div>
       <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none z-[5]"></div>
     </div>
