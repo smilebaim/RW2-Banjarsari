@@ -82,11 +82,10 @@ const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') 
   return L.divIcon({
     html: `
       <div class="relative flex flex-col items-center group">
-        <div class="flex items-center justify-center w-9 h-9 bg-black/60 backdrop-blur-md rounded-xl transition-all duration-500 group-hover:-translate-y-1.5 group-hover:scale-110 shadow-2xl" 
-             style="box-shadow: 0 0 15px ${color}44;">
+        <div class="flex items-center justify-center w-9 h-9 bg-black/60 backdrop-blur-md rounded-xl transition-all duration-500 group-hover:-translate-y-1.5 group-hover:scale-110 shadow-2xl">
           ${getIconSVG(iconName, color)}
         </div>
-        <div class="w-1 h-1 rounded-full mt-1 animate-pulse" style="background-color: ${color}; box-shadow: 0 0 8px ${color};"></div>
+        <div class="w-1.5 h-1.5 rounded-full mt-1.5 animate-pulse" style="background-color: ${color}; box-shadow: 0 0 10px ${color};"></div>
       </div>
     `,
     className: 'custom-map-icon',
@@ -223,7 +222,7 @@ export default function LeafletMap({
     const createPopup = (item: MapObject) => {
       const accentColor = item.color || '#22c55e';
       return `
-        <div class="p-0 min-w-[300px] bg-black/60 text-white rounded-[1.75rem] shadow-2xl backdrop-blur-2xl overflow-hidden">
+        <div class="p-0 min-w-[300px] bg-black/60 text-white rounded-[1.75rem] shadow-2xl backdrop-blur-2xl overflow-hidden border-none outline-none">
           <div class="h-1.5 w-full" style="background-color: ${accentColor}; box-shadow: 0 4px 12px ${accentColor}44;"></div>
           <div class="p-6">
             <div class="flex items-center justify-between mb-4">
@@ -291,5 +290,34 @@ export default function LeafletMap({
     }
   }, [showBoundary, showPolygons, showLines, showMarkers, polygonsData, linesData, markersData, editable]);
 
-  return <div ref={mapRef} className="w-full h-full relative overflow-hidden" />;
+  return (
+    <>
+      <style>{`
+        /* Kill standard Leaflet white frames and shadows */
+        .leaflet-popup-content-wrapper {
+          background: transparent !important;
+          box-shadow: none !important;
+          border: none !important;
+          padding: 0 !important;
+        }
+        .leaflet-popup-tip-container {
+          display: none !important;
+        }
+        .leaflet-popup-content {
+          margin: 0 !important;
+          border: none !important;
+        }
+        .leaflet-container a.leaflet-popup-close-button {
+          color: rgba(255,255,255,0.5) !important;
+          padding: 12px !important;
+          font-size: 16px !important;
+        }
+        .custom-map-icon {
+          background: transparent !important;
+          border: none !important;
+        }
+      `}</style>
+      <div ref={mapRef} className="w-full h-full relative overflow-hidden" />
+    </>
+  );
 }
