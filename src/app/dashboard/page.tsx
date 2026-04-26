@@ -10,6 +10,7 @@ import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
+import { SystemSettings } from '@/components/admin/SystemSettings';
 import { doc, setDoc, deleteDoc, collection, getDocs, query } from 'firebase/firestore';
 import { 
   Users, 
@@ -50,7 +51,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 const NAV_ITEMS = [
@@ -60,6 +60,7 @@ const NAV_ITEMS = [
   { id: 'feedback', label: 'Aspirasi AI', icon: TrendingUp },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Struktur Pengurus', icon: Users },
+  { id: 'settings', label: 'Pengaturan', icon: Settings },
 ];
 
 export default function DashboardPage() {
@@ -72,11 +73,8 @@ export default function DashboardPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Protected counts for summary - only fetch if user is logged in
   const newsRef = useMemoFirebase(() => user ? query(collection(db, 'announcements_management')) : null, [db, user]);
   const feedbackRef = useMemoFirebase(() => user ? query(collection(db, 'resident_feedback')) : null, [db, user]);
-  
-  // Publicly readable counts
   const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
   const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
 
@@ -108,7 +106,8 @@ export default function DashboardPage() {
         'rw_management_members',
         'important_contacts',
         'resident_feedback',
-        'map_settings'
+        'map_settings',
+        'system_settings'
       ];
 
       for (const colName of collections) {
@@ -152,59 +151,11 @@ export default function DashboardPage() {
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
-      const announcements = [
-        {
-          id: 'news-1',
-          title: 'Peresmian Portal Digital Banjarsari Connect',
-          content: 'Kami dengan bangga memperkenalkan portal Banjarsari Connect untuk memudahkan komunikasi antar warga.',
-          summary: 'RW 02 Banjarsari resmi meluncurkan portal digital untuk transparansi layanan.',
-          publicationDate: new Date().toISOString(),
-          status: 'Published',
-          category: 'Informasi',
-          authorAdminUserId: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      for (const item of announcements) {
-        await setDoc(doc(db, 'announcements_management', item.id), item);
-        await setDoc(doc(db, 'announcements_public', item.id), item);
-      }
-
-      const members = [
-        {
-          id: 'member-1',
-          name: 'H. Sutrisno, S.E.',
-          role: 'Ketua RW 02',
-          contactNumber: '081234567890',
-          email: 'sutrisno@banjarsari.id',
-          description: 'Berkomitmen pada transparansi pengelolaan dana.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      for (const member of members) {
-        await setDoc(doc(db, 'rw_management_members', member.id), member);
-      }
-
-      const contacts = [
-        {
-          id: 'contact-1',
-          name: 'Puskesmas Banjarsari',
-          category: 'Kesehatan',
-          phoneNumber: '0725-41234',
-          address: 'Jl. Ahmad Yani No. 10',
-          description: 'Layanan kesehatan masyarakat.',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      for (const contact of contacts) {
-        await setDoc(doc(db, 'important_contacts', contact.id), contact);
-      }
+      await setDoc(doc(db, 'system_settings', 'whatsapp_config'), {
+        phoneNumber: '6281234567890',
+        messageTemplate: 'Halo Pengurus RW 02,\n\nSaya {{name}} dari RT {{rt}} ingin menyampaikan {{type}}:\n\n{{message}}',
+        updatedAt: new Date().toISOString()
+      });
 
       toast({
         title: "Inisialisasi Berhasil",
@@ -296,12 +247,12 @@ export default function DashboardPage() {
 
       <div className="pt-8 border-t border-secondary/50 space-y-4">
         <AlertDialog>
-          <AlertDialogTrigger asChild>
+          <AlertDialog.Trigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-4 px-6 py-4 rounded-2xl text-orange-600 hover:bg-orange-50 font-bold transition-all">
               <Trash2 className="w-5 h-5" />
               Kosongkan Data
             </Button>
-          </AlertDialogTrigger>
+          </AlertDialog.Trigger>
           <AlertDialogContent className="rounded-[2.5rem] p-10">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
@@ -327,13 +278,6 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-
-  const stats = [
-    { label: 'Total Pengurus', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
-    { label: 'Laporan Masuk', value: feedbackItems?.length || 0, sub: 'Perlu Tindak Lanjut', icon: MessageSquare, color: 'bg-orange-500' },
-    { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terpublikasi', icon: Newspaper, color: 'bg-primary' },
-    { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Layanan Terdaftar', icon: Phone, color: 'bg-green-600' },
-  ];
 
   return (
     <div className="flex min-h-screen bg-[#F8FAF9]">
@@ -397,7 +341,12 @@ export default function DashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-                {stats.map((stat, i) => (
+                {[
+                  { label: 'Total Pengurus', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
+                  { label: 'Laporan Masuk', value: feedbackItems?.length || 0, sub: 'Perlu Tindak Lanjut', icon: MessageSquare, color: 'bg-orange-500' },
+                  { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terpublikasi', icon: Newspaper, color: 'bg-primary' },
+                  { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Layanan Terdaftar', icon: Phone, color: 'bg-green-600' },
+                ].map((stat, i) => (
                   <Card key={i} className="border-none shadow-xl rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white">
                     <CardContent className="p-6 lg:p-8">
                       <div className="flex items-start justify-between mb-6">
@@ -433,6 +382,7 @@ export default function DashboardPage() {
           {activeTab === 'contacts' && <ContactManager />}
           {activeTab === 'feedback' && <FeedbackAnalysisView />}
           {activeTab === 'users' && <ManagementMemberManager />}
+          {activeTab === 'settings' && <SystemSettings />}
         </div>
       </main>
     </div>

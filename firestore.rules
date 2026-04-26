@@ -24,19 +24,20 @@ service cloud.firestore {
     // --- Admin and Infrastructure ---
 
     match /admin_roles/{adminUserId} {
-      // Users can see their own role; Admins can see everyone's.
       allow get: if isOwner(adminUserId) || isAdmin();
       allow list: if isAdmin();
-      // Allow users to bootstrap their own admin role during initialization
       allow create: if isOwner(adminUserId);
       allow update: if isAdmin() && (request.resource.data.id == resource.data.id);
       allow delete: if isAdmin();
     }
 
     match /map_settings/{settingId} {
-      // Public access to map infrastructure
       allow get, list: if true;
-      // Only admins can modify map boundaries, lines, and markers
+      allow write: if isAdmin();
+    }
+
+    match /system_settings/{settingId} {
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
@@ -64,9 +65,7 @@ service cloud.firestore {
     // --- Resident Interaction ---
 
     match /resident_feedback/{feedbackId} {
-      // Anyone signed in (including anonymous) can submit feedback
       allow create: if isSignedIn();
-      // Only admins can process or view feedback details
       allow get, list, update, delete: if isAdmin();
     }
   }

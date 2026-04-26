@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useFirestore, addDocumentNonBlocking, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, addDocumentNonBlocking, useUser, useAuth, initiateAnonymousSignIn } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, Send, Loader2, Info } from 'lucide-react';
+import { CheckCircle2, Send, Loader2, Info, MessageSquare } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
@@ -30,7 +30,10 @@ export function FeedbackForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Ensure user is signed in (anonymously) to satisfy security rules
+  // Fetch WhatsApp Config
+  const configRef = useMemoFirebase(() => doc(db, 'system_settings', 'whatsapp_config'), [db]);
+  const { data: waConfig } = useDoc(configRef);
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       initiateAnonymousSignIn(auth);
@@ -64,6 +67,22 @@ export function FeedbackForm() {
       };
       
       addDocumentNonBlocking(collection(db, 'resident_feedback'), feedbackData);
+      
+      // WhatsApp Integration
+      if (waConfig?.phoneNumber && waConfig?.messageTemplate) {
+        let text = waConfig.messageTemplate;
+        text = text.replace('{{name}}', values.name);
+        text = text.replace('{{rt}}', values.rt);
+        text = text.replace('{{type}}', values.type);
+        text = text.replace('{{message}}', values.message);
+        
+        const encodedText = encodeURIComponent(text);
+        const waUrl = `https://wa.me/${waConfig.phoneNumber}?text=${encodedText}`;
+        
+        // Open WA in new tab
+        window.open(waUrl, '_blank');
+      }
+
       setSubmitted(true);
     } catch (error) {
       console.error("Submission failed:", error);
@@ -80,15 +99,15 @@ export function FeedbackForm() {
           <div className="w-24 h-24 bg-primary/10 rounded-[2rem] flex items-center justify-center mb-10 shadow-inner">
             <CheckCircle2 className="w-12 h-12 text-primary" />
           </div>
-          <h2 className="text-4xl font-black text-primary mb-6 uppercase tracking-tighter">Terima Kasih!</h2>
+          <h2 className="text-4xl font-black text-primary mb-6 uppercase tracking-tighter">Berhasil Terkirim!</h2>
           <p className="text-muted-foreground max-w-sm mx-auto mb-12 text-lg font-medium leading-relaxed">
-            Laporan/Aspirasi Anda telah berhasil kami terima. Pengurus RW akan segera menindaklanjuti informasi tersebut.
+            Aspirasi Anda telah tersimpan di sistem dan diteruskan ke WhatsApp pengurus RW 02.
           </p>
           <Button onClick={() => {
             setSubmitted(false);
             form.reset();
           }} className="h-16 px-12 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
-            Kirim Laporan Lain
+            Kirim Aspirasi Lain
           </Button>
         </CardContent>
       </Card>
@@ -103,7 +122,7 @@ export function FeedbackForm() {
           <div className="w-12 h-12 bg-secondary rounded-2xl flex items-center justify-center">
             <Send className="w-5 h-5 text-primary" />
           </div>
-          <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">Kirim Aspirasi</h2>
+          <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">Kirim Aspirasi Digital</h2>
         </div>
 
         <Form {...form}>
@@ -127,7 +146,7 @@ export function FeedbackForm() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nomor WhatsApp</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nomor WhatsApp Anda</FormLabel>
                     <FormControl>
                       <Input placeholder="0812xxxx" {...field} className="bg-secondary/40 border-none h-14 rounded-2xl focus-visible:ring-primary shadow-inner font-bold" />
                     </FormControl>
@@ -176,7 +195,7 @@ export function FeedbackForm() {
                       <SelectContent className="rounded-2xl border-none shadow-2xl">
                         <SelectItem value="Aspiration">Aspirasi / Saran</SelectItem>
                         <SelectItem value="Issue Report">Pengaduan Masalah</SelectItem>
-                        <SelectItem value="Praise">Apresiasi</SelectItem>
+                        <SelectItem value="Praise">Apresiasi Lingkungan</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -190,7 +209,7 @@ export function FeedbackForm() {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Detail Pesan / Laporan</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Detail Pesan / Aspirasi</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Sampaikan aspirasi atau laporan Anda secara mendetail..." 
@@ -201,7 +220,7 @@ export function FeedbackForm() {
                   <div className="flex items-start gap-2 mt-2">
                     <Info className="w-3 h-3 text-primary mt-1" />
                     <FormDescription className="text-[10px] font-bold">
-                      Sebutkan lokasi spesifik (nama gang/blok) jika Anda melaporkan masalah infrastruktur.
+                      Aspirasi ini akan secara otomatis diteruskan ke WhatsApp Pengurus RW 02.
                     </FormDescription>
                   </div>
                   <FormMessage />
@@ -213,12 +232,12 @@ export function FeedbackForm() {
               {loading ? (
                 <>
                   <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                  Mengirim...
+                  Memproses...
                 </>
               ) : (
                 <>
-                  <Send className="mr-3 h-4 w-4" />
-                  Kirim Aspirasi Digital
+                  <MessageSquare className="mr-3 h-4 w-4" />
+                  Kirim & Lanjutkan ke WhatsApp
                 </>
               )}
             </Button>
