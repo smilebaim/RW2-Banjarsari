@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -16,12 +16,13 @@ import {
   Map as MapIcon, 
   Moon,
   Database,
-  Eye,
   Activity,
-  CheckCircle2,
   Hexagon,
   Route,
-  MapPin
+  MapPin,
+  ChevronRight,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import {
   Tooltip,
@@ -36,6 +37,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
@@ -58,10 +62,10 @@ export default function Home() {
   const db = useFirestore();
   const [activeLayer, setActiveLayer] = useState<MapLayerType>('satellite');
   const [visibility, setVisibility] = useState({
-    polygons: true,
     lines: true,
     markers: true
   });
+  const [visibleAreaIds, setVisibleAreaIds] = useState<Record<string, boolean>>({});
 
   // Fetch geography settings from Firestore
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
@@ -79,16 +83,40 @@ export default function Home() {
     return val || fallback;
   };
 
-  const polygonsData = parseData(mapSettings?.polygons || mapSettings?.polygon, []);
+  const allPolygons = parseData(mapSettings?.polygons || mapSettings?.polygon, []);
   const linesData = parseData(mapSettings?.lines, []);
   const markersData = parseData(mapSettings?.markers, []);
 
+  // Initialize visibility for new polygons
+  useEffect(() => {
+    if (allPolygons.length > 0) {
+      setVisibleAreaIds(prev => {
+        const next = { ...prev };
+        allPolygons.forEach((p: any) => {
+          if (next[p.id] === undefined) next[p.id] = true;
+        });
+        return next;
+      });
+    }
+  }, [allPolygons]);
+
+  const polygonsData = allPolygons.filter((p: any) => visibleAreaIds[p.id]);
+
   const totalInfra = 
-    (visibility.polygons ? polygonsData.length : 0) + 
+    polygonsData.length + 
     (visibility.lines ? linesData.length : 0) + 
     (visibility.markers ? markersData.length : 0);
 
-  const isAnyLayerVisible = visibility.polygons || visibility.lines || visibility.markers;
+  const isAnyPolygonVisible = Object.values(visibleAreaIds).some(v => v);
+  const isAnyLayerVisible = isAnyPolygonVisible || visibility.lines || visibility.markers;
+
+  const toggleAllPolygons = (checked: boolean) => {
+    const next: Record<string, boolean> = {};
+    allPolygons.forEach((p: any) => {
+      next[p.id] = checked;
+    });
+    setVisibleAreaIds(next);
+  };
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
@@ -99,7 +127,7 @@ export default function Home() {
           layer={activeLayer} 
           locked={false}
           showBoundary={true}
-          showPolygons={visibility.polygons}
+          showPolygons={true} // Controlled by filtered polygonsData
           showLines={visibility.lines}
           showMarkers={visibility.markers}
           polygonsData={polygonsData}
@@ -206,18 +234,40 @@ export default function Home() {
                 Data Layer
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent side="right" align="center" className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[200px]">
+            <DropdownMenuContent side="right" align="center" className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-2 min-w-[220px]">
               <div className="px-4 py-2 mb-1 border-b border-white/10">
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Pilih Data Wilayah</p>
               </div>
-              <DropdownMenuCheckboxItem
-                checked={visibility.polygons}
-                onCheckedChange={(checked) => setVisibility(v => ({ ...v, polygons: !!checked }))}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white"
-              >
-                <Hexagon className="w-4 h-4 text-green-500" />
-                Area Wilayah
-              </DropdownMenuCheckboxItem>
+              
+              {/* Areas Sub-Menu for individual control */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors font-bold text-[10px] uppercase tracking-widest text-white/70 focus:bg-primary focus:text-white">
+                  <Hexagon className="w-4 h-4 text-green-500" />
+                  Area Wilayah
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="bg-white/10 backdrop-blur-3xl border-white/10 rounded-2xl p-2 min-w-[180px]">
+                   <DropdownMenuCheckboxItem
+                    checked={isAnyPolygonVisible}
+                    onCheckedChange={(checked) => toggleAllPolygons(!!checked)}
+                    className="flex items-center gap-3 px-4 py-2 rounded-xl cursor-pointer font-black text-[9px] uppercase tracking-widest text-primary focus:bg-white/5"
+                  >
+                    Tampilkan Semua
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  {allPolygons.map((p: any) => (
+                    <DropdownMenuCheckboxItem
+                      key={p.id}
+                      checked={visibleAreaIds[p.id]}
+                      onCheckedChange={(checked) => setVisibleAreaIds(prev => ({ ...prev, [p.id]: !!checked }))}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-[10px] font-bold uppercase text-white/70"
+                    >
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#22c55e' }} />
+                      {p.name}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+
               <DropdownMenuCheckboxItem
                 checked={visibility.lines}
                 onCheckedChange={(checked) => setVisibility(v => ({ ...v, lines: !!checked }))}
@@ -234,13 +284,6 @@ export default function Home() {
                 <MapPin className="w-4 h-4 text-red-500" />
                 Titik Fasilitas
               </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem 
-                onClick={() => setVisibility({ polygons: true, lines: true, markers: true })}
-                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-colors font-black text-[9px] uppercase tracking-widest text-primary hover:bg-white/5"
-              >
-                Tampilkan Semua
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -277,7 +320,7 @@ export default function Home() {
              </div>
              <div className="h-4 w-px bg-white/10" />
              <div className="flex gap-4">
-               {visibility.polygons && polygonsData.length > 0 && (
+               {polygonsData.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-500 text-[8px] font-black uppercase tracking-widest px-2">
                      {polygonsData.length} Area
