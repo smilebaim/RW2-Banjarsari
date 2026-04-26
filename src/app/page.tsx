@@ -39,20 +39,25 @@ export default function Home() {
   const { data: mapSettings } = useDoc(mapSettingsRef);
 
   // Helper to safely parse JSON strings from Firestore
-  const parseData = (val: any) => {
+  const parseData = (val: any, fallback: any = []) => {
     if (typeof val === 'string') {
       try {
         return JSON.parse(val);
       } catch (e) {
-        return val;
+        return fallback;
       }
     }
-    return val;
+    return val || fallback;
   };
 
-  const polygonData = mapSettings ? parseData(mapSettings.polygon) : null;
-  const linesData = mapSettings ? parseData(mapSettings.lines) : [];
-  const markersData = mapSettings ? parseData(mapSettings.markers) : [];
+  // Modern multi-polygon support
+  const polygonsData = parseData(mapSettings?.polygon || mapSettings?.polygons, []);
+  // Support for legacy single polygon if it exists
+  const legacyPolygon = parseData(mapSettings?.polygon, null);
+  const normalizedPolygons = Array.isArray(polygonsData) ? polygonsData : (legacyPolygon ? [legacyPolygon] : []);
+
+  const linesData = parseData(mapSettings?.lines, []);
+  const markersData = parseData(mapSettings?.markers, []);
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
@@ -63,7 +68,7 @@ export default function Home() {
           layer={activeLayer} 
           locked={true}
           showBoundary={true}
-          polygonData={polygonData}
+          polygonsData={normalizedPolygons}
           linesData={linesData}
           markersData={markersData}
         />

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -33,11 +32,11 @@ interface LeafletMapProps {
   layer?: MapLayerType;
   showBoundary?: boolean;
   editable?: boolean;
-  polygonData?: MapObject | null;
+  polygonsData?: MapObject[];
   linesData?: MapObject[];
   markersData?: MapObject[];
   onDataChange?: (data: { 
-    polygon: MapObject | null, 
+    polygons: MapObject[], 
     lines: MapObject[], 
     markers: MapObject[] 
   }) => void;
@@ -62,7 +61,7 @@ export default function LeafletMap({
   layer = 'satellite', 
   showBoundary = true, 
   editable = false,
-  polygonData = null,
+  polygonsData = [],
   linesData = [],
   markersData = [],
   onDataChange,
@@ -120,7 +119,7 @@ export default function LeafletMap({
           if (!drawItems.current) return;
           const layers = drawItems.current.getLayers();
           
-          let polygon: MapObject | null = null;
+          const polygons: MapObject[] = [];
           const lines: MapObject[] = [];
           const markers: MapObject[] = [];
 
@@ -131,7 +130,7 @@ export default function LeafletMap({
             if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
               const latlngs = l.getLatLngs();
               const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-              polygon = { id: existingId, name: existingName, coords, type: 'polygon' };
+              polygons.push({ id: existingId, name: existingName, coords, type: 'polygon' });
             } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
               const latlngs = l.getLatLngs();
               const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
@@ -142,7 +141,7 @@ export default function LeafletMap({
             }
           });
 
-          onDataChange?.({ polygon, lines, markers });
+          onDataChange?.({ polygons, lines, markers });
         };
 
         // @ts-ignore
@@ -150,7 +149,7 @@ export default function LeafletMap({
           const layer = e.layer;
           const id = `obj-${Date.now()}`;
           const type = layer instanceof L.Polygon ? 'polygon' : layer instanceof L.Marker ? 'marker' : 'line';
-          const name = type === 'polygon' ? 'Batas Wilayah' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
+          const name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
           
           layer.options.id = id;
           layer.options.name = name;
@@ -199,60 +198,62 @@ export default function LeafletMap({
       featureGroupInstance.current.clearLayers();
       if (!showBoundary) return;
 
-      if (polygonData && polygonData.coords.length > 0) {
-        L.polygon(polygonData.coords as any, {
-          color: '#22c55e',
-          fillColor: '#22c55e',
-          fillOpacity: 0.2,
-          weight: 3,
-          dashArray: '5, 10'
-        })
-        .bindTooltip(polygonData.name, { sticky: true, className: 'font-bold' })
-        .addTo(featureGroupInstance.current);
-      }
+      polygonsData?.forEach(poly => {
+        if (poly.coords && poly.coords.length > 0) {
+          L.polygon(poly.coords as any, {
+            color: '#22c55e',
+            fillColor: '#22c55e',
+            fillOpacity: 0.2,
+            weight: 3,
+            dashArray: '5, 10'
+          })
+          .bindTooltip(poly.name, { sticky: true, className: 'font-bold' })
+          .addTo(featureGroupInstance.current!);
+        }
+      });
 
       linesData?.forEach(item => {
         L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 })
         .bindTooltip(item.name, { sticky: true, className: 'font-bold' })
-        .addTo(featureGroupInstance.current);
+        .addTo(featureGroupInstance.current!);
       });
 
       markersData?.forEach(item => {
         L.marker(item.coords as any)
         .bindPopup(`<b>${item.name}</b>`)
-        .addTo(featureGroupInstance.current);
+        .addTo(featureGroupInstance.current!);
       });
 
     } else if (drawItems.current && editable) {
-      // Logic for editing: clear and re-populate only if internal data differs significantly
-      // to avoid infinite loops, we check if the layer count matches
       const currentLayers = drawItems.current.getLayers();
-      const expectedCount = (polygonData ? 1 : 0) + linesData.length + markersData.length;
+      const expectedCount = polygonsData.length + linesData.length + markersData.length;
       
       if (currentLayers.length !== expectedCount) {
         drawItems.current.clearLayers();
         
-        if (polygonData && polygonData.coords.length > 0) {
-          const p = L.polygon(polygonData.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
-          // @ts-ignore
-          p.options.id = polygonData.id; p.options.name = polygonData.name;
-          p.addTo(drawItems.current);
-        }
+        polygonsData?.forEach(poly => {
+          if (poly.coords && poly.coords.length > 0) {
+            const p = L.polygon(poly.coords as any, { color: '#22c55e', fillOpacity: 0.3 });
+            // @ts-ignore
+            p.options.id = poly.id; p.options.name = poly.name;
+            p.addTo(drawItems.current!);
+          }
+        });
         linesData?.forEach(item => {
           const l = L.polyline(item.coords as any, { color: '#3b82f6', weight: 4 });
           // @ts-ignore
           l.options.id = item.id; l.options.name = item.name;
-          l.addTo(drawItems.current);
+          l.addTo(drawItems.current!);
         });
         markersData?.forEach(item => {
           const m = L.marker(item.coords as any);
           // @ts-ignore
           m.options.id = item.id; m.options.name = item.name;
-          m.addTo(drawItems.current);
+          m.addTo(drawItems.current!);
         });
       }
     }
-  }, [showBoundary, polygonData, linesData, markersData, editable]);
+  }, [showBoundary, polygonsData, linesData, markersData, editable]);
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-secondary/5">

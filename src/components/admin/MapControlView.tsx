@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -52,11 +51,11 @@ export function MapControlView() {
   const [focusTrigger, setFocusTrigger] = useState<{ coords: [number, number], zoom: number } | null>(null);
   
   const [tempData, setTempData] = useState<{
-    polygon: MapObject | null,
+    polygons: MapObject[],
     lines: MapObject[],
     markers: MapObject[]
   }>({
-    polygon: null,
+    polygons: [],
     lines: [],
     markers: []
   });
@@ -66,28 +65,31 @@ export function MapControlView() {
 
   useEffect(() => {
     if (mapSettings) {
-      const parseData = (val: any) => {
+      const parseData = (val: any, fallback: any = []) => {
         if (typeof val === 'string') {
           try {
             return JSON.parse(val);
           } catch (e) {
-            return val;
+            return fallback;
           }
         }
-        return val;
+        return val || fallback;
       };
 
+      const rawPolygons = parseData(mapSettings.polygons || mapSettings.polygon, []);
+      const legacyPolygon = parseData(mapSettings.polygon, null);
+      
       setTempData({
-        polygon: parseData(mapSettings.polygon) || null,
-        lines: parseData(mapSettings.lines) || [],
-        markers: parseData(mapSettings.markers) || []
+        polygons: Array.isArray(rawPolygons) ? rawPolygons : (legacyPolygon ? [legacyPolygon] : []),
+        lines: parseData(mapSettings.lines, []),
+        markers: parseData(mapSettings.markers, [])
       });
     }
   }, [mapSettings]);
 
   const handleSaveMap = () => {
     setDocumentNonBlocking(mapSettingsRef, {
-      polygon: JSON.stringify(tempData.polygon),
+      polygons: JSON.stringify(tempData.polygons),
       lines: JSON.stringify(tempData.lines),
       markers: JSON.stringify(tempData.markers),
       updatedAt: new Date().toISOString()
@@ -102,8 +104,8 @@ export function MapControlView() {
 
   const updateObjectName = (type: 'line' | 'marker' | 'polygon', id: string, newName: string) => {
     setTempData(prev => {
-      if (type === 'polygon' && prev.polygon) {
-        return { ...prev, polygon: { ...prev.polygon, name: newName } };
+      if (type === 'polygon') {
+        return { ...prev, polygons: prev.polygons.map(p => p.id === id ? { ...p, name: newName } : p) };
       }
       if (type === 'line') {
         return { ...prev, lines: prev.lines.map(l => l.id === id ? { ...l, name: newName } : l) };
@@ -117,7 +119,7 @@ export function MapControlView() {
 
   const removeObject = (type: 'line' | 'marker' | 'polygon', id: string) => {
     setTempData(prev => {
-      if (type === 'polygon') return { ...prev, polygon: null };
+      if (type === 'polygon') return { ...prev, polygons: prev.polygons.filter(p => p.id !== id) };
       if (type === 'line') return { ...prev, lines: prev.lines.filter(l => l.id !== id) };
       if (type === 'marker') return { ...prev, markers: prev.markers.filter(m => m.id !== id) };
       return prev;
@@ -127,7 +129,6 @@ export function MapControlView() {
 
   const focusOnObject = (coords: any) => {
     if (!coords) return;
-    // Handle different coordinate types
     let target: [number, number];
     if (Array.isArray(coords[0])) {
       target = coords[0] as [number, number];
@@ -186,10 +187,10 @@ export function MapControlView() {
                    layer={activeLayer} 
                    showBoundary={showBoundary}
                    editable={isEditing}
-                   polygonData={tempData.polygon}
+                   polygonsData={tempData.polygons}
                    linesData={tempData.lines}
                    markersData={tempData.markers}
-                   onDataChange={setTempData}
+                   onDataChange={(data) => setTempData({ polygons: data.polygons, lines: data.lines, markers: data.markers })}
                  />
                )}
             </div>
@@ -205,7 +206,7 @@ export function MapControlView() {
                </div>
                <div className="grid grid-cols-1 gap-3">
                   {[
-                    { icon: Hexagon, label: 'Batas Wilayah', desc: 'Gunakan poligon untuk area luas.', color: 'text-accent' },
+                    { icon: Hexagon, label: 'Batas Wilayah / Area', desc: 'Gunakan poligon untuk area luas.', color: 'text-accent' },
                     { icon: Route, label: 'Jalur / Jalan', desc: 'Gunakan garis untuk rute.', color: 'text-blue-300' },
                     { icon: MapPin, label: 'Titik Penting', desc: 'Gunakan marker untuk lokasi.', color: 'text-red-300' }
                   ].map((tool, i) => (
@@ -227,34 +228,34 @@ export function MapControlView() {
                 <Type className="w-5 h-5 text-primary" />
                 <h3 className="font-black text-primary uppercase text-sm">Daftar Inventaris</h3>
               </div>
-              <Badge variant="secondary" className="font-black text-[9px]">{tempData.lines.length + tempData.markers.length + (tempData.polygon ? 1 : 0)} Objek</Badge>
+              <Badge variant="secondary" className="font-black text-[9px]">{tempData.polygons.length + tempData.lines.length + tempData.markers.length} Objek</Badge>
             </div>
             
             <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                {tempData.polygon && (
-                  <div className="p-4 bg-green-50 rounded-2xl space-y-2 border border-green-100 group">
+                {tempData.polygons.map(poly => (
+                  <div key={poly.id} className="p-4 bg-green-50 rounded-2xl space-y-2 border border-green-100 group">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-black uppercase text-green-700 flex items-center gap-1">
-                        <Hexagon className="w-3 h-3" /> Poligon Area
+                        <Hexagon className="w-3 h-3" /> Area Poligon
                       </label>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button onClick={() => focusOnObject(tempData.polygon!.coords)} size="icon" variant="ghost" className="h-6 w-6 text-green-600">
+                        <Button onClick={() => focusOnObject(poly.coords)} size="icon" variant="ghost" className="h-6 w-6 text-green-600">
                           <Maximize2 className="w-3.5 h-3.5" />
                         </Button>
-                        <Button onClick={() => removeObject('polygon', tempData.polygon!.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
+                        <Button onClick={() => removeObject('polygon', poly.id)} size="icon" variant="ghost" className="h-6 w-6 text-red-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </div>
                     <Input 
-                      value={tempData.polygon.name} 
-                      onChange={(e) => updateObjectName('polygon', tempData.polygon!.id, e.target.value)}
+                      value={poly.name} 
+                      onChange={(e) => updateObjectName('polygon', poly.id, e.target.value)}
                       disabled={!isEditing}
                       className="bg-white border-none h-9 text-xs font-bold shadow-sm"
                       placeholder="Nama Area..."
                     />
                   </div>
-                )}
+                ))}
 
                 {tempData.lines.map(line => (
                   <div key={line.id} className="p-4 bg-blue-50 rounded-2xl space-y-2 border border-blue-100 group">
@@ -306,7 +307,7 @@ export function MapControlView() {
                   </div>
                 ))}
 
-                {!tempData.polygon && tempData.lines.length === 0 && tempData.markers.length === 0 && (
+                {tempData.polygons.length === 0 && tempData.lines.length === 0 && tempData.markers.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
                     <MousePointer2 className="w-10 h-10 mb-2" />
                     <p className="text-[10px] font-black uppercase tracking-widest">Peta Kosong</p>
