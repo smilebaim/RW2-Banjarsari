@@ -105,7 +105,8 @@ export default function DashboardPage() {
         'announcements_public',
         'rw_management_members',
         'important_contacts',
-        'resident_feedback'
+        'resident_feedback',
+        'map_settings'
       ];
 
       for (const colName of collections) {
@@ -133,6 +134,7 @@ export default function DashboardPage() {
     if (!user) return;
     setIsProcessing(true);
     try {
+      // 1. Setup Admin Role (Crucial for rules)
       await setDoc(doc(db, 'admin_roles', user.uid), {
         id: user.uid,
         username: user.email?.split('@')[0] || 'admin',
@@ -141,6 +143,14 @@ export default function DashboardPage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
+
+      // 2. Setup Default Map Settings (Prevents Permission Errors on first edit)
+      await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
+        polygon: JSON.stringify({ id: 'initial-poly', name: 'RW 02 Banjarsari', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon' }),
+        lines: "[]",
+        markers: "[]",
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
 
       const announcements = [
         {
@@ -197,8 +207,8 @@ export default function DashboardPage() {
       }
 
       toast({
-        title: "Import Berhasil",
-        description: "Data contoh telah dimuat.",
+        title: "Inisialisasi Berhasil",
+        description: "Dashboard dan data contoh telah siap digunakan.",
       });
     } catch (error: any) {
       toast({

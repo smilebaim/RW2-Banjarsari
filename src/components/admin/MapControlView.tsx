@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,12 +86,14 @@ export function MapControlView() {
   }, [mapSettings]);
 
   const handleSaveMap = () => {
-    updateDocumentNonBlocking(mapSettingsRef, {
+    // Use setDocumentNonBlocking with merge: true to avoid "permission-error" on non-existent documents or partial updates
+    setDocumentNonBlocking(mapSettingsRef, {
       polygon: JSON.stringify(tempData.polygon),
       lines: JSON.stringify(tempData.lines),
       markers: JSON.stringify(tempData.markers),
       updatedAt: new Date().toISOString()
-    });
+    }, { merge: true });
+    
     setIsEditing(false);
     toast({
       title: "Peta Wilayah Diperbarui",
