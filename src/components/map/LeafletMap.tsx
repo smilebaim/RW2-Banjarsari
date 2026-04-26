@@ -82,7 +82,7 @@ const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') 
   return L.divIcon({
     html: `
       <div class="relative flex flex-col items-center group">
-        <div class="flex items-center justify-center w-9 h-9 bg-black/40 backdrop-blur-md rounded-xl border border-white/10 transition-all duration-500 group-hover:-translate-y-1.5 group-hover:scale-110" 
+        <div class="flex items-center justify-center w-9 h-9 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 transition-all duration-500 group-hover:-translate-y-1.5 group-hover:scale-110" 
              style="box-shadow: 0 0 12px ${color}33;">
           ${getIconSVG(iconName, color)}
         </div>
@@ -223,11 +223,11 @@ export default function LeafletMap({
     const createPopup = (item: MapObject) => {
       const accentColor = item.color || '#22c55e';
       return `
-        <div class="p-0 min-w-[300px] bg-black/20 text-white rounded-[1.75rem] border border-white/10 shadow-2xl backdrop-blur-2xl overflow-hidden">
+        <div class="p-0 min-w-[300px] bg-black/60 text-white rounded-[1.75rem] border border-white/10 shadow-2xl backdrop-blur-2xl overflow-hidden">
           <div class="h-1.5 w-full" style="background-color: ${accentColor}; box-shadow: 0 4px 12px ${accentColor}44;"></div>
           <div class="p-6">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-[8px] font-black uppercase tracking-[0.25em] bg-white/5 text-white/50 px-3 py-1.5 rounded-lg border border-white/5">
+              <span class="text-[8px] font-black uppercase tracking-[0.25em] bg-white/10 text-white/90 px-3 py-1.5 rounded-lg border border-white/5">
                 ${item.category || 'INFRASTRUKTUR'}
               </span>
               <div class="h-1.5 w-1.5 rounded-full animate-pulse" style="background-color: ${accentColor};"></div>
@@ -235,13 +235,13 @@ export default function LeafletMap({
             <h4 class="font-black text-white uppercase text-xl mb-3 tracking-tighter leading-none">${item.name}</h4>
             ${item.description ? `
               <div class="space-y-2 mt-4 pt-4 border-t border-white/5">
-                <span class="text-[7px] font-bold text-white/30 uppercase tracking-widest">Keterangan Wilayah</span>
-                <p class="text-[11px] text-white/60 font-medium leading-relaxed">${item.description}</p>
+                <span class="text-[7px] font-bold text-white/40 uppercase tracking-widest">Keterangan Wilayah</span>
+                <p class="text-[11px] text-white font-medium leading-relaxed">${item.description}</p>
               </div>
             ` : ''}
             <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-               <span class="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] font-mono">ID // ${item.id.substring(0, 8)}</span>
-               <span class="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">Banjarsari OS</span>
+               <span class="text-[7px] font-black text-white/30 uppercase tracking-[0.4em] font-mono">ID // ${item.id.substring(0, 8)}</span>
+               <span class="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Banjarsari OS</span>
             </div>
           </div>
         </div>
