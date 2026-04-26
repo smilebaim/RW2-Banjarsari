@@ -11,18 +11,12 @@ import {
   Compass, 
   Info, 
   ShieldCheck, 
-  Map as MapIcon, 
-  Database,
   Activity,
   Hexagon,
   Route,
   MapPin,
   Zap,
   Layers,
-  Check,
-  Eye,
-  EyeOff,
-  ChevronRight
 } from 'lucide-react';
 import {
   Tooltip,
@@ -36,7 +30,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -91,12 +84,10 @@ export default function Home() {
   // - Hide all RTs, Lines, and Markers by default.
   useEffect(() => {
     if (!isInitialized && mapSettings && (allPolygons.length > 0 || allLines.length > 0 || allMarkers.length > 0)) {
-      // 1. Logic for Areas (Polygons)
       const initialHiddenAreas: Record<string, boolean> = {};
       allPolygons.forEach((p: any) => {
         const name = p.name?.toLowerCase() || '';
-        // Strict check: Only show the main RW boundary. 
-        // If it contains "RT", it is a sub-area and should be hidden by default.
+        // Only show main RW boundary. Hide anything with "RT".
         const isRT = name.includes('rt');
         const isMainRW = (name.includes('rw 2') || name.includes('rw 02') || name.includes('batas')) && !isRT;
         
@@ -105,11 +96,9 @@ export default function Home() {
         }
       });
       
-      // 2. Hide all lines by default
       const initialHiddenLines: Record<string, boolean> = {};
       allLines.forEach((l: any) => { initialHiddenLines[l.id] = true; });
       
-      // 3. Hide all markers by default
       const initialHiddenMarkers: Record<string, boolean> = {};
       allMarkers.forEach((m: any) => { initialHiddenMarkers[m.id] = true; });
 
@@ -120,12 +109,10 @@ export default function Home() {
     }
   }, [mapSettings, allPolygons, allLines, allMarkers, isInitialized]);
 
-  // Filtered data based on visibility toggles (Checklists)
+  // Filtered data based on visibility toggles
   const polygonsData = useMemo(() => allPolygons.filter((p: any) => !hiddenAreaIds[p.id]), [allPolygons, hiddenAreaIds]);
   const linesData = useMemo(() => allLines.filter((l: any) => !hiddenLineIds[l.id]), [allLines, hiddenLineIds]);
   const markersData = useMemo(() => allMarkers.filter((m: any) => !hiddenMarkerIds[m.id]), [allMarkers, hiddenMarkerIds]);
-
-  const totalInfraVisible = polygonsData.length + linesData.length + markersData.length;
 
   const toggleAll = (type: 'area' | 'line' | 'marker', show: boolean) => {
     const next: Record<string, boolean> = {};
@@ -145,9 +132,9 @@ export default function Home() {
     setter(prev => {
       const next = { ...prev };
       if (isChecked) {
-        delete next[id]; // Show item
+        delete next[id]; 
       } else {
-        next[id] = true; // Hide item
+        next[id] = true; 
       }
       return next;
     });
@@ -155,7 +142,7 @@ export default function Home() {
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-[#020403]">
-      {/* Basemap: Locked to Satellite only */}
+      {/* Locked to Satellite mode only */}
       <div className="absolute inset-0 z-0">
         <LeafletMap 
           center={COORDINATES} 
@@ -172,25 +159,25 @@ export default function Home() {
         />
       </div>
 
-      {/* Modern Floating Header HUD */}
-      <div className="absolute top-10 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
-        <div className="w-fit bg-black/40 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[2rem] p-1.5 flex items-center gap-2 pointer-events-auto transition-all hover:bg-black/60 hover:border-primary/30 group">
-          <div className="flex items-center gap-4 pl-6 pr-4 py-2">
-            <div className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary shadow-[0_0_12px_rgba(var(--primary),1)]"></span>
+      <TooltipProvider delayDuration={0}>
+        {/* Floating Header HUD */}
+        <div className="absolute top-10 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
+          <div className="w-fit bg-black/40 backdrop-blur-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] border border-white/10 rounded-[2rem] p-1.5 flex items-center gap-2 pointer-events-auto transition-all hover:bg-black/60 hover:border-primary/30 group">
+            <div className="flex items-center gap-4 pl-6 pr-4 py-2">
+              <div className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary shadow-[0_0_12px_rgba(var(--primary),1)]"></span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] font-black text-white uppercase tracking-[0.3em] leading-none mb-1">RW 02 Banjarsari</span>
+                <span className="text-[9px] font-bold text-primary tracking-widest leading-none flex items-center gap-1.5 uppercase">
+                  <Zap className="w-2.5 h-2.5" /> Portal Digital Wilayah
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-[12px] font-black text-white uppercase tracking-[0.3em] leading-none mb-1">RW 02 Banjarsari</span>
-              <span className="text-[9px] font-bold text-primary tracking-widest leading-none flex items-center gap-1.5 uppercase">
-                <Zap className="w-2.5 h-2.5" /> Portal Digital Wilayah
-              </span>
-            </div>
-          </div>
-          
-          <div className="h-10 w-px bg-white/10 mx-1" />
-          
-          <TooltipProvider delayDuration={0}>
+            
+            <div className="h-10 w-px bg-white/10 mx-1" />
+            
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
@@ -208,33 +195,21 @@ export default function Home() {
                 Login Dashboard
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </div>
         </div>
-      </div>
 
-      {/* Interactive Control Sidebar */}
-      <div className="absolute left-8 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20">
-        <TooltipProvider delayDuration={0}>
-          
-          {/* Main Layer Checklist Tool */}
+        {/* Interactive Control Sidebar */}
+        <div className="absolute left-8 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20">
+          {/* Layer Checklist Tool */}
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     size="icon" 
-                    className={cn(
-                      "w-16 h-16 rounded-2xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 transition-all duration-500 group relative",
-                      totalInfraVisible > 0 ? 'text-primary' : 'text-white/30'
-                    )}
+                    className="w-16 h-16 rounded-2xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 transition-all duration-500 group relative text-primary"
                   >
                     <Layers className="w-7 h-7 transition-transform group-hover:scale-110" />
-                    {totalInfraVisible > 0 && (
-                      <span className="absolute top-3 right-3 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                      </span>
-                    )}
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -246,16 +221,16 @@ export default function Home() {
             <DropdownMenuContent side="right" align="center" className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-[2.5rem] p-4 min-w-[340px] shadow-2xl animate-in zoom-in-95 duration-300">
               <div className="px-5 py-4 mb-4 border-b border-white/5">
                 <p className="text-[12px] font-black text-white uppercase tracking-[0.3em]">Inventaris Wilayah</p>
-                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-1">Checklist untuk menampilkan data</p>
+                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mt-1">Gunakan checklist untuk visualisasi</p>
               </div>
               
               <div className="space-y-4">
-                {/* 1. Area Wilayah & Batas RW */}
+                {/* 1. Areas */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
                       <Hexagon className="w-4 h-4 text-green-500" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Area & Batas RW</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Area & Batas</span>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-green-500 hover:text-white rounded-lg">Pilih Semua</Button>
@@ -271,7 +246,7 @@ export default function Home() {
                           onCheckedChange={(checked) => toggleSingle('area', p.id, !!checked)}
                           className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
-                          <div className="w-3 h-3 rounded-full shadow-[0_0_10px_rgba(var(--primary),0.2)] group-hover:scale-110 transition-transform" style={{ backgroundColor: p.color || '#22c55e' }} />
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: p.color || '#22c55e' }} />
                           <span className="truncate flex-1 tracking-[0.2em]">{p.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
@@ -281,7 +256,7 @@ export default function Home() {
 
                 <DropdownMenuSeparator className="bg-white/5" />
 
-                {/* 2. Jalur & Drainase */}
+                {/* 2. Lines */}
                 <div className="space-y-2">
                    <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
@@ -290,7 +265,6 @@ export default function Home() {
                     </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('line', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-blue-500 hover:text-white rounded-lg">Aktifkan</Button>
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
                     </div>
                   </div>
                   <ScrollArea className="h-[120px] pr-2">
@@ -302,7 +276,7 @@ export default function Home() {
                           onCheckedChange={(checked) => toggleSingle('line', l.id, !!checked)}
                           className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
-                          <div className="w-6 h-1 rounded-full group-hover:scale-x-110 transition-transform" style={{ backgroundColor: l.color || '#3b82f6' }} />
+                          <div className="w-6 h-1 rounded-full" style={{ backgroundColor: l.color || '#3b82f6' }} />
                           <span className="truncate flex-1 tracking-[0.2em]">{l.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
@@ -312,16 +286,15 @@ export default function Home() {
 
                 <DropdownMenuSeparator className="bg-white/5" />
 
-                {/* 3. Fasilitas */}
+                {/* 3. Markers */}
                 <div className="space-y-2">
                    <div className="flex items-center justify-between px-2 mb-2">
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-red-500" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Titik Fasilitas</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Fasilitas</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
-                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', false)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Sembunyikan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-6 px-3 text-[8px] font-black uppercase bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg">Tampilkan</Button>
                     </div>
                   </div>
                   <ScrollArea className="h-[120px] pr-2">
@@ -333,7 +306,7 @@ export default function Home() {
                           onCheckedChange={(checked) => toggleSingle('marker', m.id, !!checked)}
                           className="flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer text-[10px] font-black uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
-                          <MapPin className="w-3.5 h-3.5 group-hover:scale-125 transition-transform" style={{ color: m.color || '#ef4444' }} />
+                          <MapPin className="w-3.5 h-3.5" style={{ color: m.color || '#ef4444' }} />
                           <span className="truncate flex-1 tracking-[0.2em]">{m.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
@@ -344,7 +317,6 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Compass / Focus Calibration */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -356,11 +328,10 @@ export default function Home() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
-              Kalibrasi Fokus
+              Fokus Wilayah
             </TooltipContent>
           </Tooltip>
 
-          {/* Geographical Info */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -371,54 +342,15 @@ export default function Home() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[10px] uppercase tracking-widest ml-4 px-5 py-2.5 rounded-2xl shadow-2xl">
-              Info Geografis
+              Info Portal
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
-      </div>
-
-      {/* Futuristic Connection HUD Panel (Bottom) */}
-      <div className="absolute bottom-32 inset-x-0 z-20 flex justify-center pointer-events-none px-6">
-        <div className="bg-black/50 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] px-10 py-5 flex flex-col md:flex-row items-center gap-10 pointer-events-auto animate-in slide-in-from-bottom-20 duration-1000 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
-           <div className="flex items-center gap-5">
-             <div className="relative flex h-4 w-4">
-               <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20" />
-               <div className="relative w-4 h-4 rounded-full bg-green-500 shadow-[0_0_15px_#22c55e]" />
-             </div>
-             <div className="flex flex-col">
-               <span className="text-[12px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1">{totalInfraVisible} Sistem Aktif</span>
-               <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Sinkronisasi Layer Berhasil</span>
-             </div>
-           </div>
-
-           <div className="hidden md:block h-12 w-px bg-white/10" />
-
-           <div className="flex flex-wrap justify-center gap-5">
-             <Badge variant="outline" className={cn(
-               "transition-all duration-500 text-[10px] font-black uppercase tracking-widest px-5 py-2 rounded-full",
-               polygonsData.length > 0 ? "bg-green-500/10 border-green-500/30 text-green-500" : "bg-white/5 border-white/5 text-white/20"
-             )}>
-               {polygonsData.length} Area RT
-             </Badge>
-             <Badge variant="outline" className={cn(
-               "transition-all duration-500 text-[10px] font-black uppercase tracking-widest px-5 py-2 rounded-full",
-               linesData.length > 0 ? "bg-blue-500/10 border-blue-500/30 text-blue-500" : "bg-white/5 border-white/5 text-white/20"
-             )}>
-               {linesData.length} Jalur Jalan
-             </Badge>
-             <Badge variant="outline" className={cn(
-               "transition-all duration-500 text-[10px] font-black uppercase tracking-widest px-5 py-2 rounded-full",
-               markersData.length > 0 ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-white/5 border-white/5 text-white/20"
-             )}>
-               {markersData.length} Fasilitas
-             </Badge>
-           </div>
         </div>
-      </div>
+      </TooltipProvider>
 
       {/* Ambient Depth Overlays */}
       <div className="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-[5]"></div>
-      <div className="absolute inset-x-0 bottom-0 h-[30rem] bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none z-[5]"></div>
+      <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-black/95 to-transparent pointer-events-none z-[5]"></div>
     </div>
   );
 }
