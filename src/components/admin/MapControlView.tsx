@@ -29,7 +29,13 @@ import {
   Maximize2,
   Info,
   Pencil,
-  Palette
+  Palette,
+  Home,
+  Shield,
+  Hospital,
+  Droplet,
+  Zap,
+  Trees
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
@@ -51,6 +57,17 @@ const COLOR_PALETTE = [
   { value: '#f59e0b', label: 'Orange' },
   { value: '#8b5cf6', label: 'Purple' },
   { value: '#06b6d4', label: 'Cyan' },
+];
+
+const ICON_PALETTE = [
+  { value: 'pin', icon: MapPin },
+  { value: 'home', icon: Home },
+  { value: 'info', icon: Info },
+  { value: 'shield', icon: Shield },
+  { value: 'hospital', icon: Hospital },
+  { value: 'droplet', icon: Droplet },
+  { value: 'zap', icon: Zap },
+  { value: 'trees', icon: Trees },
 ];
 
 type MapLayer = 'satellite' | 'streets' | 'dark';
@@ -89,11 +106,8 @@ export function MapControlView() {
         return val || fallback;
       };
 
-      const rawPolygons = parseData(mapSettings.polygons || mapSettings.polygon, []);
-      const legacyPolygon = parseData(mapSettings.polygon, null);
-      
       setTempData({
-        polygons: Array.isArray(rawPolygons) ? rawPolygons : (legacyPolygon ? [legacyPolygon] : []),
+        polygons: parseData(mapSettings.polygons || mapSettings.polygon, []),
         lines: parseData(mapSettings.lines, []),
         markers: parseData(mapSettings.markers, [])
       });
@@ -381,7 +395,7 @@ export function MapControlView() {
                         </Button>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <Input 
                         value={marker.name} 
                         onChange={(e) => updateObjectProperty('marker', marker.id, 'name', e.target.value)}
@@ -389,6 +403,48 @@ export function MapControlView() {
                         className="bg-white border-none h-9 text-xs font-bold shadow-sm"
                         placeholder="Nama Lokasi..."
                       />
+                      
+                      {isEditing && (
+                        <div className="space-y-3 p-3 bg-white rounded-xl shadow-sm border border-secondary/50">
+                          <div className="flex items-center gap-2">
+                            <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                            <div className="flex gap-1.5 flex-wrap">
+                              {COLOR_PALETTE.map(color => (
+                                <button
+                                  key={color.value}
+                                  onClick={() => updateObjectProperty('marker', marker.id, 'color', color.value)}
+                                  className={cn(
+                                    "w-5 h-5 rounded-full border-2 transition-transform hover:scale-110",
+                                    marker.color === color.value ? "border-primary scale-110" : "border-transparent"
+                                  )}
+                                  style={{ backgroundColor: color.value }}
+                                  title={color.label}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 pt-2 border-t border-secondary">
+                            <Type className="w-3.5 h-3.5 text-muted-foreground" />
+                            <div className="flex gap-2 flex-wrap">
+                              {ICON_PALETTE.map(icon => (
+                                <button
+                                  key={icon.value}
+                                  onClick={() => updateObjectProperty('marker', marker.id, 'icon', icon.value)}
+                                  className={cn(
+                                    "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                                    marker.icon === icon.value ? "bg-primary text-white shadow-md" : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                                  )}
+                                  title={icon.value}
+                                >
+                                  <icon.icon className="w-4 h-4" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <Textarea 
                         value={marker.description || ''} 
                         onChange={(e) => updateObjectProperty('marker', marker.id, 'description', e.target.value)}
