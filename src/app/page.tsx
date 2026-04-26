@@ -153,24 +153,24 @@ export default function Home() {
       </div>
 
       <TooltipProvider delayDuration={0}>
-        {/* Floating Header HUD (Top) - Proportional & Elegant Edition */}
+        {/* Floating Header HUD (Top) - Ultra Wide Edition */}
         <div className="absolute top-6 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
-          <div className="w-fit min-w-[280px] bg-black/60 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-white/10 rounded-[1.75rem] p-1.5 flex items-center justify-between pointer-events-auto transition-all hover:bg-black/80 hover:border-primary/50 group">
-            <div className="flex items-center gap-5 px-6 py-2">
+          <div className="w-fit min-w-[420px] bg-black/60 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-white/10 rounded-[1.75rem] p-1.5 flex items-center justify-between pointer-events-auto transition-all hover:bg-black/80 hover:border-primary/50 group">
+            <div className="flex items-center gap-12 px-10 py-2">
               <div className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary shadow-[0_0_10px_rgba(var(--primary),1)]"></span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1.5">RW 02 Banjarsari</span>
-                <span className="text-[9px] font-bold text-primary tracking-[0.25em] leading-none flex items-center gap-2 uppercase">
-                  <Zap className="w-2.5 h-2.5" /> Portal Digital
+                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1.5">RW 02 Banjarsari</span>
+                <span className="text-[8px] font-bold text-primary tracking-[0.25em] leading-none flex items-center gap-2 uppercase">
+                  <Zap className="w-3 h-3" /> Portal Digital Wilayah
                 </span>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 pr-1">
-              <div className="h-8 w-px bg-white/10 mx-2" />
+            <div className="flex items-center gap-2 pr-2">
+              <div className="h-10 w-px bg-white/10 mx-2" />
               
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -181,19 +181,19 @@ export default function Home() {
                     asChild
                   >
                     <Link href="/login">
-                      <ShieldCheck className="w-4.5 h-4.5" />
+                      <ShieldCheck className="w-4 h-4" />
                     </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-white border-none font-black text-[9px] uppercase tracking-widest mb-4 px-4 py-2 rounded-xl shadow-2xl">
-                  Dashboard
+                  Dashboard Admin
                 </TooltipContent>
               </Tooltip>
             </div>
           </div>
         </div>
 
-        {/* Sidebar Controls (Left) - Compact HUD Toolbar */}
+        {/* Sidebar Controls (Left) - Minimalist HUD Toolbar */}
         <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
           <DropdownMenu>
             <Tooltip>
@@ -335,7 +335,7 @@ export default function Home() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
-              Focus
+              Focus Wilayah
             </TooltipContent>
           </Tooltip>
         </div>
