@@ -5,7 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 
-// Fix for default marker icons in Leaflet
+// Fix for default marker icons in Leaflet for Next.js environments
 if (typeof window !== 'undefined') {
   // @ts-ignore
   import('leaflet-draw');
@@ -58,7 +58,6 @@ const ATTRIBUTIONS = {
   dark: '&copy; OpenStreetMap &copy; CARTO',
 };
 
-// Helper to get SVG for specific icons
 const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
   const icons: Record<string, string> = {
     pin: `<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>`,
@@ -79,13 +78,15 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
   `;
 };
 
-// Global-ish helper for Leaflet icons to avoid scope issues
 const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
   if (typeof window === 'undefined') return null;
+  const safeName = iconName || 'pin';
+  const safeColor = color || '#ef4444';
+  
   return L.divIcon({
     html: `
       <div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-xl border-2 border-white transform -translate-x-1/2 -translate-y-1/2">
-        ${getIconSVG(iconName, color)}
+        ${getIconSVG(safeName, safeColor)}
       </div>
     `,
     className: 'custom-map-icon',
@@ -257,20 +258,24 @@ export default function LeafletMap({
       });
 
       linesData?.forEach(item => {
-        L.polyline(item.coords as any, { 
-          color: item.color || '#3b82f6', 
-          weight: 4 
-        })
-        .bindPopup(createPopupContent(item.name, item.description))
-        .addTo(featureGroupInstance.current!);
+        if (item.coords && item.coords.length > 0) {
+          L.polyline(item.coords as any, { 
+            color: item.color || '#3b82f6', 
+            weight: 4 
+          })
+          .bindPopup(createPopupContent(item.name, item.description))
+          .addTo(featureGroupInstance.current!);
+        }
       });
 
       markersData?.forEach(item => {
-        const icon = createLeafletIcon(item.icon, item.color);
-        if (icon) {
-          L.marker(item.coords as any, { icon })
-          .bindPopup(createPopupContent(item.name, item.description))
-          .addTo(featureGroupInstance.current!);
+        if (item.coords) {
+          const icon = createLeafletIcon(item.icon, item.color);
+          if (icon) {
+            L.marker(item.coords as any, { icon })
+            .bindPopup(createPopupContent(item.name, item.description))
+            .addTo(featureGroupInstance.current!);
+          }
         }
       });
 
@@ -278,34 +283,40 @@ export default function LeafletMap({
       const currentLayers = drawItems.current.getLayers();
       if (currentLayers.length === 0) {
         polygonsData?.forEach(poly => {
-          const p = L.polygon(poly.coords as any, { color: poly.color || '#22c55e', fillOpacity: 0.3 });
-          // @ts-ignore
-          p.options.id = poly.id; 
-          p.options.name = poly.name; 
-          p.options.description = poly.description;
-          p.options.color = poly.color;
-          p.addTo(drawItems.current!);
+          if (poly.coords && poly.coords.length > 0) {
+            const p = L.polygon(poly.coords as any, { color: poly.color || '#22c55e', fillOpacity: 0.3 });
+            // @ts-ignore
+            p.options.id = poly.id; 
+            p.options.name = poly.name; 
+            p.options.description = poly.description;
+            p.options.color = poly.color;
+            p.addTo(drawItems.current!);
+          }
         });
         linesData?.forEach(item => {
-          const l = L.polyline(item.coords as any, { color: item.color || '#3b82f6', weight: 4 });
-          // @ts-ignore
-          l.options.id = item.id; 
-          l.options.name = item.name; 
-          l.options.description = item.description;
-          l.options.color = item.color;
-          l.addTo(drawItems.current!);
+          if (item.coords && item.coords.length > 0) {
+            const l = L.polyline(item.coords as any, { color: item.color || '#3b82f6', weight: 4 });
+            // @ts-ignore
+            l.options.id = item.id; 
+            l.options.name = item.name; 
+            l.options.description = item.description;
+            l.options.color = item.color;
+            l.addTo(drawItems.current!);
+          }
         });
         markersData?.forEach(item => {
-          const icon = createLeafletIcon(item.icon, item.color);
-          if (icon) {
-            const m = L.marker(item.coords as any, { icon });
-            // @ts-ignore
-            m.options.id = item.id; 
-            m.options.name = item.name; 
-            m.options.description = item.description;
-            m.options.color = item.color;
-            m.options.icon = item.icon;
-            m.addTo(drawItems.current!);
+          if (item.coords) {
+            const icon = createLeafletIcon(item.icon, item.color);
+            if (icon && drawItems.current) {
+              const m = L.marker(item.coords as any, { icon });
+              // @ts-ignore
+              m.options.id = item.id; 
+              m.options.name = item.name; 
+              m.options.description = item.description;
+              m.options.color = item.color;
+              m.options.icon = item.icon;
+              m.addTo(drawItems.current!);
+            }
           }
         });
       }
