@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Newspaper, Users, MessageSquare, Phone, ShieldCheck } from 'lucide-react';
+import { Home, Newspaper, Users, MessageSquare, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   Tooltip, 
@@ -18,7 +18,6 @@ const navItems = [
   { label: 'Pengurus', href: '/directory', icon: Users },
   { label: 'Aspirasi', href: '/feedback', icon: MessageSquare },
   { label: 'Kontak', href: '/contacts', icon: Phone },
-  { label: 'Dashboard', href: '/dashboard', icon: ShieldCheck },
 ];
 
 export function Dock() {
@@ -49,7 +48,7 @@ export function Dock() {
                         : "hover:bg-white/10 text-zinc-400 hover:text-white hover:scale-105"
                     )}
                   >
-                    <item.icon className={cn("w-4.5 h-4.5 sm:w-5 sm:h-5 transition-all duration-500", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+                    <item.icon className={cn("w-4 h-4 sm:w-5 sm:h-5 transition-all duration-500", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
                     {isActive && (
                       <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
