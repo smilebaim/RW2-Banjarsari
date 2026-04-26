@@ -31,7 +31,9 @@ import { cn } from '@/lib/utils';
 
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-secondary/20 animate-pulse rounded-[2.5rem]" />,
+  loading: () => <div className="w-full h-full bg-secondary/20 animate-pulse flex items-center justify-center">
+    <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
+  </div>,
 });
 
 const COORDINATES: [number, number] = [-5.097673729554944, 105.2921561873565];
@@ -79,7 +81,7 @@ export function MapControlView() {
     setIsEditing(false);
     toast({
       title: "Peta Wilayah Diperbarui",
-      description: "Data poligon, garis, dan penanda telah disimpan ke database.",
+      description: "Semua elemen visual telah disimpan ke database.",
     });
   };
 
@@ -87,7 +89,7 @@ export function MapControlView() {
     setTempData({ polygon: [], lines: [], markers: [] });
     toast({
       title: "Canvas Dibersihkan",
-      description: "Semua elemen visual telah dihapus dari editor.",
+      description: "Klik Simpan jika ingin menghapus permanen dari database.",
     });
   };
 
@@ -122,7 +124,7 @@ export function MapControlView() {
                 <X className="w-4 h-4" /> Batal
               </Button>
               <Button onClick={handleClearMap} variant="outline" className="rounded-2xl gap-2 font-bold h-12 border-orange-200 text-orange-600 hover:bg-orange-50">
-                <Trash2 className="w-4 h-4" /> Reset Semua
+                <Trash2 className="w-4 h-4" /> Reset Kanvas
               </Button>
               <Button onClick={handleSaveMap} className="rounded-2xl bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 gap-2 font-bold h-12 px-6">
                 <Check className="w-4 h-4" /> Simpan Perubahan
@@ -137,15 +139,17 @@ export function MapControlView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[650px]">
-        <div className="lg:col-span-8 relative">
-          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white group">
+        <div className="lg:col-span-8 h-full relative">
+          <Card className="h-full border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white relative">
             <div className="absolute inset-0 z-0">
                {isLoading ? (
-                 <div className="w-full h-full flex items-center justify-center bg-secondary/20">
-                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                 <div className="w-full h-full flex flex-col items-center justify-center bg-secondary/10">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary/40">Menyiapkan Mesin Peta...</p>
                  </div>
                ) : (
                  <LeafletMap 
+                   key={isEditing ? 'editing' : 'viewing'} // Force remount for draw control
                    center={COORDINATES} 
                    zoom={ZOOM_LEVEL} 
                    layer={activeLayer} 
@@ -160,10 +164,10 @@ export function MapControlView() {
             </div>
             
             {isEditing && (
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 w-full px-4 flex justify-center">
-                <Badge className="bg-primary/95 backdrop-blur-md px-8 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest shadow-2xl border-2 border-white/20 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 w-full px-4 flex justify-center pointer-events-none">
+                <Badge className="bg-primary/95 backdrop-blur-md px-8 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest shadow-2xl border-2 border-white/20 animate-in fade-in slide-in-from-top-4 duration-500 pointer-events-auto">
                   <RefreshCcw className="w-4 h-4 mr-3 animate-spin" />
-                  Editor Aktif: Gunakan toolbar di kiri peta untuk menggambar atau menandai
+                  Gunakan toolbar di kiri peta untuk menggambar
                 </Badge>
               </div>
             )}
@@ -211,7 +215,7 @@ export function MapControlView() {
                 <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
                   <Hexagon className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-primary uppercase tracking-tighter">Inventory</h3>
+                <h3 className="font-black text-primary uppercase tracking-tighter">Inventaris</h3>
               </div>
               <Switch checked={showBoundary} onCheckedChange={setShowBoundary} disabled={isEditing} />
             </div>
@@ -220,31 +224,31 @@ export function MapControlView() {
               <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <AreaChart className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Area</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Poligon</span>
                 </div>
-                <span className="font-black text-primary text-sm">{tempData.polygon.length > 0 ? '1' : '0'} Batas</span>
+                <span className="font-black text-primary text-sm">{tempData.polygon.length > 0 ? '1' : '0'} Area</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <Route className="w-4 h-4 text-blue-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jalur</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Garis Jalur</span>
                 </div>
-                <span className="font-black text-blue-600 text-sm">{tempData.lines.length} Garis</span>
+                <span className="font-black text-blue-600 text-sm">{tempData.lines.length} Jalur</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 text-red-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Titik</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Penanda</span>
                 </div>
-                <span className="font-black text-red-600 text-sm">{tempData.markers.length} Lokasi</span>
+                <span className="font-black text-red-600 text-sm">{tempData.markers.length} Titik</span>
               </div>
 
               <div className="bg-primary/5 p-4 rounded-2xl flex items-start gap-3 border border-primary/10 mt-4">
                 <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <p className="text-[9px] text-primary/80 font-bold uppercase tracking-tight">
-                  Gunakan penanda (marker) untuk lokasi seperti Balai RW, Pos Ronda, atau UMKM unggulan warga.
+                <p className="text-[9px] text-primary/80 font-bold uppercase tracking-tight leading-relaxed">
+                  Tip: Gunakan Penanda untuk lokasi Balai RW, Pos Ronda, atau UMKM unggulan.
                 </p>
               </div>
             </div>

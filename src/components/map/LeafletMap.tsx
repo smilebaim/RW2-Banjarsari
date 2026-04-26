@@ -8,7 +8,8 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 
 // Fix for default marker icons in Leaflet
 if (typeof window !== 'undefined') {
-  require('leaflet-draw');
+  // @ts-ignore
+  import('leaflet-draw');
   delete (L.Icon.Default.prototype as any)._getIconUrl;
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -84,7 +85,8 @@ export default function LeafletMap({
       featureGroupInstance.current = new L.FeatureGroup().addTo(mapInstance.current);
 
       if (editable) {
-        const drawControl = new (L as any).Control.Draw({
+        // @ts-ignore
+        const drawControl = new L.Control.Draw({
           edit: {
             featureGroup: drawItems.current,
             poly: { allowIntersection: false }
@@ -99,8 +101,8 @@ export default function LeafletMap({
               shapeOptions: { color: '#3b82f6', weight: 4 }
             },
             marker: true,
-            rectangle: false,
             circle: false,
+            rectangle: false,
             circlemarker: false
           }
         });
@@ -131,21 +133,26 @@ export default function LeafletMap({
           onDataChange?.({ polygon, lines, markers });
         };
 
-        mapInstance.current.on((L as any).Draw.Event.CREATED, (e: any) => {
+        // @ts-ignore
+        mapInstance.current.on(L.Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
-          // If it's a polygon, we only want one main boundary for now (based on app logic)
-          if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
-            drawItems.current?.getLayers().forEach(l => {
-              if (l instanceof L.Polygon) drawItems.current?.removeLayer(l);
-            });
+          if (layer instanceof L.Polygon) {
+             // Logic specific to app: we might only want one boundary or specific management
           }
           drawItems.current?.addLayer(layer);
           handleDrawChange();
         });
 
-        mapInstance.current.on((L as any).Draw.Event.EDITED, handleDrawChange);
-        mapInstance.current.on((L as any).Draw.Event.DELETED, handleDrawChange);
+        // @ts-ignore
+        mapInstance.current.on(L.Draw.Event.EDITED, handleDrawChange);
+        // @ts-ignore
+        mapInstance.current.on(L.Draw.Event.DELETED, handleDrawChange);
       }
+
+      // Important: force Leaflet to recalculate container size
+      setTimeout(() => {
+        mapInstance.current?.invalidateSize();
+      }, 100);
     }
 
     return () => {
@@ -177,7 +184,6 @@ export default function LeafletMap({
       featureGroupInstance.current.clearLayers();
       if (!showBoundary) return;
 
-      // Add Polygon
       if (polygonCoords && polygonCoords.length > 0) {
         L.polygon(polygonCoords as any, {
           color: '#22c55e',
@@ -188,12 +194,10 @@ export default function LeafletMap({
         }).addTo(featureGroupInstance.current);
       }
 
-      // Add Lines
       lineCoords?.forEach(coords => {
         L.polyline(coords as any, { color: '#3b82f6', weight: 4 }).addTo(featureGroupInstance.current);
       });
 
-      // Add Markers
       markerCoords?.forEach(pos => {
         L.marker(pos as any).addTo(featureGroupInstance.current);
       });
@@ -201,12 +205,11 @@ export default function LeafletMap({
     } else if (drawItems.current && editable) {
       const currentLayers = drawItems.current.getLayers();
       if (currentLayers.length === 0) {
-        // Initial population for editing
         if (polygonCoords && polygonCoords.length > 0) {
-          L.polygon(polygonCoords as any, { color: '#22c55e' }).addTo(drawItems.current);
+          L.polygon(polygonCoords as any, { color: '#22c55e', fillOpacity: 0.3 }).addTo(drawItems.current);
         }
         lineCoords?.forEach(coords => {
-          L.polyline(coords as any, { color: '#3b82f6' }).addTo(drawItems.current);
+          L.polyline(coords as any, { color: '#3b82f6', weight: 4 }).addTo(drawItems.current);
         });
         markerCoords?.forEach(pos => {
           L.marker(pos as any).addTo(drawItems.current);
@@ -216,9 +219,9 @@ export default function LeafletMap({
   }, [showBoundary, polygonCoords, lineCoords, markerCoords, editable]);
 
   return (
-    <div className="w-full h-full relative group">
+    <div className="w-full h-full relative overflow-hidden bg-secondary/5">
       <div ref={mapRef} className="w-full h-full z-0 contrast-[1.1]" />
-      {!editable && <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-10" />}
+      {!editable && <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-[10]" />}
     </div>
   );
 }
