@@ -6,7 +6,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 
-// Fix for default marker icons in Leaflet for Next.js environments
 if (typeof window !== 'undefined') {
   // @ts-ignore
   import('leaflet-draw');
@@ -74,27 +73,14 @@ const getIconSVG = (iconName: string = 'pin', color: string = '#ef4444') => {
     zap: `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
     trees: `<path d="M10 10v.01"/><path d="M14 10v.01"/><path d="M10 14v.01"/><path d="M14 14v.01"/><path d="M18 10h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1"/><path d="M12 2v8"/><path d="M9 2h6"/>`
   };
-
   const path = icons[iconName] || icons.pin;
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      ${path}
-    </svg>
-  `;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 };
 
 const createLeafletIcon = (iconName: string = 'pin', color: string = '#ef4444') => {
   if (typeof window === 'undefined') return L.divIcon();
-  
-  const safeName = iconName || 'pin';
-  const safeColor = color || '#ef4444';
-  
   return L.divIcon({
-    html: `
-      <div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-xl border-2 border-white transform -translate-x-1/2 -translate-y-1/2">
-        ${getIconSVG(safeName, safeColor)}
-      </div>
-    `,
+    html: `<div class="flex items-center justify-center w-10 h-10 bg-white rounded-2xl shadow-xl border-2 border-white transform -translate-x-1/2 -translate-y-1/2">${getIconSVG(iconName, color)}</div>`,
     className: 'custom-map-icon',
     iconSize: [40, 40],
     iconAnchor: [20, 20]
@@ -170,60 +156,34 @@ export default function LeafletMap({
       if (editable) {
         // @ts-ignore
         const drawControl = new L.Control.Draw({
-          edit: {
-            featureGroup: drawItems.current,
-            poly: { allowIntersection: false }
-          },
+          edit: { featureGroup: drawItems.current, poly: { allowIntersection: false } },
           draw: {
-            polygon: {
-              allowIntersection: false,
-              showArea: true,
-              shapeOptions: { color: '#22c55e', fillOpacity: 0.3 }
-            },
-            polyline: {
-              shapeOptions: { color: '#3b82f6', weight: 4 }
-            },
-            marker: {
-              icon: createLeafletIcon('pin', '#ef4444')
-            },
-            circle: false,
-            rectangle: false,
-            circlemarker: false
+            polygon: { allowIntersection: false, showArea: true, shapeOptions: { color: '#22c55e', fillOpacity: 0.3 } },
+            polyline: { shapeOptions: { color: '#3b82f6', weight: 4 } },
+            marker: { icon: createLeafletIcon('pin', '#ef4444') },
+            circle: false, rectangle: false, circlemarker: false
           }
         });
-
         mapInstance.current.addControl(drawControl);
-
         // @ts-ignore
         mapInstance.current.on(L.Draw.Event.CREATED, (e: any) => {
           const layer = e.layer;
           const type = layer instanceof L.Polygon ? 'polygon' : layer instanceof L.Marker ? 'marker' : 'line';
-          
           layer.options.id = `obj-${Date.now()}`;
           layer.options.name = type === 'polygon' ? 'Area Baru' : type === 'marker' ? 'Lokasi Baru' : 'Jalur Baru';
-          layer.options.description = '';
-          layer.options.category = 'Umum';
           layer.options.color = type === 'polygon' ? '#22c55e' : type === 'line' ? '#3b82f6' : '#ef4444';
-          
-          if (type === 'marker') {
-            layer.options.iconName = 'pin';
-          }
-          
+          if (type === 'marker') layer.options.iconName = 'pin';
           drawItems.current?.addLayer(layer);
           handleDrawChange();
         });
-
         // @ts-ignore
         mapInstance.current.on(L.Draw.Event.EDITED, handleDrawChange);
         // @ts-ignore
         mapInstance.current.on(L.Draw.Event.DELETED, handleDrawChange);
       }
 
-      setTimeout(() => {
-        mapInstance.current?.invalidateSize();
-      }, 200);
+      setTimeout(() => mapInstance.current?.invalidateSize(), 200);
     }
-
     return () => {
       if (mapInstance.current) {
         mapInstance.current.off();
@@ -235,9 +195,7 @@ export default function LeafletMap({
 
   useEffect(() => {
     if (mapInstance.current) {
-      if (tileLayerInstance.current) {
-        mapInstance.current.removeLayer(tileLayerInstance.current);
-      }
+      if (tileLayerInstance.current) mapInstance.current.removeLayer(tileLayerInstance.current);
       tileLayerInstance.current = L.tileLayer(TILE_LAYERS[layer], {
         maxZoom: 19,
         attribution: ATTRIBUTIONS[layer],
@@ -248,123 +206,60 @@ export default function LeafletMap({
   useEffect(() => {
     if (!mapInstance.current) return;
 
-    const createPopupContent = (item: MapObject) => {
-      return `
-        <div class="p-3 min-w-[220px]">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-              ${item.category || 'Umum'}
-            </span>
-          </div>
-          <h4 class="font-black text-primary uppercase text-sm mb-1">${item.name}</h4>
-          ${item.description ? `<p class="text-xs text-muted-foreground font-medium italic border-t border-secondary pt-2 mt-2">${item.description}</p>` : ''}
+    const createPopup = (item: MapObject) => `
+      <div class="p-3 min-w-[220px]">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-[8px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+            ${item.category || 'Umum'}
+          </span>
         </div>
-      `;
-    };
+        <h4 class="font-black text-primary uppercase text-sm mb-1">${item.name}</h4>
+        ${item.description ? `<p class="text-xs text-muted-foreground font-medium italic border-t border-secondary pt-2 mt-2">${item.description}</p>` : ''}
+      </div>
+    `;
 
     if (!editable && featureGroupInstance.current) {
       featureGroupInstance.current.clearLayers();
       if (!showBoundary) return;
-
       if (showPolygons) {
-        polygonsData?.forEach(poly => {
-          if (poly.coords && poly.coords.length > 0) {
-            L.polygon(poly.coords as any, {
-              color: poly.color || '#22c55e',
-              fillColor: poly.color || '#22c55e',
-              fillOpacity: 0.2,
-              weight: 3,
-              dashArray: '5, 10'
-            })
-            .bindPopup(createPopupContent(poly))
-            .addTo(featureGroupInstance.current!);
-          }
+        polygonsData?.forEach(p => {
+          if (p.coords?.length) L.polygon(p.coords, { color: p.color || '#22c55e', fillOpacity: 0.2, weight: 3, dashArray: '5, 10' }).bindPopup(createPopup(p)).addTo(featureGroupInstance.current!);
         });
       }
-
       if (showLines) {
-        linesData?.forEach(item => {
-          if (item.coords && item.coords.length > 0) {
-            L.polyline(item.coords as any, { 
-              color: item.color || '#3b82f6', 
-              weight: 4 
-            })
-            .bindPopup(createPopupContent(item))
-            .addTo(featureGroupInstance.current!);
-          }
+        linesData?.forEach(l => {
+          if (l.coords?.length) L.polyline(l.coords, { color: l.color || '#3b82f6', weight: 4 }).bindPopup(createPopup(l)).addTo(featureGroupInstance.current!);
         });
       }
-
       if (showMarkers) {
-        markersData?.forEach(item => {
-          if (item.coords) {
-            const icon = createLeafletIcon(item.icon, item.color);
-            if (icon) {
-              L.marker(item.coords as any, { icon })
-              .bindPopup(createPopupContent(item))
-              .addTo(featureGroupInstance.current!);
-            }
+        markersData?.forEach(m => {
+          if (m.coords) {
+            const markerIcon = createLeafletIcon(m.icon, m.color);
+            L.marker(m.coords as any, { icon: markerIcon }).bindPopup(createPopup(m)).addTo(featureGroupInstance.current!);
           }
         });
       }
-
     } else if (drawItems.current && editable) {
-      const currentLayers = drawItems.current.getLayers();
-      if (currentLayers.length === 0) {
+      if (drawItems.current.getLayers().length === 0) {
         polygonsData?.forEach(poly => {
-          if (poly.coords && poly.coords.length > 0) {
-            const p = L.polygon(poly.coords as any, { color: poly.color || '#22c55e', fillOpacity: 0.3 });
-            // @ts-ignore
-            p.options.id = poly.id; 
-            p.options.name = poly.name; 
-            p.options.description = poly.description;
-            p.options.category = poly.category;
-            p.options.color = poly.color;
-            p.addTo(drawItems.current!);
-          }
+          const p = L.polygon(poly.coords as any, { color: poly.color || '#22c55e', fillOpacity: 0.3 });
+          p.options.id = poly.id; p.options.name = poly.name; p.options.description = poly.description; p.options.category = poly.category; p.options.color = poly.color;
+          p.addTo(drawItems.current!);
         });
         linesData?.forEach(item => {
-          if (item.coords && item.coords.length > 0) {
-            const l = L.polyline(item.coords as any, { color: item.color || '#3b82f6', weight: 4 });
-            // @ts-ignore
-            l.options.id = item.id; 
-            l.options.name = item.name; 
-            l.options.description = item.description;
-            l.options.category = item.category;
-            l.options.color = item.color;
-            l.addTo(drawItems.current!);
-          }
+          const l = L.polyline(item.coords as any, { color: item.color || '#3b82f6', weight: 4 });
+          l.options.id = item.id; l.options.name = item.name; l.options.description = item.description; l.options.category = item.category; l.options.color = item.color;
+          l.addTo(drawItems.current!);
         });
         markersData?.forEach(item => {
-          if (item.coords) {
-            const icon = createLeafletIcon(item.icon, item.color);
-            if (icon && drawItems.current) {
-              const m = L.marker(item.coords as any, { icon });
-              // @ts-ignore
-              m.options.id = item.id; 
-              // @ts-ignore
-              m.options.name = item.name; 
-              // @ts-ignore
-              m.options.description = item.description;
-              // @ts-ignore
-              m.options.category = item.category;
-              // @ts-ignore
-              m.options.color = item.color;
-              // @ts-ignore
-              m.options.iconName = item.icon;
-              
-              m.addTo(drawItems.current!);
-            }
-          }
+          const mIcon = createLeafletIcon(item.icon, item.color);
+          const m = L.marker(item.coords as any, { icon: mIcon });
+          m.options.id = item.id; m.options.name = item.name; m.options.description = item.description; m.options.category = item.category; m.options.color = item.color; m.options.iconName = item.icon;
+          m.addTo(drawItems.current!);
         });
       }
     }
   }, [showBoundary, showPolygons, showLines, showMarkers, polygonsData, linesData, markersData, editable]);
 
-  return (
-    <div className="w-full h-full relative overflow-hidden bg-secondary/5">
-      <div ref={mapRef} className="w-full h-full z-0 contrast-[1.1]" />
-      {!editable && <div className="absolute inset-0 pointer-events-none bg-primary/5 mix-blend-overlay z-[10]" />}
-    </div>
-  );
+  return <div ref={mapRef} className="w-full h-full relative overflow-hidden bg-secondary/5" />;
 }
