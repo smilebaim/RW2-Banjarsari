@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Newspaper, Users, MessageSquare, Phone } from 'lucide-react';
+import { Home, Newspaper, Users, FileText, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   Tooltip, 
@@ -15,8 +15,8 @@ import {
 const navItems = [
   { label: 'Beranda', href: '/', icon: Home },
   { label: 'Berita', href: '/news', icon: Newspaper },
-  { label: 'Pengurus', href: '/directory', icon: Users },
-  { label: 'Aspirasi', href: '/feedback', icon: MessageSquare },
+  { label: 'Layanan Dokumen', href: '/services', icon: FileText },
+  { label: 'Pengurus & Aspirasi', href: '/directory', icon: Users },
   { label: 'Kontak', href: '/contacts', icon: Phone },
 ];
 

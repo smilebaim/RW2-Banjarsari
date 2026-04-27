@@ -4,8 +4,9 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
-import { ArrowUpRight, Loader2, Users, MessageCircle } from 'lucide-react';
+import { ArrowUpRight, Loader2, Users, MessageCircle, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { FeedbackForm } from '@/components/feedback/FeedbackForm';
 
 export default function DirectoryPage() {
   const db = useFirestore();
@@ -22,19 +23,34 @@ export default function DirectoryPage() {
             <div className="max-w-3xl mb-12">
               <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.3em] mb-4">
                 <span className="w-6 h-[2px] bg-primary"></span>
-                <Users className="w-4 h-4" /> Manajemen Wilayah
+                <Users className="w-4 h-4" /> Manajemen & Aspirasi
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-primary mb-6 uppercase tracking-tighter leading-tight">
-                Struktur <span className="text-gray-900">Pelayanan</span>
+                Hubungi <span className="text-gray-900">Pengurus</span>
               </h1>
               <p className="text-muted-foreground text-base md:text-lg leading-relaxed font-medium italic border-l-4 border-accent pl-6">
-                Berdedikasi melayani dengan transparansi dan integritas untuk kemajuan seluruh warga RW 02 Banjarsari.
+                Sampaikan aspirasi Anda langsung kepada pengurus RW 02 Banjarsari melalui koneksi WhatsApp yang transparan.
               </p>
             </div>
           </div>
         </section>
 
+        {/* Aspirasi Section */}
         <section className="container mx-auto px-6 py-16">
+          <div className="max-w-4xl mx-auto mb-24">
+            <FeedbackForm />
+          </div>
+
+          <div className="flex items-center gap-4 mb-12">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black text-primary uppercase tracking-tighter">Struktur Pengurus</h2>
+              <p className="text-muted-foreground text-sm font-medium">Daftar pengurus RW 02 Banjarsari yang siap melayani warga.</p>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
