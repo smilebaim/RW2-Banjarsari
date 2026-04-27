@@ -1,7 +1,7 @@
 'use client';
 
 import { NewsList } from '@/components/news/NewsList';
-import { Newspaper, ArrowDown, Sparkles } from 'lucide-react';
+import { Newspaper, ArrowDown } from 'lucide-react';
 
 export default function NewsPage() {
   return (
@@ -23,20 +23,6 @@ export default function NewsPage() {
                 <p className="text-muted-foreground text-base md:text-lg font-medium leading-relaxed max-w-lg italic border-l-4 border-accent pl-6">
                   Tetap terhubung dengan perkembangan terbaru, kegiatan warga, dan informasi resmi di lingkungan RW 02 Banjarsari.
                 </p>
-              </div>
-              
-              <div className="lg:mb-2">
-                <div className="bg-zinc-900 px-8 py-6 rounded-[2.5rem] text-white shadow-2xl flex items-center gap-4 max-w-sm border-t-2 border-primary group hover:scale-105 transition-transform duration-500">
-                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-primary transition-colors">
-                    <Sparkles className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-black uppercase text-[10px] tracking-widest text-accent">AI Summarizer</h3>
-                    <p className="text-[10px] text-white/60 font-bold leading-tight uppercase tracking-wider">
-                      Dapatkan inti berita secara instan dengan teknologi cerdas kami.
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
 
