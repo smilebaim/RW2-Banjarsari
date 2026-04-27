@@ -6,7 +6,7 @@ import { collection, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
-import { Calendar, User, Sparkles, Loader2, ArrowRight, Share2 } from 'lucide-react';
+import { Calendar, User, Sparkles, Loader2 } from 'lucide-react';
 import { summarizeNews } from '@/ai/flows/summarize-news-flow';
 import { Badge } from '@/components/ui/badge';
 
@@ -117,12 +117,6 @@ export function NewsList() {
               </div>
               
               <div className="flex flex-wrap items-center gap-6 mt-12">
-                <Button 
-                  className="h-16 px-10 rounded-[1.5rem] bg-primary text-white font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20 hover:scale-105 transition-all group/btn"
-                >
-                  Baca Detail <ArrowRight className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-                
                 {!summaries[item.id] && (
                   <Button 
                     variant="ghost" 
@@ -137,10 +131,6 @@ export function NewsList() {
                     )}
                   </Button>
                 )}
-
-                <Button variant="ghost" size="icon" className="w-16 h-16 rounded-[1.5rem] bg-secondary/30 text-primary hover:bg-primary hover:text-white transition-all shadow-md">
-                  <Share2 className="w-5 h-5" />
-                </Button>
               </div>
             </div>
           </div>
