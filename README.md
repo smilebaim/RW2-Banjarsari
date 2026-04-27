@@ -26,7 +26,7 @@ Gunakan perintah berikut di terminal Anda untuk mengirimkan pembaruan kode ke re
 ```bash
 git remote add origin https://github.com/smilebaim/RW2-Banjarsari.git
 git add .
-git commit -m "Update: Refaktor desain premium HUD dan restrukturisasi halaman"
+git commit -m "Update: Finalisasi fitur dan desain premium"
 git push -u origin main
 ```
 
