@@ -1,4 +1,3 @@
-
 import { ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -20,8 +19,8 @@ export function Footer() {
             <h4 className="font-semibold text-primary mb-4">Tautan Penting</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/news" className="text-muted-foreground hover:text-primary transition-colors">Informasi & Pengumuman</Link></li>
-              <li><Link href="/directory" className="text-muted-foreground hover:text-primary transition-colors">Struktur Pejabat Pamong</Link></li>
               <li><Link href="/services" className="text-muted-foreground hover:text-primary transition-colors">Administrasi Kependudukan</Link></li>
+              <li><Link href="/directory" className="text-muted-foreground hover:text-primary transition-colors">Struktur Pejabat Pamong</Link></li>
               <li><Link href="/contacts" className="text-muted-foreground hover:text-primary transition-colors">Kontak Penting</Link></li>
             </ul>
           </div>
