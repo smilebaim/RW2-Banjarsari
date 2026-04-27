@@ -55,7 +55,7 @@ import {
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
-  { id: 'map', label: 'Peta Wilayah', icon: MapIcon },
+  { id: 'map', label: 'Infrastruktur', icon: MapIcon },
   { id: 'news', label: 'Kelola Berita', icon: Newspaper },
   { id: 'feedback', label: 'Kontrol Aspirasi', icon: MessageCircle },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
@@ -134,6 +134,7 @@ export default function DashboardPage() {
     if (!user) return;
     setIsProcessing(true);
     try {
+      // Await critical role creation before moving on
       await setDoc(doc(db, 'admin_roles', user.uid), {
         id: user.uid,
         username: user.email?.split('@')[0] || 'admin',
@@ -144,7 +145,7 @@ export default function DashboardPage() {
       });
 
       await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
-        polygons: JSON.stringify([{ id: 'initial-poly', name: 'RW 02 Banjarsari', description: 'Area utama RW 02 Banjarsari.', color: '#22c55e', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon' }]),
+        polygons: JSON.stringify([{ id: 'initial-poly', name: 'RW 02 Banjarsari', description: 'Area utama RW 02 Banjarsari.', color: '#22c55e', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon', category: 'Batas Wilayah' }]),
         lines: "[]",
         markers: "[]",
         updatedAt: new Date().toISOString()
@@ -249,7 +250,7 @@ export default function DashboardPage() {
           <AlertDialogContent className="rounded-[2.5rem] p-10">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
-              <AlertDialogDescription className="font-medium">
+              <AlertDialogDescription className="font-medium text-sm">
                 Tindakan ini akan menghapus semua berita, kontak, pengurus, dan data infrastruktur secara permanen.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -356,15 +357,8 @@ export default function DashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-8">
+                <div className="lg:col-span-12">
                   <FeedbackAnalysisView />
-                </div>
-                <div className="lg:col-span-4 space-y-8">
-                   <Card className="border-none shadow-xl rounded-[2.5rem] bg-primary text-white overflow-hidden p-8">
-                      <h3 className="text-lg font-black uppercase tracking-tighter mb-4">Pengumuman Cepat</h3>
-                      <p className="text-white/70 text-xs mb-6 leading-relaxed">Gunakan fitur ini untuk merilis berita mendesak ke aplikasi warga.</p>
-                      <Button onClick={() => setActiveTab('news')} className="w-full h-14 bg-accent text-accent-foreground font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-accent/90">Buat Pengumuman Baru</Button>
-                   </Card>
                 </div>
               </div>
             </div>

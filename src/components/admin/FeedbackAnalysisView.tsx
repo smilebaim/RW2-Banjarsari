@@ -6,7 +6,7 @@ import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, u
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Zap, UserCheck, ShieldCheck, Plus, Edit2, Trash2, Phone, Loader2 } from 'lucide-react';
+import { Zap, UserCheck, ShieldCheck, Plus, Edit2, Trash2, Phone, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -85,7 +85,7 @@ export function FeedbackAnalysisView() {
             <Zap className="w-6 h-6" />
             Kontrol Aspirasi Digital
           </h2>
-          <p className="text-muted-foreground font-medium text-sm">Kelola daftar pengurus yang akan menerima pesan WhatsApp dari warga.</p>
+          <p className="text-muted-foreground font-medium text-sm">Kelola daftar pengurus yang dapat dihubungi langsung via WhatsApp.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -112,7 +112,7 @@ export function FeedbackAnalysisView() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">No. WhatsApp (Format 62...)</label>
                 <Input value={waNumber} onChange={e => setWaNumber(e.target.value)} placeholder="628123456789" className="h-12 bg-secondary/50 border-none rounded-xl" />
-                <p className="text-[9px] text-muted-foreground italic px-1">Gunakan format internasional (Contoh: 62812...)</p>
+                <p className="text-[9px] text-muted-foreground italic px-1">Gunakan format internasional tanpa spasi (Contoh: 62812...)</p>
               </div>
             </div>
             <DialogFooter className="gap-2">
@@ -124,7 +124,6 @@ export function FeedbackAnalysisView() {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        {/* Daftar Pengurus */}
         <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
           <div className="p-8 border-b border-secondary/50 bg-secondary/10">
             <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
@@ -132,7 +131,7 @@ export function FeedbackAnalysisView() {
             </h3>
           </div>
           <CardContent className="p-0">
-            <div className="divide-y divide-secondary/50 max-h-[600px] overflow-y-auto">
+            <div className="divide-y divide-secondary/50">
               {isLoading ? (
                 <div className="p-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary/20" /></div>
               ) : officials?.length === 0 ? (
@@ -169,17 +168,16 @@ export function FeedbackAnalysisView() {
           </CardContent>
         </Card>
 
-        {/* Info Alur Kerja */}
         <Card className="border-none shadow-xl rounded-[2.5rem] bg-zinc-900 text-white p-8 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/30 transition-all duration-1000"></div>
           <div className="relative flex flex-col md:flex-row items-center gap-8">
-            <div className="w-20 h-20 bg-accent rounded-3xl flex items-center justify-center text-black shrink-0 shadow-2xl">
-              <Zap className="w-10 h-10" />
+            <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center text-black shrink-0 shadow-2xl">
+              <Info className="w-8 h-8" />
             </div>
             <div className="space-y-2 flex-1">
               <h3 className="text-xl font-black uppercase tracking-tighter text-accent">Koneksi WhatsApp Langsung</h3>
-              <p className="text-sm font-medium opacity-80 leading-relaxed max-w-2xl">
-                Daftar pengurus di atas akan muncul sebagai pilihan di halaman Aspirasi warga. Pastikan nomor WhatsApp menggunakan format internasional (diawali 62) agar warga dapat langsung terhubung tanpa kendala.
+              <p className="text-xs font-medium opacity-80 leading-relaxed max-w-2xl">
+                Daftar pengurus di atas akan muncul sebagai pilihan di halaman Aspirasi warga. Warga akan langsung dialihkan ke chat WhatsApp pribadi pengurus yang dipilih untuk berkomunikasi langsung.
               </p>
             </div>
           </div>
