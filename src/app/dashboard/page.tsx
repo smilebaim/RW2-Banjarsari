@@ -13,7 +13,6 @@ import { ManagementMemberManager } from '@/components/admin/ManagementMemberMana
 import { doc, setDoc, deleteDoc, collection, getDocs, query } from 'firebase/firestore';
 import { 
   Users, 
-  MessageSquare, 
   Newspaper, 
   LogOut, 
   LayoutDashboard, 
@@ -73,12 +72,10 @@ export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const newsRef = useMemoFirebase(() => user ? query(collection(db, 'announcements_management')) : null, [db, user]);
-  const feedbackRef = useMemoFirebase(() => user ? query(collection(db, 'resident_feedback')) : null, [db, user]);
   const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
   const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
 
   const { data: newsItems } = useCollection(newsRef);
-  const { data: feedbackItems } = useCollection(feedbackRef);
   const { data: contactItems } = useCollection(contactsRef);
   const { data: memberItems } = useCollection(membersRef);
 
@@ -134,7 +131,7 @@ export default function DashboardPage() {
     if (!user) return;
     setIsProcessing(true);
     try {
-      // Step 1: Create Admin Role
+      // Step 1: Create Admin Role (ESSENTIAL FOR PERMISSIONS)
       const roleData = {
         id: user.uid,
         username: user.email?.split('@')[0] || 'admin',
@@ -148,15 +145,7 @@ export default function DashboardPage() {
 
       // Step 2: Initialize Map Settings
       await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
-        polygons: JSON.stringify([{ 
-          id: 'initial-poly', 
-          name: 'RW 02 Banjarsari', 
-          description: 'Area utama RW 02 Banjarsari.', 
-          color: '#22c55e', 
-          coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], 
-          type: 'polygon', 
-          category: 'Batas Wilayah' 
-        }]),
+        polygons: "[]",
         lines: "[]",
         markers: "[]",
         updatedAt: new Date().toISOString()
@@ -164,7 +153,7 @@ export default function DashboardPage() {
 
       toast({
         title: "Inisialisasi Berhasil",
-        description: "Dashboard dan data contoh telah siap digunakan.",
+        description: "Dashboard dan peran admin telah siap digunakan.",
       });
     } catch (error: any) {
       toast({
