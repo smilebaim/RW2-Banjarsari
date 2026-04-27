@@ -25,10 +25,10 @@ export default function DirectoryPage() {
                 <Users className="w-4 h-4" /> Pengenalan Wilayah
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-primary mb-6 uppercase tracking-tighter leading-tight">
-                Struktur <span className="text-gray-900">Pengurus</span>
+                Struktur <span className="text-gray-900">Pejabat Pamong</span>
               </h1>
               <p className="text-muted-foreground text-base md:text-lg leading-relaxed font-medium italic border-l-4 border-accent pl-6">
-                Kenali lebih dekat jajaran pengurus RW 02 Banjarsari yang berdedikasi dalam melayani dan mengelola aspirasi warga.
+                Kenali lebih dekat jajaran pejabat pamong RW 02 Banjarsari yang berdedikasi dalam melayani dan mengelola aspirasi warga.
               </p>
             </div>
           </div>

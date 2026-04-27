@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -61,7 +60,7 @@ const NAV_ITEMS = [
   { id: 'services', label: 'Layanan Dokumen', icon: FileText },
   { id: 'feedback', label: 'Kontrol Aspirasi', icon: MessageCircle },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
-  { id: 'users', label: 'Struktur Pengurus', icon: Users },
+  { id: 'users', label: 'Pejabat Pamong', icon: Users },
 ];
 
 export default function DashboardPage() {
@@ -338,7 +337,7 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                 {[
-                  { label: 'Total Pengurus', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
+                  { label: 'Total Pamong', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
                   { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terpublikasi', icon: Newspaper, color: 'bg-primary' },
                   { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Layanan Terdaftar', icon: Phone, color: 'bg-green-600' },
                   { label: 'Status Peta', value: 'Aktif', sub: 'Infrastruktur OK', icon: MapIcon, color: 'bg-orange-500' },

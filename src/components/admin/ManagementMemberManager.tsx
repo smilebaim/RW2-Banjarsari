@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -54,12 +53,12 @@ export function ManagementMemberManager() {
 
     setIsDialogOpen(false);
     resetForm();
-    toast({ title: "Berhasil", description: "Data pengurus telah diperbarui." });
+    toast({ title: "Berhasil", description: "Data pejabat pamong telah diperbarui." });
   };
 
   const handleDelete = (id: string) => {
     deleteDocumentNonBlocking(doc(db, 'rw_management_members', id));
-    toast({ title: "Dihapus", description: "Anggota telah dihapus dari struktur." });
+    toast({ title: "Dihapus", description: "Pejabat pamong telah dihapus dari struktur." });
   };
 
   const resetForm = () => {
@@ -85,19 +84,19 @@ export function ManagementMemberManager() {
     <div className="space-y-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Struktur Pengurus</h1>
-          <p className="text-muted-foreground font-medium">Kelola profil anggota tim manajemen RW 02.</p>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Struktur Pejabat Pamong</h1>
+          <p className="text-muted-foreground font-medium">Kelola profil anggota tim pejabat pamong RW 02.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm} className="h-14 px-8 rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-3 font-black uppercase tracking-widest text-xs">
-              <Plus className="w-5 h-5" /> Anggota Baru
+              <Plus className="w-5 h-5" /> Pejabat Baru
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md rounded-[2.5rem] p-8">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Profil' : 'Tambah Pengurus'}</DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Profil' : 'Tambah Pejabat Pamong'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -135,7 +134,7 @@ export function ManagementMemberManager() {
         {isLoading ? (
           <div className="col-span-full py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></div>
         ) : members?.length === 0 ? (
-          <div className="col-span-full py-20 text-center text-muted-foreground font-bold italic">Belum ada anggota pengurus terdaftar.</div>
+          <div className="col-span-full py-20 text-center text-muted-foreground font-bold italic">Belum ada pejabat pamong terdaftar.</div>
         ) : (
           members?.map((member) => (
             <Card key={member.id} className="border-none shadow-xl rounded-[3rem] overflow-hidden bg-white hover:shadow-2xl transition-all duration-500 group relative">
@@ -168,13 +167,13 @@ export function ManagementMemberManager() {
                       <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-primary mb-1">
                         <Phone className="w-4 h-4" />
                       </div>
-                      <span className="text-[9px] font-black text-muted-foreground">HUBUNGI</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase">Hubungi</span>
                     </div>
                     <div className="flex flex-col items-center">
                       <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-primary mb-1">
                         <Mail className="w-4 h-4" />
                       </div>
-                      <span className="text-[9px] font-black text-muted-foreground">EMAIL</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase">Email</span>
                     </div>
                   </div>
                 </div>

@@ -18,7 +18,7 @@ export function Footer() {
             <h4 className="font-semibold text-primary mb-4">Tautan Penting</h4>
             <ul className="space-y-2 text-sm">
               <li><a href="/news" className="text-muted-foreground hover:text-primary transition-colors">Berita Terkini</a></li>
-              <li><a href="/directory" className="text-muted-foreground hover:text-primary transition-colors">Struktur Pengurus</a></li>
+              <li><a href="/directory" className="text-muted-foreground hover:text-primary transition-colors">Struktur Pejabat Pamong</a></li>
               <li><a href="/feedback" className="text-muted-foreground hover:text-primary transition-colors">Layanan Pengaduan</a></li>
             </ul>
           </div>
