@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Newspaper, Plus, Search, Edit3, Trash2, FileText, Loader2, Sparkles } from 'lucide-react';
+import { Newspaper, Plus, Search, Edit3, Trash2, FileText, Loader2, Sparkles, Calendar } from 'lucide-react';
 import { summarizeNews } from '@/ai/flows/summarize-news-flow';
 import { useToast } from '@/hooks/use-toast';
 
