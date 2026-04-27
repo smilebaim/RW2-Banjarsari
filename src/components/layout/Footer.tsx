@@ -1,3 +1,4 @@
+
 import { ShieldCheck } from 'lucide-react';
 
 export function Footer() {
@@ -19,7 +20,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><a href="/news" className="text-muted-foreground hover:text-primary transition-colors">Berita Terkini</a></li>
               <li><a href="/directory" className="text-muted-foreground hover:text-primary transition-colors">Struktur Pejabat Pamong</a></li>
-              <li><a href="/feedback" className="text-muted-foreground hover:text-primary transition-colors">Layanan Pengaduan</a></li>
+              <li><a href="/services" className="text-muted-foreground hover:text-primary transition-colors">Layanan Dokumen</a></li>
             </ul>
           </div>
           <div>

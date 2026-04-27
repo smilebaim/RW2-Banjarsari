@@ -1,10 +1,10 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { FeedbackAnalysisView } from '@/components/admin/FeedbackAnalysisView';
 import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
@@ -26,7 +26,6 @@ import {
   Zap,
   Menu,
   Trash2,
-  MessageCircle,
   FileText
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -58,7 +57,6 @@ const NAV_ITEMS = [
   { id: 'map', label: 'Infrastruktur', icon: MapIcon },
   { id: 'news', label: 'Kelola Berita', icon: Newspaper },
   { id: 'services', label: 'Layanan Dokumen', icon: FileText },
-  { id: 'feedback', label: 'Kontrol Aspirasi', icon: MessageCircle },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Pejabat Pamong', icon: Users },
 ];
@@ -356,12 +354,6 @@ export default function DashboardPage() {
                   </Card>
                 ))}
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-12">
-                  <FeedbackAnalysisView />
-                </div>
-              </div>
             </div>
           )}
 
@@ -369,7 +361,6 @@ export default function DashboardPage() {
           {activeTab === 'news' && <AdminNewsManager />}
           {activeTab === 'services' && <AdminServiceManager />}
           {activeTab === 'contacts' && <ContactManager />}
-          {activeTab === 'feedback' && <FeedbackAnalysisView />}
           {activeTab === 'users' && <ManagementMemberManager />}
         </div>
       </main>
