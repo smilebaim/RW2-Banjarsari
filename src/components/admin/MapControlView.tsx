@@ -43,11 +43,14 @@ import {
   Car,
   Bus,
   Heart,
-  Building
+  Building,
+  Image as ImageIcon,
+  Link as LinkIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MapObject } from '@/components/map/LeafletMap';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
 
 const LeafletMap = dynamic(() => import('@/components/map/LeafletMap'), {
   ssr: false,
@@ -196,7 +199,7 @@ export function MapControlView() {
 
     return (
       <div className={cn(
-        "p-5 rounded-[2rem] space-y-4 border transition-all duration-300 group relative",
+        "p-5 rounded-[2.5rem] space-y-4 border transition-all duration-300 group relative",
         isEditing ? bgAccent : "bg-white border-secondary shadow-sm hover:shadow-md"
       )}>
         <div className="flex justify-between items-start">
@@ -228,7 +231,7 @@ export function MapControlView() {
           </div>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1">
               <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest px-1">Nama Objek</label>
@@ -289,6 +292,40 @@ export function MapControlView() {
                 className="bg-white/80 border-none text-[10px] font-medium shadow-inner rounded-xl min-h-[60px] leading-relaxed"
                 placeholder="Berikan keterangan lengkap objek ini..."
               />
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between px-1">
+                <label className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Foto Pendukung</label>
+                {item.imageUrl && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => updateObjectProperty(type, item.id, 'imageUrl', '')}
+                    className="h-5 px-2 text-[7px] font-black uppercase text-red-500 hover:bg-red-50"
+                  >
+                    Hapus Foto
+                  </Button>
+                )}
+              </div>
+              <div className="relative group/img">
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground opacity-50" />
+                <Input 
+                  value={item.imageUrl || ''} 
+                  onChange={(e) => updateObjectProperty(type, item.id, 'imageUrl', e.target.value)}
+                  disabled={!isEditing}
+                  className="pl-9 bg-white/80 border-none h-10 text-[10px] font-bold shadow-inner rounded-xl"
+                  placeholder="Paste URL gambar (HTTPS)..."
+                />
+              </div>
+              {item.imageUrl && (
+                <div className="relative h-28 w-full rounded-2xl overflow-hidden mt-2 border-2 border-white shadow-md group">
+                  <img src={item.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ImageIcon className="text-white w-6 h-6 drop-shadow-lg" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -26,6 +26,7 @@ export interface MapObject {
   category?: string;
   color?: string;
   icon?: string;
+  imageUrl?: string;
   coords: any;
   type: 'polygon' | 'line' | 'marker';
 }
@@ -140,18 +141,19 @@ export default function LeafletMap({
       const existingCat = l.options.category || 'Umum';
       const existingColor = l.options.color || (l instanceof L.Marker ? '#ef4444' : '#22c55e');
       const existingIconName = l.options.iconName || 'pin';
+      const existingImageUrl = l.options.imageUrl || '';
 
       if (l instanceof L.Polygon && !(l instanceof L.Rectangle)) {
         const latlngs = l.getLatLngs();
         const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs).map((ll: any) => [ll.lat, ll.lng]);
-        polygons.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, coords, type: 'polygon' });
+        polygons.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, imageUrl: existingImageUrl, coords, type: 'polygon' });
       } else if (l instanceof L.Polyline && !(l instanceof L.Polygon)) {
         const latlngs = l.getLatLngs();
         const coords = (latlngs as any).map((ll: any) => [ll.lat, ll.lng]);
-        lines.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, coords, type: 'line' });
+        lines.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, imageUrl: existingImageUrl, coords, type: 'line' });
       } else if (l instanceof L.Marker) {
         const ll = l.getLatLng();
-        markers.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, icon: existingIconName, coords: [ll.lat, ll.lng], type: 'marker' });
+        markers.push({ id: existingId, name: existingName, description: existingDesc, category: existingCat, color: existingColor, icon: existingIconName, imageUrl: existingImageUrl, coords: [ll.lat, ll.lng], type: 'marker' });
       }
     });
 
@@ -234,6 +236,12 @@ export default function LeafletMap({
       return `
         <div class="p-0 min-w-[300px] bg-black/60 text-white rounded-[1.75rem] shadow-2xl backdrop-blur-2xl overflow-hidden border-none outline-none">
           <div class="h-1.5 w-full" style="background-color: ${accentColor}; box-shadow: 0 4px 12px ${accentColor}44;"></div>
+          ${item.imageUrl ? `
+            <div class="relative h-44 w-full overflow-hidden">
+              <img src="${item.imageUrl}" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            </div>
+          ` : ''}
           <div class="p-6">
             <div class="flex items-center justify-between mb-4">
               <span class="text-[8px] font-black uppercase tracking-[0.25em] bg-white/10 text-white/90 px-3 py-1.5 rounded-lg">
@@ -282,18 +290,18 @@ export default function LeafletMap({
       if (drawItems.current.getLayers().length === 0) {
         polygonsData?.forEach(poly => {
           const p = L.polygon(poly.coords as any, { color: poly.color || '#22c55e', fillOpacity: 0.3 });
-          p.options.id = poly.id; p.options.name = poly.name; p.options.description = poly.description; p.options.category = poly.category; p.options.color = poly.color;
+          p.options.id = poly.id; p.options.name = poly.name; p.options.description = poly.description; p.options.category = poly.category; p.options.color = poly.color; p.options.imageUrl = poly.imageUrl;
           p.addTo(drawItems.current!);
         });
         linesData?.forEach(item => {
           const l = L.polyline(item.coords as any, { color: item.color || '#3b82f6', weight: 4 });
-          l.options.id = item.id; l.options.name = item.name; l.options.description = item.description; l.options.category = item.category; l.options.color = item.color;
+          l.options.id = item.id; l.options.name = item.name; l.options.description = item.description; l.options.category = item.category; l.options.color = item.color; l.options.imageUrl = item.imageUrl;
           l.addTo(drawItems.current!);
         });
         markersData?.forEach(item => {
           const mIcon = createLeafletIcon(item.icon, item.color);
           const m = L.marker(item.coords as any, { icon: mIcon });
-          m.options.id = item.id; m.options.name = item.name; m.options.description = item.description; m.options.category = item.category; m.options.color = item.color; m.options.iconName = item.icon;
+          m.options.id = item.id; m.options.name = item.name; m.options.description = item.description; m.options.category = item.category; m.options.color = item.color; m.options.iconName = item.icon; m.options.imageUrl = item.imageUrl;
           m.addTo(drawItems.current!);
         });
       }
