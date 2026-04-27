@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,14 +48,14 @@ export function ContactManager() {
     };
 
     if (editingId) {
-      updateDocumentNonBlocking(doc(db, 'important_contacts', editingId), contactData);
+      setDocumentNonBlocking(doc(db, 'important_contacts', editingId), contactData, { merge: true });
     } else {
       const newId = doc(collection(db, 'important_contacts')).id;
-      updateDocumentNonBlocking(doc(db, 'important_contacts', newId), {
+      setDocumentNonBlocking(doc(db, 'important_contacts', newId), {
         ...contactData,
         id: newId,
         createdAt: new Date().toISOString()
-      });
+      }, { merge: true });
     }
 
     setIsDialogOpen(false);

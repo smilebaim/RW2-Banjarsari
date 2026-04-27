@@ -12,6 +12,7 @@ service cloud.firestore {
     /**
      * Verifies if the requesting user has an administrator role.
      * Uses exists() for efficiency and authorization independence.
+     * Note: Document in /admin_roles/{uid} must exist for this to return true.
      */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admin_roles/$(request.auth.uid));

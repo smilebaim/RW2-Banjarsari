@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,9 +68,9 @@ export function AdminNewsManager() {
     };
 
     if (editingId) {
-      updateDocumentNonBlocking(doc(db, 'announcements_management', editingId), newsData);
+      setDocumentNonBlocking(doc(db, 'announcements_management', editingId), newsData, { merge: true });
       if (status === 'Published') {
-        updateDocumentNonBlocking(doc(db, 'announcements_public', editingId), newsData);
+        setDocumentNonBlocking(doc(db, 'announcements_public', editingId), newsData, { merge: true });
       }
     } else {
       const newId = doc(collection(db, 'announcements_management')).id;
@@ -80,9 +80,9 @@ export function AdminNewsManager() {
         createdAt: new Date().toISOString(),
         publicationDate: new Date().toISOString()
       };
-      updateDocumentNonBlocking(doc(db, 'announcements_management', newId), fullData);
+      setDocumentNonBlocking(doc(db, 'announcements_management', newId), fullData, { merge: true });
       if (status === 'Published') {
-        updateDocumentNonBlocking(doc(db, 'announcements_public', newId), fullData);
+        setDocumentNonBlocking(doc(db, 'announcements_public', newId), fullData, { merge: true });
       }
     }
 

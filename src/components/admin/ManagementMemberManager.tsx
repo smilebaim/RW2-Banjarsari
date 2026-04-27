@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Users, Plus, Edit, Trash, Loader2, UserCircle, Phone, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 
 export function ManagementMemberManager() {
   const db = useFirestore();
@@ -42,14 +42,14 @@ export function ManagementMemberManager() {
     };
 
     if (editingId) {
-      updateDocumentNonBlocking(doc(db, 'rw_management_members', editingId), memberData);
+      setDocumentNonBlocking(doc(db, 'rw_management_members', editingId), memberData, { merge: true });
     } else {
       const newId = doc(collection(db, 'rw_management_members')).id;
-      updateDocumentNonBlocking(doc(db, 'rw_management_members', newId), {
+      setDocumentNonBlocking(doc(db, 'rw_management_members', newId), {
         ...memberData,
         id: newId,
         createdAt: new Date().toISOString()
-      });
+      }, { merge: true });
     }
 
     setIsDialogOpen(false);
