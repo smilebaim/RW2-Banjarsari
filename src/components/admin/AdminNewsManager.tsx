@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Newspaper, Plus, Search, Edit3, Trash2, FileText, Loader2, Sparkles, Calendar } from 'lucide-react';
+import { Newspaper, Plus, Search, Edit3, Trash2, FileText, Loader2, Sparkles, Calendar, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { summarizeNews } from '@/ai/flows/summarize-news-flow';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,6 +28,7 @@ export function AdminNewsManager() {
   const [summary, setSummary] = useState('');
   const [category, setCategory] = useState('News');
   const [status, setStatus] = useState('Published');
+  const [imageUrl, setImageUrl] = useState('');
 
   const newsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -62,6 +63,7 @@ export function AdminNewsManager() {
       summary,
       category,
       status,
+      imageUrl,
       authorAdminUserId: user.uid,
       updatedAt: new Date().toISOString(),
     };
@@ -100,6 +102,7 @@ export function AdminNewsManager() {
     setSummary('');
     setCategory('News');
     setStatus('Published');
+    setImageUrl('');
   };
 
   const openEdit = (item: any) => {
@@ -109,6 +112,7 @@ export function AdminNewsManager() {
     setSummary(item.summary);
     setCategory(item.category);
     setStatus(item.status);
+    setImageUrl(item.imageUrl || '');
     setIsDialogOpen(true);
   };
 
@@ -126,7 +130,7 @@ export function AdminNewsManager() {
               <Plus className="w-6 h-6" /> Tulis Warta Baru
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl rounded-[3rem] p-10 border-none shadow-2xl">
+          <DialogContent className="max-w-2xl rounded-[3rem] p-10 border-none shadow-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Warta' : 'Tulis Warta Baru'}</DialogTitle>
             </DialogHeader>
@@ -135,6 +139,28 @@ export function AdminNewsManager() {
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Judul Utama Warta</label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-secondary/50 border-none h-14 rounded-xl font-bold" placeholder="Masukkan judul..." />
               </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">URL Gambar Pendukung (HTTPS)</label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
+                  <Input 
+                    value={imageUrl} 
+                    onChange={e => setImageUrl(e.target.value)} 
+                    className="pl-12 bg-secondary/50 border-none h-14 rounded-xl font-bold" 
+                    placeholder="https://images.unsplash.com/..." 
+                  />
+                </div>
+                {imageUrl && (
+                  <div className="mt-4 relative h-40 w-full rounded-2xl overflow-hidden border-4 border-secondary shadow-inner bg-secondary/20">
+                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <ImageIcon className="text-white w-8 h-8" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Kategori</label>
@@ -193,8 +219,12 @@ export function AdminNewsManager() {
               filteredNews?.map((item) => (
                 <div key={item.id} className="p-10 flex flex-col md:flex-row md:items-center justify-between hover:bg-secondary/10 transition-all duration-500 group">
                   <div className="flex items-center gap-8 mb-6 md:mb-0">
-                    <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner group-hover:rotate-6">
-                      <FileText className="w-10 h-10" />
+                    <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner group-hover:rotate-6 overflow-hidden">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <FileText className="w-10 h-10" />
+                      )}
                     </div>
                     <div>
                       <h4 className="font-black text-xl mb-2 tracking-tighter uppercase text-gray-900 leading-none">{item.title}</h4>
