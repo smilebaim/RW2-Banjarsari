@@ -8,10 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Users, Plus, Edit, Trash, Loader2, UserCircle, Phone, Mail, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { Users, Plus, Edit, Trash, Loader2, UserCircle, Phone, Mail, Image as ImageIcon, Link as LinkIcon, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 
 export function ManagementMemberManager() {
   const db = useFirestore();
@@ -124,6 +123,12 @@ export function ManagementMemberManager() {
                     placeholder="https://..." 
                   />
                 </div>
+                <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-xl mt-2">
+                  <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-blue-700 italic">
+                    Gunakan tautan langsung (akhiran .jpg atau .png). Hindari tautan "Share" dari Google Photos karena tidak bisa ditampilkan sebagai gambar.
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -143,8 +148,10 @@ export function ManagementMemberManager() {
               {profilePictureUrl && (
                 <div className="mt-4">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 block">Pratinjau Foto</label>
-                  <div className="relative h-40 w-40 mx-auto rounded-3xl overflow-hidden border-4 border-secondary shadow-inner">
-                    <img src={profilePictureUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="relative h-40 w-40 mx-auto rounded-3xl overflow-hidden border-4 border-secondary shadow-inner bg-secondary/20">
+                    <img src={profilePictureUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/200?text=Format+Salah';
+                    }} />
                   </div>
                 </div>
               )}
@@ -206,14 +213,6 @@ export function ManagementMemberManager() {
                       </div>
                       <span className="text-[9px] font-black text-muted-foreground uppercase">Email</span>
                     </div>
-                    {member.profilePictureUrl && (
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-1">
-                          <ImageIcon className="w-4 h-4" />
-                        </div>
-                        <span className="text-[9px] font-black text-green-600 uppercase">Foto</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </CardContent>

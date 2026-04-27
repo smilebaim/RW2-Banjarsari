@@ -1,9 +1,9 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import Image from 'next/image';
 import { ArrowUpRight, Loader2, Users, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -51,13 +51,11 @@ export default function DirectoryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {management.map((person, idx) => (
                 <div key={idx} className="group relative">
-                  <div className="relative h-[480px] w-full overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
-                    <Image
+                  <div className="relative h-[480px] w-full overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-secondary/20">
+                    <img
                       src={person.profilePictureUrl || PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl}
                       alt={person.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      data-ai-hint="professional headshot"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
                     
