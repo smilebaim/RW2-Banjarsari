@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -54,10 +55,10 @@ import {
 const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
   { id: 'map', label: 'Infrastruktur', icon: MapIcon },
-  { id: 'news', label: 'Kelola Berita', icon: Newspaper },
-  { id: 'services', label: 'Layanan Dokumen', icon: FileText },
+  { id: 'news', label: 'Informasi & Pengumuman', icon: Newspaper },
+  { id: 'services', label: 'Administrasi Kependudukan', icon: FileText },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
-  { id: 'users', label: 'Pejabat Pamong', icon: Users },
+  { id: 'users', label: 'Struktur Pejabat Pamong', icon: Users },
 ];
 
 export default function DashboardPage() {
@@ -330,7 +331,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
                 {[
                   { label: 'Total Pamong', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-600' },
-                  { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terbit', icon: Newspaper, color: 'bg-primary' },
+                  { label: 'Informasi Terbit', value: newsItems?.length || 0, sub: 'Warta Wilayah', icon: Newspaper, color: 'bg-primary' },
                   { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Instansi Terdaftar', icon: Phone, color: 'bg-green-600' },
                   { label: 'Status Peta', value: 'OK', sub: 'Geospasial Aktif', icon: MapIcon, color: 'bg-orange-600' },
                 ].map((stat, i) => (

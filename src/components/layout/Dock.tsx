@@ -15,10 +15,10 @@ import {
 
 const navItems = [
   { label: 'Beranda', href: '/', icon: Home },
-  { label: 'Berita', href: '/news', icon: Newspaper },
-  { label: 'Layanan Dokumen', href: '/services', icon: FileText },
-  { label: 'Pejabat Pamong', href: '/directory', icon: Users },
-  { label: 'Kontak', href: '/contacts', icon: Phone },
+  { label: 'Informasi & Pengumuman', href: '/news', icon: Newspaper },
+  { label: 'Administrasi Kependudukan', href: '/services', icon: FileText },
+  { label: 'Struktur Pejabat Pamong', href: '/directory', icon: Users },
+  { label: 'Kontak Penting', href: '/contacts', icon: Phone },
 ];
 
 export function Dock() {
