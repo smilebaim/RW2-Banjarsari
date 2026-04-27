@@ -134,18 +134,29 @@ export default function DashboardPage() {
     if (!user) return;
     setIsProcessing(true);
     try {
-      // Await critical role creation before moving on
-      await setDoc(doc(db, 'admin_roles', user.uid), {
+      // Step 1: Create Admin Role
+      const roleData = {
         id: user.uid,
         username: user.email?.split('@')[0] || 'admin',
         email: user.email,
         role: 'SuperAdmin',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      };
+      
+      await setDoc(doc(db, 'admin_roles', user.uid), roleData);
 
+      // Step 2: Initialize Map Settings
       await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
-        polygons: JSON.stringify([{ id: 'initial-poly', name: 'RW 02 Banjarsari', description: 'Area utama RW 02 Banjarsari.', color: '#22c55e', coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], type: 'polygon', category: 'Batas Wilayah' }]),
+        polygons: JSON.stringify([{ 
+          id: 'initial-poly', 
+          name: 'RW 02 Banjarsari', 
+          description: 'Area utama RW 02 Banjarsari.', 
+          color: '#22c55e', 
+          coords: [[-5.097, 105.292], [-5.098, 105.293], [-5.099, 105.291]], 
+          type: 'polygon', 
+          category: 'Batas Wilayah' 
+        }]),
         lines: "[]",
         markers: "[]",
         updatedAt: new Date().toISOString()
