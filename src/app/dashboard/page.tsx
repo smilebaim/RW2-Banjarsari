@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -168,8 +167,8 @@ export default function DashboardPage() {
   if (isUserLoading || isAdminRoleLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-secondary/10">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <p className="font-black text-primary animate-pulse uppercase tracking-[0.2em] text-xs">Menyiapkan Dashboard...</p>
+        <Loader2 className="w-16 h-16 text-primary animate-spin mb-6" />
+        <p className="font-black text-primary animate-pulse uppercase tracking-[0.4em] text-[10px]">Menyiapkan Dashboard Admin...</p>
       </div>
     );
   }
@@ -178,26 +177,26 @@ export default function DashboardPage() {
 
   if (!adminRole) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9] p-4">
-        <Card className="max-w-xl w-full border-none shadow-2xl rounded-[3rem] overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9] p-6">
+        <Card className="max-w-xl w-full border-none shadow-2xl rounded-[3.5rem] overflow-hidden">
           <div className="h-4 bg-primary" />
-          <CardContent className="p-12 text-center space-y-8">
-            <div className="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto">
-              <Lock className="w-12 h-12 text-primary" />
+          <CardContent className="p-16 text-center space-y-10">
+            <div className="w-28 h-28 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
+              <Lock className="w-14 h-14 text-primary" />
             </div>
-            <div className="space-y-3">
-              <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
-              <p className="text-muted-foreground font-medium text-sm">Aktifkan dashboard Anda untuk mulai mengelola wilayah.</p>
+            <div className="space-y-4">
+              <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
+              <p className="text-muted-foreground font-medium text-sm italic">Aktifkan dashboard Anda untuk mulai mengelola infrastruktur dan informasi wilayah RW 02.</p>
             </div>
             <Button 
               onClick={handleImportDummyData} 
               disabled={isProcessing}
-              className="w-full h-16 rounded-2xl bg-primary text-white text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 gap-4"
+              className="w-full h-18 rounded-[1.5rem] bg-primary text-white text-lg font-black uppercase tracking-widest shadow-2xl shadow-primary/30 gap-4 transition-all hover:scale-105 py-6"
             >
               {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6" />}
               Aktifkan Portal Admin
             </Button>
-            <Button variant="ghost" onClick={handleLogout} className="text-muted-foreground font-bold">
+            <Button variant="ghost" onClick={handleLogout} className="text-muted-foreground font-black uppercase tracking-widest text-[10px] hover:text-primary">
               Keluar Akun
             </Button>
           </CardContent>
@@ -208,17 +207,17 @@ export default function DashboardPage() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-12">
-        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-          <LayoutDashboard className="text-white w-6 h-6" />
+      <div className="flex items-center gap-4 mb-16">
+        <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30">
+          <LayoutDashboard className="text-white w-7 h-7" />
         </div>
         <div>
-          <h2 className="font-black text-primary leading-none text-xl tracking-tighter uppercase">Dashboard</h2>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">RW 02 Banjarsari</p>
+          <h2 className="font-black text-primary leading-none text-2xl tracking-tighter uppercase">Admin</h2>
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1.5 opacity-50">RW 02 Banjarsari</p>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-3">
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
@@ -226,36 +225,36 @@ export default function DashboardPage() {
               setActiveTab(item.id);
               setIsMobileMenuOpen(false);
             }}
-            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group ${
+            className={`w-full flex items-center gap-5 px-6 py-5 rounded-[1.5rem] transition-all duration-500 group ${
               activeTab === item.id 
-                ? 'bg-primary text-white shadow-xl shadow-primary/20' 
-                : 'text-muted-foreground hover:bg-secondary/50 hover:text-primary'
+                ? 'bg-primary text-white shadow-2xl shadow-primary/30' 
+                : 'text-muted-foreground hover:bg-secondary/80 hover:text-primary'
             }`}
           >
-            <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-accent' : 'group-hover:scale-110 transition-transform'}`} />
-            <span className="font-bold text-xs uppercase tracking-widest">{item.label}</span>
+            <item.icon className={`w-6 h-6 ${activeTab === item.id ? 'text-accent' : 'group-hover:scale-110 transition-transform'}`} />
+            <span className="font-black text-[10px] uppercase tracking-[0.2em]">{item.label}</span>
           </button>
         ))}
       </nav>
 
-      <div className="pt-8 border-t border-secondary/50 space-y-4">
+      <div className="pt-10 border-t border-secondary/50 space-y-5">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start gap-4 px-6 py-4 rounded-2xl text-orange-600 hover:bg-orange-50 font-bold transition-all">
-              <Trash2 className="w-5 h-5" />
+            <button className="w-full flex items-center gap-5 px-6 py-4 rounded-[1.5rem] text-orange-600 hover:bg-orange-50 font-black transition-all group">
+              <Trash2 className="w-6 h-6 group-hover:rotate-12 transition-transform" />
               <span className="text-[10px] uppercase tracking-widest">Kosongkan Data</span>
-            </Button>
+            </button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="rounded-[2.5rem] p-10">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-black uppercase tracking-tighter">Hapus Semua Data?</AlertDialogTitle>
-              <AlertDialogDescription className="font-medium text-sm">
-                Tindakan ini akan menghapus semua berita, kontak, pengurus, dan data infrastruktur secara permanen.
+          <AlertDialogContent className="rounded-[3rem] p-12 border-none shadow-2xl">
+            <AlertDialogHeader className="space-y-4">
+              <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Hapus Seluruh Data?</AlertDialogTitle>
+              <AlertDialogDescription className="font-medium text-sm italic">
+                Tindakan ini permanen. Semua berita, kontak, profil pengurus, dan data infrastruktur peta akan dihapus secara menyeluruh.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="mt-8 gap-4">
-              <AlertDialogCancel className="rounded-xl h-12 font-bold">Batal</AlertDialogCancel>
-              <AlertDialogAction onClick={clearAllData} className="rounded-xl h-12 bg-red-600 hover:bg-red-700 font-bold text-white">Hapus Sekarang</AlertDialogAction>
+            <AlertDialogFooter className="mt-10 gap-4">
+              <AlertDialogCancel className="rounded-2xl h-14 font-black uppercase tracking-widest text-[10px]">Batal</AlertDialogCancel>
+              <AlertDialogAction onClick={clearAllData} className="rounded-2xl h-14 bg-red-600 hover:bg-red-700 font-black uppercase tracking-widest text-[10px] text-white">Hapus Permanen</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -263,9 +262,9 @@ export default function DashboardPage() {
         <Button 
           variant="ghost" 
           onClick={handleLogout}
-          className="w-full justify-start gap-4 px-6 py-6 rounded-2xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all font-bold"
+          className="w-full justify-start gap-5 px-6 py-8 rounded-[1.5rem] text-red-500 hover:bg-red-50 hover:text-red-600 transition-all font-black"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-6 h-6" />
           <span className="text-[10px] uppercase tracking-widest">Keluar Sistem</span>
         </Button>
       </div>
@@ -274,82 +273,77 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[#F8FAF9]">
-      <aside className="w-80 bg-white border-r border-secondary/50 p-8 hidden lg:flex flex-col shadow-sm sticky top-0 h-screen">
+      <aside className="w-80 bg-white border-r border-secondary/50 p-10 hidden lg:flex flex-col shadow-xl sticky top-0 h-screen">
         <SidebarContent />
       </aside>
 
       <main className="flex-1 flex flex-col min-h-screen overflow-y-auto pb-32">
-        <header className="h-24 bg-white/80 backdrop-blur-md border-b border-secondary/50 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-20">
-          <div className="flex items-center gap-4">
+        <header className="h-28 bg-white/80 backdrop-blur-3xl border-b border-secondary/50 px-8 lg:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-6">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden rounded-xl bg-secondary/50">
+                <Button variant="ghost" size="icon" className="lg:hidden rounded-2xl bg-secondary shadow-inner w-12 h-12">
                   <Menu className="w-6 h-6 text-primary" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-8">
-                <SheetHeader className="mb-8">
-                  <SheetTitle className="sr-only">Navigasi Dashboard</SheetTitle>
-                </SheetHeader>
+              <SheetContent side="left" className="w-80 p-10 border-none shadow-2xl">
                 <SidebarContent />
               </SheetContent>
             </Sheet>
 
-            <div className="relative w-48 md:w-96 group hidden sm:block">
-              <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-primary w-4 h-4" />
-              <Input placeholder="Cari data wilayah..." className="pl-12 bg-secondary/30 border-none h-12 rounded-2xl" />
+            <div className="relative w-64 md:w-96 group hidden sm:block">
+              <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 text-primary w-5 h-5 opacity-40 group-focus-within:opacity-100 transition-opacity" />
+              <Input placeholder="Cari data wilayah..." className="pl-14 bg-secondary/50 border-none h-14 rounded-[1.5rem] font-medium shadow-inner" />
             </div>
           </div>
 
-          <div className="flex items-center gap-4 lg:gap-6">
-            <div className="flex gap-2">
-              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50 hidden md:flex" onClick={handleImportDummyData} disabled={isProcessing}>
-                <Database className={`w-5 h-5 text-primary ${isProcessing ? 'animate-spin' : ''}`} />
+          <div className="flex items-center gap-6 lg:gap-10">
+            <div className="flex gap-3">
+              <Button size="icon" variant="ghost" className="rounded-2xl bg-secondary/80 w-12 h-12 shadow-sm hidden md:flex" onClick={handleImportDummyData} disabled={isProcessing}>
+                <Database className={`w-6 h-6 text-primary ${isProcessing ? 'animate-spin' : ''}`} />
               </Button>
-              <Button size="icon" variant="ghost" className="rounded-full bg-secondary/50">
-                <Settings className="w-5 h-5 text-muted-foreground" />
+              <Button size="icon" variant="ghost" className="rounded-2xl bg-secondary/80 w-12 h-12 shadow-sm">
+                <Settings className="w-6 h-6 text-muted-foreground" />
               </Button>
             </div>
-            <div className="h-10 w-px bg-secondary/50 hidden lg:block" />
-            <div className="flex items-center gap-3 lg:gap-4">
+            <div className="h-10 w-px bg-secondary/80 hidden lg:block" />
+            <div className="flex items-center gap-4 lg:gap-6">
               <div className="text-right hidden lg:block">
-                <p className="text-sm font-black text-primary uppercase leading-none mb-1">{user.email?.split('@')[0]}</p>
-                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest bg-accent/20 text-accent-foreground">{adminRole?.role || 'Admin'}</Badge>
+                <p className="text-base font-black text-primary uppercase leading-none mb-1.5">{user.email?.split('@')[0]}</p>
+                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest bg-accent/20 text-accent-foreground px-3 py-1 border-none shadow-sm">{adminRole?.role || 'Admin'}</Badge>
               </div>
-              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
-                <Users className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden shadow-inner">
+                <Users className="w-7 h-7 text-primary" />
               </div>
             </div>
           </div>
         </header>
 
-        <div className="p-6 lg:p-10 container mx-auto">
+        <div className="p-8 lg:p-12 container mx-auto">
           {activeTab === 'overview' && (
-            <div className="space-y-10 lg:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <div>
-                  <h1 className="text-3xl lg:text-4xl font-black text-primary mb-2 uppercase tracking-tighter">Ringkasan Aktivitas</h1>
-                  <p className="text-muted-foreground font-medium text-sm lg:text-base">Monitoring aktivitas wilayah RW 02 secara real-time.</p>
-                </div>
+            <div className="space-y-12 lg:space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div>
+                <h1 className="text-4xl lg:text-5xl font-black text-primary mb-4 uppercase tracking-tighter">Ringkasan Aktivitas</h1>
+                <p className="text-muted-foreground font-medium text-base md:text-lg italic border-l-4 border-accent pl-6">Monitoring aktivitas dan statistik wilayah RW 02 Banjarsari secara real-time.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
                 {[
-                  { label: 'Total Pamong', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-500' },
-                  { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terpublikasi', icon: Newspaper, color: 'bg-primary' },
-                  { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Layanan Terdaftar', icon: Phone, color: 'bg-green-600' },
-                  { label: 'Status Peta', value: 'Aktif', sub: 'Infrastruktur OK', icon: MapIcon, color: 'bg-orange-500' },
+                  { label: 'Total Pamong', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-600' },
+                  { label: 'Warta Wilayah', value: newsItems?.length || 0, sub: 'Berita Terbit', icon: Newspaper, color: 'bg-primary' },
+                  { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Instansi Terdaftar', icon: Phone, color: 'bg-green-600' },
+                  { label: 'Status Peta', value: 'OK', sub: 'Geospasial Aktif', icon: MapIcon, color: 'bg-orange-600' },
                 ].map((stat, i) => (
-                  <Card key={i} className="border-none shadow-xl rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white">
-                    <CardContent className="p-6 lg:p-8">
-                      <div className="flex items-start justify-between mb-6">
-                        <div className={`w-12 h-12 lg:w-14 lg:h-14 ${stat.color} rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                          <stat.icon className="w-6 h-6 lg:w-7 lg:h-7" />
+                  <Card key={i} className="border-none shadow-2xl rounded-[3rem] overflow-hidden group hover:-translate-y-3 transition-all duration-700 bg-white">
+                    <CardContent className="p-10">
+                      <div className="flex items-start justify-between mb-8">
+                        <div className={`w-16 h-16 ${stat.color} rounded-2xl flex items-center justify-center text-white shadow-2xl group-hover:rotate-6 transition-transform`}>
+                          <stat.icon className="w-8 h-8" />
                         </div>
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-secondary">{stat.sub}</Badge>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-[0.2em] border-secondary/50 px-3 py-1">{stat.sub}</Badge>
                       </div>
-                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-                      <h3 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tighter">{stat.value}</h3>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-2">{stat.label}</p>
+                      <h3 className="text-4xl font-black text-gray-900 tracking-tighter leading-none">{stat.value}</h3>
                     </CardContent>
                   </Card>
                 ))}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -67,34 +66,31 @@ export function AdminNewsManager() {
       updatedAt: new Date().toISOString(),
     };
 
-    if (editingId) {
-      setDocumentNonBlocking(doc(db, 'announcements_management', editingId), newsData, { merge: true });
-      if (status === 'Published') {
-        setDocumentNonBlocking(doc(db, 'announcements_public', editingId), newsData, { merge: true });
-      }
-    } else {
-      const newId = doc(collection(db, 'announcements_management')).id;
-      const fullData = { 
-        ...newsData, 
-        id: newId, 
-        createdAt: new Date().toISOString(),
-        publicationDate: new Date().toISOString()
-      };
-      setDocumentNonBlocking(doc(db, 'announcements_management', newId), fullData, { merge: true });
-      if (status === 'Published') {
-        setDocumentNonBlocking(doc(db, 'announcements_public', newId), fullData, { merge: true });
-      }
+    const targetId = editingId || doc(collection(db, 'announcements_management')).id;
+    const fullData = { 
+      ...newsData, 
+      id: targetId, 
+      createdAt: editingId ? (news?.find(n => n.id === editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+      publicationDate: editingId ? (news?.find(n => n.id === editingId)?.publicationDate || new Date().toISOString()) : new Date().toISOString()
+    };
+
+    setDocumentNonBlocking(doc(db, 'announcements_management', targetId), fullData, { merge: true });
+    
+    if (status === 'Published') {
+      setDocumentNonBlocking(doc(db, 'announcements_public', targetId), fullData, { merge: true });
+    } else if (editingId) {
+      deleteDocumentNonBlocking(doc(db, 'announcements_public', targetId));
     }
 
     setIsDialogOpen(false);
     resetForm();
-    toast({ title: "Berhasil disimpan", description: "Berita telah diperbarui di database." });
+    toast({ title: "Berhasil disimpan", description: "Warta telah diperbarui secara sistemik." });
   };
 
   const handleDelete = (id: string) => {
     deleteDocumentNonBlocking(doc(db, 'announcements_management', id));
     deleteDocumentNonBlocking(doc(db, 'announcements_public', id));
-    toast({ title: "Berita dihapus", description: "Data telah dihapus dari sistem." });
+    toast({ title: "Berita dihapus", description: "Data telah dihapus permanen dari sistem." });
   };
 
   const resetForm = () => {
@@ -117,105 +113,105 @@ export function AdminNewsManager() {
   };
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+    <div className="space-y-12">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8">
         <div>
-          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Kelola Berita</h1>
-          <p className="text-muted-foreground font-medium">Publikasikan informasi resmi untuk seluruh warga.</p>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter mb-2">Manajemen Warta</h1>
+          <p className="text-muted-foreground font-medium italic border-l-4 border-accent pl-6 text-sm">Publikasikan informasi dan pengumuman resmi untuk seluruh warga RW 02.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="h-14 px-8 rounded-2xl bg-primary shadow-xl shadow-primary/20 gap-3 font-black uppercase tracking-widest text-xs">
-              <Plus className="w-5 h-5" /> Tulis Berita Baru
+            <Button onClick={resetForm} className="h-16 px-10 rounded-2xl bg-primary text-white shadow-2xl shadow-primary/20 gap-4 font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105">
+              <Plus className="w-6 h-6" /> Tulis Warta Baru
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl rounded-[2.5rem] p-8">
+          <DialogContent className="max-w-2xl rounded-[3rem] p-10 border-none shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Berita' : 'Tulis Berita Baru'}</DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Warta' : 'Tulis Warta Baru'}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-6">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Judul Berita</label>
-                <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-secondary/50 border-none h-12" placeholder="Masukkan judul..." />
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Judul Utama Warta</label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-secondary/50 border-none h-14 rounded-xl font-bold" placeholder="Masukkan judul..." />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Kategori</label>
-                  <Input value={category} onChange={e => setCategory(e.target.value)} className="bg-secondary/50 border-none h-12" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Kategori</label>
+                  <Input value={category} onChange={e => setCategory(e.target.value)} className="bg-secondary/50 border-none h-14 rounded-xl font-bold" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Status</label>
-                  <select value={status} onChange={e => setStatus(e.target.value)} className="w-full h-12 bg-secondary/50 rounded-xl px-4 border-none font-bold">
-                    <option value="Published">Published</option>
-                    <option value="Draft">Draft</option>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Status Publikasi</label>
+                  <select value={status} onChange={e => setStatus(e.target.value)} className="w-full h-14 bg-secondary/50 rounded-xl px-4 border-none font-bold text-sm shadow-inner">
+                    <option value="Published">PUBLIKASIKAN</option>
+                    <option value="Draft">SIMPAN DRAFT</option>
                   </select>
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Isi Berita</label>
-                  <Button variant="ghost" size="sm" onClick={handleSummarize} disabled={isSummarizing || !content} className="text-primary gap-2 h-8 font-bold">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Isi Lengkap Warta</label>
+                  <Button variant="ghost" size="sm" onClick={handleSummarize} disabled={isSummarizing || !content} className="text-primary gap-2 h-8 font-black uppercase text-[9px] tracking-widest">
                     {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                    Ringkas dengan AI
+                    Gunakan AI Summarizer
                   </Button>
                 </div>
-                <Textarea value={content} onChange={e => setContent(e.target.value)} className="bg-secondary/50 border-none min-h-[150px]" placeholder="Tulis konten lengkap..." />
+                <Textarea value={content} onChange={e => setContent(e.target.value)} className="bg-secondary/50 border-none min-h-[180px] rounded-2xl font-medium p-5" placeholder="Tulis konten lengkap..." />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Ringkasan AI (Opsional)</label>
-                <Textarea value={summary} onChange={e => setSummary(e.target.value)} className="bg-accent/5 border-dashed border-2 border-accent/20 italic text-sm" placeholder="Hasil ringkasan AI akan muncul di sini..." />
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Ringkasan AI (Otomatis)</label>
+                <Textarea value={summary} onChange={e => setSummary(e.target.value)} className="bg-accent/5 border-dashed border-2 border-accent/20 italic text-sm rounded-2xl p-5" placeholder="Hasil ringkasan AI akan muncul di sini..." />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Batal</Button>
-              <Button onClick={handleSave} className="rounded-xl font-bold bg-primary px-8">Simpan Berita</Button>
+            <DialogFooter className="gap-4">
+              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-black uppercase text-[10px] tracking-widest h-14 px-8">Batal</Button>
+              <Button onClick={handleSave} className="rounded-xl font-black uppercase text-[10px] tracking-widest bg-primary text-white h-14 px-10 shadow-xl shadow-primary/20">Simpan Perubahan</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden">
-        <div className="p-8 border-b border-secondary/50 flex flex-col sm:flex-row gap-4 justify-between items-center bg-white">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+      <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white">
+        <div className="p-10 border-b border-secondary/50 flex flex-col sm:flex-row gap-6 justify-between items-center bg-white">
+          <div className="relative flex-1 w-full group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Cari judul berita..." 
-              className="pl-12 bg-secondary/30 border-none h-12 rounded-xl" 
+              placeholder="Cari judul warta..." 
+              className="pl-16 bg-secondary/30 border-none h-14 rounded-2xl font-medium shadow-inner" 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         <CardContent className="p-0">
-          <div className="divide-y divide-secondary/50">
+          <div className="divide-y divide-secondary/30">
             {isLoading ? (
-              <div className="p-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></div>
+              <div className="p-32 text-center"><Loader2 className="w-12 h-12 animate-spin mx-auto text-primary opacity-20" /></div>
             ) : filteredNews?.length === 0 ? (
-              <div className="p-20 text-center text-muted-foreground font-bold">Belum ada berita yang ditemukan.</div>
+              <div className="p-32 text-center text-muted-foreground font-black uppercase tracking-widest text-xs italic">Belum ada warta yang tersedia.</div>
             ) : (
               filteredNews?.map((item) => (
-                <div key={item.id} className="p-8 flex items-center justify-between hover:bg-secondary/10 transition-colors group">
-                  <div className="flex items-center gap-6">
-                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                      <FileText className="w-7 h-7" />
+                <div key={item.id} className="p-10 flex flex-col md:flex-row md:items-center justify-between hover:bg-secondary/10 transition-all duration-500 group">
+                  <div className="flex items-center gap-8 mb-6 md:mb-0">
+                    <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner group-hover:rotate-6">
+                      <FileText className="w-10 h-10" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-lg mb-1">{item.title}</h4>
-                      <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                        <span>{new Date(item.publicationDate).toLocaleDateString('id-ID')}</span>
-                        <span className="w-1 h-1 bg-muted-foreground rounded-full" />
-                        <span>{item.category}</span>
+                      <h4 className="font-black text-xl mb-2 tracking-tighter uppercase text-gray-900 leading-none">{item.title}</h4>
+                      <div className="flex items-center gap-5 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                        <span className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5" /> {new Date(item.publicationDate).toLocaleDateString('id-ID')}</span>
+                        <span className="w-1.5 h-1.5 bg-muted-foreground/30 rounded-full" />
+                        <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> {item.category}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge className={item.status === 'Published' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600'}>
+                  <div className="flex items-center gap-6 self-end md:self-center">
+                    <Badge className={item.status === 'Published' ? 'bg-green-50 text-green-700 border-green-200 font-black text-[9px] px-3' : 'bg-gray-100 text-gray-500 font-black text-[9px] px-3'}>
                       {item.status.toUpperCase()}
                     </Badge>
-                    <div className="flex gap-2">
-                      <Button onClick={() => openEdit(item)} size="icon" variant="ghost" className="rounded-xl hover:bg-primary/10 hover:text-primary"><Edit3 className="w-5 h-5" /></Button>
-                      <Button onClick={() => handleDelete(item.id)} size="icon" variant="ghost" className="rounded-xl hover:bg-red-50 hover:text-red-500"><Trash2 className="w-5 h-5" /></Button>
+                    <div className="flex gap-3">
+                      <Button onClick={() => openEdit(item)} size="icon" variant="ghost" className="rounded-2xl w-12 h-12 hover:bg-primary/10 hover:text-primary transition-all shadow-sm"><Edit3 className="w-6 h-6" /></Button>
+                      <Button onClick={() => handleDelete(item.id)} size="icon" variant="ghost" className="rounded-2xl w-12 h-12 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm"><Trash2 className="w-6 h-6" /></Button>
                     </div>
                   </div>
                 </div>

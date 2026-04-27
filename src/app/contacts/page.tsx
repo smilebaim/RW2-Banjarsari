@@ -59,10 +59,10 @@ export default function ContactsPage() {
 
             <div className="max-w-2xl mb-8">
               <div className="relative group">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground w-6 h-6 group-focus-within:text-primary transition-colors" />
                 <Input 
                   placeholder="Cari instansi atau layanan..." 
-                  className="pl-14 h-16 bg-white border-none text-lg rounded-2xl shadow-lg focus-visible:ring-primary font-bold"
+                  className="pl-16 h-18 bg-white border-none text-lg rounded-[2.5rem] shadow-2xl focus-visible:ring-primary font-black"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -71,39 +71,39 @@ export default function ContactsPage() {
           </div>
         </section>
 
-        <section className="container mx-auto px-6 py-16 space-y-16">
+        <section className="container mx-auto px-6 py-16 space-y-24">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-              <p className="font-bold text-primary/30 uppercase tracking-[0.2em] text-[10px]">Sinkronisasi data...</p>
+              <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+              <p className="font-black text-primary/30 uppercase tracking-[0.4em] text-[10px]">Sinkronisasi Data Kontak...</p>
             </div>
           ) : (
             <>
               {/* Emergency */}
               {emergencyContacts.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">
+                  <div className="flex items-center justify-between mb-12">
+                    <h2 className="text-3xl font-black text-primary uppercase tracking-tighter">
                       Tanggap <span className="text-red-600">Darurat</span>
                     </h2>
-                    <Badge className="bg-red-500 text-white font-bold text-[8px] tracking-widest px-3 py-1 border-none shadow-lg shadow-red-500/20">SIAGA 24 JAM</Badge>
+                    <Badge className="bg-red-500 text-white font-black text-[9px] tracking-[0.2em] px-4 py-1.5 border-none shadow-xl shadow-red-500/20 uppercase">Siaga 24 Jam</Badge>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {emergencyContacts.map((contact, idx) => {
                       const Icon = getIcon(contact.category);
                       return (
-                        <Card key={idx} className="border-none bg-red-50 rounded-[2rem] overflow-hidden group hover:shadow-xl transition-all duration-300">
-                          <CardContent className="p-8 flex flex-col items-center text-center">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md mb-6 group-hover:scale-110 transition-transform">
-                              <Icon className="w-8 h-8 text-red-600" />
+                        <Card key={idx} className="border-none bg-red-50 rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+                          <CardContent className="p-10 flex flex-col items-center text-center">
+                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-xl mb-8 group-hover:scale-110 transition-transform">
+                              <Icon className="w-10 h-10 text-red-600" />
                             </div>
-                            <h3 className="font-bold text-gray-900 text-base mb-3 uppercase tracking-tight">{contact.name}</h3>
-                            <p className="text-3xl font-black text-red-600 tracking-tighter mb-8">{contact.phoneNumber}</p>
+                            <h3 className="font-black text-gray-900 text-lg mb-3 uppercase tracking-tighter">{contact.name}</h3>
+                            <p className="text-4xl font-black text-red-600 tracking-tighter mb-10">{contact.phoneNumber}</p>
                             <a 
                               href={`tel:${contact.phoneNumber}`}
-                              className="w-full h-12 bg-red-600 text-white rounded-xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-[9px] shadow-lg shadow-red-600/20 hover:bg-red-700 transition-colors"
+                              className="w-full h-16 bg-red-600 text-white rounded-[1.5rem] flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-red-600/30 hover:bg-red-700 transition-all"
                             >
-                              Panggil Sekarang <Phone className="w-3.5 h-3.5" />
+                              Panggil Sekarang <Phone className="w-4 h-4" />
                             </a>
                           </CardContent>
                         </Card>
@@ -116,39 +116,39 @@ export default function ContactsPage() {
               {/* Public Services */}
               {publicServiceContacts.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-black text-primary uppercase tracking-tighter mb-10">
-                    Layanan <span className="text-gray-900">Publik</span>
+                  <h2 className="text-3xl font-black text-primary uppercase tracking-tighter mb-12">
+                    Layanan <span className="text-gray-900">Publik Terpadu</span>
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     {publicServiceContacts.map((contact, idx) => {
                       const Icon = getIcon(contact.category);
                       return (
-                        <Card key={idx} className="rounded-[2rem] border-none shadow-lg hover:shadow-xl transition-all duration-300 group bg-white border border-secondary/20">
-                          <CardContent className="p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                            <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
-                              <Icon className="w-8 h-8" />
+                        <Card key={idx} className="rounded-[3rem] border-none shadow-xl hover:shadow-2xl transition-all duration-500 group bg-white border border-secondary/20 hover:-translate-y-2">
+                          <CardContent className="p-10 flex flex-col sm:flex-row items-center sm:items-start gap-8">
+                            <div className="w-20 h-20 bg-secondary rounded-3xl flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                              <Icon className="w-10 h-10" />
                             </div>
-                            <div className="flex-1 text-center sm:text-left space-y-3">
+                            <div className="flex-1 text-center sm:text-left space-y-4">
                               <div>
-                                <Badge variant="outline" className="mb-1 text-[8px] font-bold uppercase tracking-widest border-primary/20 text-primary px-3">{contact.category}</Badge>
-                                <h3 className="text-xl font-black text-gray-900 tracking-tighter">{contact.name}</h3>
+                                <Badge variant="outline" className="mb-2 text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary px-4 py-1">{contact.category}</Badge>
+                                <h3 className="text-2xl font-black text-gray-900 tracking-tighter leading-none">{contact.name}</h3>
                               </div>
-                              <div className="space-y-1">
-                                <div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-lg">
-                                  <Phone className="w-4 h-4 opacity-40" /> {contact.phoneNumber}
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-center sm:justify-start gap-3 text-primary font-black text-xl tracking-tighter">
+                                  <Phone className="w-5 h-5 opacity-30" /> {contact.phoneNumber}
                                 </div>
                                 {contact.address && (
-                                  <div className="flex items-center justify-center sm:justify-start gap-2 text-muted-foreground text-[11px] font-medium">
-                                    <MapPin className="w-3.5 h-3.5 opacity-40" /> {contact.address}
+                                  <div className="flex items-center justify-center sm:justify-start gap-3 text-muted-foreground text-xs font-medium italic">
+                                    <MapPin className="w-4 h-4 opacity-30" /> {contact.address}
                                   </div>
                                 )}
                               </div>
-                              <div className="pt-4">
+                              <div className="pt-6">
                                 <a 
                                   href={`tel:${contact.phoneNumber}`}
-                                  className="inline-flex h-10 px-8 bg-primary text-white rounded-xl items-center gap-2 text-[9px] font-bold uppercase tracking-widest shadow-md hover:scale-105 transition-all"
+                                  className="inline-flex h-12 px-10 bg-primary text-white rounded-2xl items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all"
                                 >
-                                  Hubungi <ArrowRight className="w-3.5 h-3.5" />
+                                  Hubungi <ArrowRight className="w-4 h-4" />
                                 </a>
                               </div>
                             </div>

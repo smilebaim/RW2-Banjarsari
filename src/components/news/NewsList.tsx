@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -44,16 +43,16 @@ export function NewsList() {
     return (
       <div className="py-32 flex flex-col items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/30">Menyusun Warta...</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/30 animate-pulse">Menyusun Warta Wilayah...</p>
       </div>
     );
   }
 
   if (!news || news.length === 0) {
     return (
-      <div className="p-20 text-center border-4 border-dashed border-secondary rounded-[4rem] bg-secondary/5">
-        <h3 className="text-3xl font-black text-primary uppercase tracking-tighter mb-4">Belum ada warta terbaru</h3>
-        <p className="text-muted-foreground font-medium max-w-sm mx-auto">Informasi terkini dari lingkungan RW 02 akan segera muncul di sini.</p>
+      <div className="p-20 text-center border-2 border-dashed border-secondary rounded-[3.5rem] bg-secondary/10 max-w-3xl mx-auto">
+        <h3 className="text-2xl font-black text-primary uppercase tracking-tighter mb-4">Belum ada warta terbaru</h3>
+        <p className="text-muted-foreground font-medium text-sm italic">Informasi resmi dari lingkungan RW 02 akan segera diperbarui di sini.</p>
       </div>
     );
   }
@@ -65,7 +64,7 @@ export function NewsList() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
             {/* Image Section */}
             <div className="lg:col-span-5 order-1">
-              <div className="relative h-[400px] md:h-[550px] overflow-hidden rounded-[3rem] shadow-2xl transition-transform duration-700 group-hover:-translate-y-2">
+              <div className="relative h-[400px] md:h-[550px] overflow-hidden rounded-[3rem] shadow-2xl transition-all duration-700 group-hover:-translate-y-2 group-hover:shadow-primary/10">
                 <Image
                   src={item.imageUrl || PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl}
                   alt={item.title}
@@ -73,7 +72,7 @@ export function NewsList() {
                   className="object-cover scale-105 group-hover:scale-110 transition-transform duration-1000"
                   data-ai-hint="news event"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
                 <div className="absolute top-8 left-8">
                   <Badge className="bg-white/90 backdrop-blur-md text-primary hover:bg-white text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-[0.2em] shadow-xl border-none">
                     {item.category || 'WARTA'}
@@ -96,13 +95,13 @@ export function NewsList() {
                 </span>
               </div>
               
-              <h2 className="text-4xl md:text-6xl font-black text-primary leading-[0.95] tracking-tighter mb-8 group-hover:text-accent-foreground transition-colors duration-500">
+              <h2 className="text-4xl md:text-6xl font-black text-primary leading-[0.95] tracking-tighter mb-8 group-hover:text-gray-900 transition-colors duration-500">
                 {item.title}
               </h2>
               
               <div className="relative">
                 {summaries[item.id] ? (
-                  <div className="bg-accent/5 border-l-[6px] border-accent p-8 rounded-r-[2.5rem] animate-in slide-in-from-left-8 duration-700 shadow-inner">
+                  <div className="bg-accent/5 border-l-[6px] border-accent p-10 rounded-r-[3rem] animate-in slide-in-from-left-8 duration-700 shadow-inner">
                     <div className="flex items-center gap-3 text-accent-foreground font-black text-[10px] mb-4 uppercase tracking-[0.3em]">
                       <Sparkles className="w-4 h-4" /> Ringkasan Cerdas AI
                     </div>
@@ -119,31 +118,32 @@ export function NewsList() {
               
               <div className="flex flex-wrap items-center gap-6 mt-12">
                 <Button 
-                  className="h-16 px-10 rounded-full bg-primary text-white font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20 hover:scale-105 transition-all group/btn"
+                  className="h-16 px-10 rounded-[1.5rem] bg-primary text-white font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20 hover:scale-105 transition-all group/btn"
                 >
                   Baca Detail <ArrowRight className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
                 
-                <Button 
-                  variant="ghost" 
-                  className="h-16 px-10 rounded-full border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5 transition-all gap-3"
-                  onClick={() => handleSummarize(item.id, item.content)}
-                  disabled={loadingIds.has(item.id)}
-                >
-                  {loadingIds.has(item.id) ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>Ringkas AI <Sparkles className="w-4 h-4" /></>
-                  )}
-                </Button>
+                {!summaries[item.id] && (
+                  <Button 
+                    variant="ghost" 
+                    className="h-16 px-10 rounded-[1.5rem] border-2 border-primary/10 text-primary font-black uppercase tracking-widest text-[10px] hover:bg-primary/5 transition-all gap-3"
+                    onClick={() => handleSummarize(item.id, item.content)}
+                    disabled={loadingIds.has(item.id)}
+                  >
+                    {loadingIds.has(item.id) ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>Ringkas AI <Sparkles className="w-4 h-4" /></>
+                    )}
+                  </Button>
+                )}
 
-                <Button variant="ghost" size="icon" className="w-16 h-16 rounded-full bg-secondary/30 text-primary hover:bg-primary hover:text-white transition-all">
+                <Button variant="ghost" size="icon" className="w-16 h-16 rounded-[1.5rem] bg-secondary/30 text-primary hover:bg-primary hover:text-white transition-all shadow-md">
                   <Share2 className="w-5 h-5" />
                 </Button>
               </div>
             </div>
           </div>
-          {/* Decorative Divider */}
           <div className="absolute -bottom-16 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
         </article>
       ))}

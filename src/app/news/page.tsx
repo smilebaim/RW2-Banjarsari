@@ -20,20 +20,20 @@ export default function NewsPage() {
                 <h1 className="text-4xl md:text-5xl font-black text-primary mb-6 uppercase tracking-tighter leading-tight">
                   Informasi & <br/><span className="text-gray-900">Pengumuman</span>
                 </h1>
-                <p className="text-muted-foreground text-base md:text-lg font-medium leading-relaxed max-w-lg">
+                <p className="text-muted-foreground text-base md:text-lg font-medium leading-relaxed max-w-lg italic border-l-4 border-accent pl-6">
                   Tetap terhubung dengan perkembangan terbaru, kegiatan warga, dan informasi resmi di lingkungan RW 02 Banjarsari.
                 </p>
               </div>
               
               <div className="lg:mb-2">
-                <div className="bg-zinc-900 px-6 py-5 rounded-3xl text-white shadow-xl flex items-center gap-4 max-w-sm border-t-2 border-primary">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0 border border-white/10">
-                    <Sparkles className="w-5 h-5 text-accent" />
+                <div className="bg-zinc-900 px-8 py-6 rounded-[2.5rem] text-white shadow-2xl flex items-center gap-4 max-w-sm border-t-2 border-primary group hover:scale-105 transition-transform duration-500">
+                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-primary transition-colors">
+                    <Sparkles className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-bold uppercase text-[10px] tracking-widest text-accent">AI Summarizer</h3>
-                    <p className="text-[10px] text-white/60 font-medium leading-tight uppercase tracking-wider">
-                      Inti berita instan dengan teknologi cerdas.
+                    <h3 className="font-black uppercase text-[10px] tracking-widest text-accent">AI Summarizer</h3>
+                    <p className="text-[10px] text-white/60 font-bold leading-tight uppercase tracking-wider">
+                      Dapatkan inti berita secara instan dengan teknologi cerdas kami.
                     </p>
                   </div>
                 </div>
@@ -41,7 +41,7 @@ export default function NewsPage() {
             </div>
 
             <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.2em] text-primary/40">
-              <span>Jelajahi Berita</span>
+              <span>Jelajahi Warta Terkini</span>
               <ArrowDown className="w-3 h-3 animate-bounce" />
             </div>
           </div>
