@@ -4,7 +4,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
-import { Mail, Phone, ArrowUpRight, Loader2, Users, MessageCircle } from 'lucide-react';
+import { ArrowUpRight, Loader2, Users, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function DirectoryPage() {
@@ -76,16 +76,16 @@ export default function DirectoryPage() {
                       </p>
                       
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-all">
-                          <Phone className="w-4 h-4" />
-                        </div>
-                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-all">
-                          <MessageCircle className="w-4 h-4" />
-                        </div>
-                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center cursor-pointer hover:bg-accent hover:text-accent-foreground transition-all">
-                          <Mail className="w-4 h-4" />
-                        </div>
-                        <div className="ml-auto w-10 h-10 bg-white text-primary rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500">
+                        <a 
+                          href={person.contactNumber ? `https://wa.me/${person.contactNumber.replace(/[^0-9]/g, '')}` : '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center gap-3 hover:bg-accent hover:text-accent-foreground transition-all group/wa"
+                        >
+                          <MessageCircle className="w-5 h-5 text-accent group-hover/wa:text-accent-foreground" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
+                        </a>
+                        <div className="w-12 h-12 bg-white text-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
                           <ArrowUpRight className="w-5 h-5" />
                         </div>
                       </div>
