@@ -19,7 +19,9 @@ export default function DirectoryPage() {
     <div className="group relative">
       <div className={cn(
         "relative overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-secondary/20 w-full",
-        variant === 'small' ? "h-[260px] md:h-[280px]" : "h-[320px] md:h-[350px]"
+        variant === 'small' 
+          ? "h-[220px] sm:h-[260px] md:h-[280px]" 
+          : "h-[350px] sm:h-[400px] md:h-[350px]"
       )}>
         <img
           src={person.profilePictureUrl || PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl}
@@ -30,23 +32,23 @@ export default function DirectoryPage() {
             (e.target as HTMLImageElement).src = PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl;
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
         
-        <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end text-white">
-          <div className="mb-2">
-            <Badge className="bg-accent text-accent-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border-none">
+        <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end text-white">
+          <div className="mb-1.5">
+            <Badge className="bg-accent text-accent-foreground text-[7px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border-none">
               {person.role}
             </Badge>
           </div>
           
           <h3 className={cn(
             "font-black mb-1 tracking-tighter group-hover:text-accent transition-colors leading-tight",
-            variant === 'small' ? "text-base md:text-lg" : "text-xl md:text-2xl"
+            variant === 'small' ? "text-sm sm:text-lg" : "text-xl sm:text-2xl"
           )}>
             {person.name}
           </h3>
           
-          <p className="text-[10px] md:text-[11px] text-white/70 font-medium mb-4 line-clamp-1 italic">
+          <p className="text-[9px] sm:text-[11px] text-white/70 font-medium mb-3 sm:mb-4 line-clamp-1 italic">
             "{person.description || 'Siap melayani warga.'}"
           </p>
           
@@ -55,13 +57,13 @@ export default function DirectoryPage() {
               href={person.contactNumber ? `https://wa.me/${person.contactNumber.replace(/[^0-9]/g, '')}` : '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 h-10 md:h-11 bg-white/10 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all group/wa border border-white/10"
+              className="flex-1 h-9 sm:h-11 bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all group/wa border border-white/10"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-accent group-hover/wa:text-accent-foreground" />
-              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
+              <MessageCircle className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-accent group-hover/wa:text-accent-foreground" />
+              <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
             </a>
-            <div className="w-10 h-10 md:w-11 md:h-11 bg-white text-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
-              <ArrowUpRight className="w-4 h-4" />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 bg-white text-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
         </div>
@@ -92,7 +94,7 @@ export default function DirectoryPage() {
         </section>
 
         {/* Members Grid Section */}
-        <section className="container mx-auto px-6 py-16 space-y-24">
+        <section className="container mx-auto px-6 py-12 md:py-16 space-y-20 md:space-y-24">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <Loader2 className="w-10 h-10 text-primary animate-spin mb-6" />
@@ -108,16 +110,16 @@ export default function DirectoryPage() {
             <>
               {/* RW Category */}
               <div>
-                <div className="flex items-center gap-4 mb-10 md:mb-14">
-                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
-                    <ShieldCheck className="w-7 h-7" />
+                <div className="flex items-center gap-4 mb-8 md:mb-14">
+                  <div className="w-12 h-12 md:w-14 md:h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+                    <ShieldCheck className="w-6 h-6 md:w-7 md:h-7" />
                   </div>
                   <div>
-                    <h2 className="text-3xl md:text-4xl font-black text-primary uppercase tracking-tighter leading-none mb-2">Pejabat RW 02</h2>
-                    <p className="text-muted-foreground font-black text-[10px] uppercase tracking-[0.2em] opacity-70">Pimpinan Tingkat Rukun Warga</p>
+                    <h2 className="text-2xl md:text-4xl font-black text-primary uppercase tracking-tighter leading-none mb-1 md:mb-2">Pejabat RW 02</h2>
+                    <p className="text-muted-foreground font-black text-[8px] md:text-[10px] uppercase tracking-[0.2em] opacity-70">Pimpinan Tingkat Rukun Warga</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
                   {rwMembers.map((person, idx) => (
                     <MemberCard key={person.id} person={person} idx={idx} variant="large" />
                   ))}
@@ -129,13 +131,13 @@ export default function DirectoryPage() {
 
               {/* RT Category */}
               <div>
-                <div className="flex items-center gap-4 mb-10 md:mb-14">
-                  <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent-foreground shadow-inner">
-                    <MapPin className="w-6 h-6" />
+                <div className="flex items-center gap-4 mb-8 md:mb-14">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent-foreground shadow-inner">
+                    <MapPin className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div>
-                    <h2 className="text-2xl md:text-3xl font-black text-primary uppercase tracking-tighter leading-none mb-2">Pejabat RT</h2>
-                    <p className="text-muted-foreground font-black text-[9px] uppercase tracking-[0.2em] opacity-70">Pimpinan Tingkat Rukun Tetangga</p>
+                    <h2 className="text-xl md:text-3xl font-black text-primary uppercase tracking-tighter leading-none mb-1 md:mb-2">Pejabat RT</h2>
+                    <p className="text-muted-foreground font-black text-[8px] md:text-[9px] uppercase tracking-[0.2em] opacity-70">Pimpinan Tingkat Rukun Tetangga</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
