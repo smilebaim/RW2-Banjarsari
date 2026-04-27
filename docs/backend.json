@@ -60,7 +60,12 @@
         },
         "role": {
           "type": "string",
-          "description": "The specific role or position held by the member within the RW management (e.g., 'Ketua RW', 'Sekretaris', 'Bendahara')."
+          "description": "The specific role or position held by the member (e.g., 'Ketua RW', 'Sekretaris', 'Ketua RT 01')."
+        },
+        "category": {
+          "type": "string",
+          "description": "The administrative category of the member (e.g., 'RW' or 'RT').",
+          "enum": ["RW", "RT"]
         },
         "contactNumber": {
           "type": "string",
@@ -99,8 +104,8 @@
         "id",
         "name",
         "role",
+        "category",
         "contactNumber",
-        "email",
         "createdAt",
         "updatedAt"
       ]

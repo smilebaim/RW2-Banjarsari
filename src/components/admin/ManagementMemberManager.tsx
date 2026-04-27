@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -7,9 +8,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Users, Plus, Edit, Trash, Loader2, UserCircle, Phone, Mail, Image as ImageIcon, Link as LinkIcon, Info, AlertTriangle } from 'lucide-react';
+import { 
+  Users, 
+  Plus, 
+  Edit, 
+  Trash, 
+  Loader2, 
+  UserCircle, 
+  Phone, 
+  Mail, 
+  Link as LinkIcon, 
+  AlertTriangle,
+  ChevronDown
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ManagementMemberManager() {
   const db = useFirestore();
@@ -20,6 +40,7 @@ export function ManagementMemberManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
+  const [category, setCategory] = useState<'RW' | 'RT'>('RW');
   const [contactNumber, setContactNumber] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
@@ -32,9 +53,15 @@ export function ManagementMemberManager() {
   const { data: members, isLoading } = useCollection(membersQuery);
 
   const handleSave = () => {
+    if (!name || !role || !contactNumber) {
+      toast({ variant: "destructive", title: "Gagal", description: "Nama, Jabatan, dan No. WA wajib diisi." });
+      return;
+    }
+
     const memberData = {
       name,
       role,
+      category,
       contactNumber,
       email,
       description,
@@ -67,6 +94,7 @@ export function ManagementMemberManager() {
     setEditingId(null);
     setName('');
     setRole('');
+    setCategory('RW');
     setContactNumber('');
     setEmail('');
     setDescription('');
@@ -77,6 +105,7 @@ export function ManagementMemberManager() {
     setEditingId(item.id);
     setName(item.name);
     setRole(item.role);
+    setCategory(item.category || 'RW');
     setContactNumber(item.contactNumber);
     setEmail(item.email || '');
     setDescription(item.description || '');
@@ -104,17 +133,30 @@ export function ManagementMemberManager() {
             </DialogHeader>
             <div className="space-y-6 py-4">
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nama Lengkap</label>
-                <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="Nama dengan gelar..." />
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Kategori Pejabat</label>
+                <Select value={category} onValueChange={(val: 'RW' | 'RT') => setCategory(val)}>
+                  <SelectTrigger className="bg-secondary/50 border-none h-12 rounded-xl font-bold">
+                    <SelectValue placeholder="Pilih Kategori" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-none shadow-2xl">
+                    <SelectItem value="RW" className="font-bold">Pejabat RW (Rukun Warga)</SelectItem>
+                    <SelectItem value="RT" className="font-bold">Pejabat RT (Rukun Tetangga)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nama Lengkap</label>
+                <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl font-bold" placeholder="Nama dengan gelar..." />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Jabatan</label>
-                <Input value={role} onChange={e => setRole(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="Contoh: Ketua RW" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Jabatan</label>
+                <Input value={role} onChange={e => setRole(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl font-bold" placeholder="Contoh: Ketua RW / Ketua RT 01" />
               </div>
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL Foto Profil (HTTPS)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">URL Foto Profil (HTTPS)</label>
                   <div className="relative">
                     <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
                     <Input 
@@ -132,13 +174,13 @@ export function ManagementMemberManager() {
                     <span className="text-[10px] font-black uppercase tracking-widest">Peringatan Tautan</span>
                   </div>
                   <p className="text-[10px] text-red-800 leading-relaxed font-medium">
-                    Jangan gunakan tautan <span className="font-bold underline">Google Photos</span> atau <span className="font-bold underline">Drive</span> secara langsung. Gunakan layanan seperti <span className="font-bold">Imgur</span> atau pastikan tautan berakhiran <span className="font-bold">.jpg / .png</span> agar foto dapat muncul.
+                    Pastikan tautan berakhiran <span className="font-bold">.jpg / .png</span> agar foto dapat muncul. Gunakan layanan hosting gambar yang mendukung hotlinking.
                   </p>
                 </div>
 
                 {profilePictureUrl && (
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block text-center">Pratinjau Foto</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Pratinjau Foto</label>
                     <div className="relative h-44 w-44 mx-auto rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl bg-secondary/20">
                       <img 
                         src={profilePictureUrl} 
@@ -155,22 +197,22 @@ export function ManagementMemberManager() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">No. WhatsApp</label>
-                  <Input value={contactNumber} onChange={e => setContactNumber(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="628..." />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No. WhatsApp</label>
+                  <Input value={contactNumber} onChange={e => setContactNumber(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl font-bold" placeholder="628..." />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Email</label>
-                  <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="email@domain.com" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</label>
+                  <Input value={email} onChange={e => setEmail(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl font-bold" placeholder="email@domain.com" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Biografi Singkat</label>
-                <Input value={description} onChange={e => setDescription(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="Siap melayani warga..." />
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Biografi Singkat</label>
+                <Input value={description} onChange={e => setDescription(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl font-medium" placeholder="Siap melayani warga..." />
               </div>
             </div>
             <DialogFooter className="gap-2">
-              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Batal</Button>
-              <Button onClick={handleSave} className="rounded-xl font-bold bg-primary px-8 text-white">Simpan Profil</Button>
+              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-black uppercase text-[10px] tracking-widest">Batal</Button>
+              <Button onClick={handleSave} className="rounded-xl font-black uppercase text-[10px] tracking-widest bg-primary px-8 text-white h-12 shadow-xl shadow-primary/20">Simpan Profil</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -180,11 +222,15 @@ export function ManagementMemberManager() {
         {isLoading ? (
           <div className="col-span-full py-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" /></div>
         ) : members?.length === 0 ? (
-          <div className="col-span-full py-20 text-center text-muted-foreground font-bold italic">Belum ada pejabat pamong terdaftar.</div>
+          <div className="col-span-full py-20 text-center text-muted-foreground font-black uppercase tracking-widest text-xs italic">Belum ada pejabat pamong terdaftar.</div>
         ) : (
           members?.map((member) => (
             <Card key={member.id} className="border-none shadow-xl rounded-[3rem] overflow-hidden bg-white hover:shadow-2xl transition-all duration-500 group relative">
-              <div className="h-32 bg-primary/10 w-full" />
+              <div className="h-32 bg-primary/10 w-full flex items-center justify-end px-6">
+                <Badge className="bg-primary text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-none">
+                  {member.category || 'RW'}
+                </Badge>
+              </div>
               <CardContent className="p-8 pt-0 -mt-16 text-center">
                 <div className="relative w-32 h-32 mx-auto mb-6">
                   <div className="w-full h-full rounded-[2.5rem] bg-white border-4 border-white shadow-xl overflow-hidden flex items-center justify-center relative">

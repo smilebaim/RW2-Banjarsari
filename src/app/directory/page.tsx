@@ -1,15 +1,67 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowUpRight, Loader2, Users, MessageCircle } from 'lucide-react';
+import { ArrowUpRight, Loader2, Users, MessageCircle, ShieldCheck, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function DirectoryPage() {
   const db = useFirestore();
   const membersQuery = useMemoFirebase(() => query(collection(db, 'rw_management_members'), orderBy('createdAt', 'asc')), [db]);
   const { data: management, isLoading } = useCollection(membersQuery);
+
+  const rwMembers = management?.filter(m => !m.category || m.category === 'RW') || [];
+  const rtMembers = management?.filter(m => m.category === 'RT') || [];
+
+  const MemberCard = ({ person, idx }: { person: any, idx: number }) => (
+    <div className="group relative">
+      <div className="relative h-[480px] w-full overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-secondary/20">
+        <img
+          src={person.profilePictureUrl || PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl}
+          alt={person.name}
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl;
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
+          <div className="mb-4">
+            <Badge className="bg-accent text-accent-foreground text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border-none">
+              {person.role}
+            </Badge>
+          </div>
+          
+          <h3 className="text-2xl font-black mb-2 tracking-tighter group-hover:text-accent transition-colors">
+            {person.name}
+          </h3>
+          
+          <p className="text-[11px] text-white/60 font-medium mb-6 line-clamp-2 italic">
+            "{person.description || 'Siap melayani untuk lingkungan yang lebih baik.'}"
+          </p>
+          
+          <div className="flex items-center gap-3">
+            <a 
+              href={person.contactNumber ? `https://wa.me/${person.contactNumber.replace(/[^0-9]/g, '')}` : '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center gap-3 hover:bg-accent hover:text-accent-foreground transition-all group/wa"
+            >
+              <MessageCircle className="w-5 h-5 text-accent group-hover/wa:text-accent-foreground" />
+              <span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
+            </a>
+            <div className="w-12 h-12 bg-white text-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
+              <ArrowUpRight className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen pb-32">
@@ -34,7 +86,7 @@ export default function DirectoryPage() {
         </section>
 
         {/* Members Grid Section */}
-        <section className="container mx-auto px-6 py-16">
+        <section className="container mx-auto px-6 py-16 space-y-24">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
@@ -47,55 +99,49 @@ export default function DirectoryPage() {
               <p className="text-muted-foreground text-sm mt-2">Sedang dalam proses pembaruan oleh admin.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {management.map((person, idx) => (
-                <div key={idx} className="group relative">
-                  <div className="relative h-[480px] w-full overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-secondary/20">
-                    <img
-                      src={person.profilePictureUrl || PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl}
-                      alt={person.name}
-                      referrerPolicy="no-referrer"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl;
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
-                      <div className="mb-4">
-                        <Badge className="bg-accent text-accent-foreground text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border-none">
-                          {person.role}
-                        </Badge>
-                      </div>
-                      
-                      <h3 className="text-2xl font-black mb-2 tracking-tighter group-hover:text-accent transition-colors">
-                        {person.name}
-                      </h3>
-                      
-                      <p className="text-[11px] text-white/60 font-medium mb-6 line-clamp-2 italic">
-                        "{person.description || 'Siap melayani untuk lingkungan yang lebih baik.'}"
-                      </p>
-                      
-                      <div className="flex items-center gap-3">
-                        <a 
-                          href={person.contactNumber ? `https://wa.me/${person.contactNumber.replace(/[^0-9]/g, '')}` : '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center gap-3 hover:bg-accent hover:text-accent-foreground transition-all group/wa"
-                        >
-                          <MessageCircle className="w-5 h-5 text-accent group-hover/wa:text-accent-foreground" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
-                        </a>
-                        <div className="w-12 h-12 bg-white text-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
-                          <ArrowUpRight className="w-5 h-5" />
-                        </div>
-                      </div>
-                    </div>
+            <>
+              {/* RW Category */}
+              <div>
+                <div className="flex items-center gap-4 mb-12">
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-primary uppercase tracking-tighter leading-none mb-1.5">Pejabat RW 02</h2>
+                    <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest">Pimpinan Tingkat Rukun Warga</p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {rwMembers.map((person, idx) => (
+                    <MemberCard key={person.id} person={person} idx={idx} />
+                  ))}
+                </div>
+                {rwMembers.length === 0 && (
+                  <p className="text-muted-foreground italic text-sm">Belum ada data pejabat RW.</p>
+                )}
+              </div>
+
+              {/* RT Category */}
+              <div>
+                <div className="flex items-center gap-4 mb-12">
+                  <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center text-accent-foreground shadow-inner">
+                    <MapPin className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-primary uppercase tracking-tighter leading-none mb-1.5">Pejabat RT</h2>
+                    <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest">Pimpinan Tingkat Rukun Tetangga</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {rtMembers.map((person, idx) => (
+                    <MemberCard key={person.id} person={person} idx={idx + rwMembers.length} />
+                  ))}
+                </div>
+                {rtMembers.length === 0 && (
+                  <p className="text-muted-foreground italic text-sm">Belum ada data pejabat RT.</p>
+                )}
+              </div>
+            </>
           )}
         </section>
       </main>
