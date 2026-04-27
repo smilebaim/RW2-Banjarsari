@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "AdminUser": {
@@ -321,6 +322,22 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "AdminService": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AdminService",
+      "type": "object",
+      "description": "Represents a public service for document administration (e.g., KK, KTP).",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "color": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description", "createdAt", "updatedAt"]
     }
   },
   "auth": {
@@ -338,12 +355,9 @@
           "schema": {
             "$ref": "#/backend/entities/AdminUser"
           },
-          "description": "Stores administrative roles, where the document ID is the AdminUser's UID. This collection is used for DBAC (Database Access Control) to verify if a user is an administrator and their specific role. Includes denormalized 'role' for authorization independence.",
+          "description": "Stores administrative roles.",
           "params": [
-            {
-              "name": "adminUserId",
-              "description": "The unique Firebase Authentication UID of the administrator."
-            }
+            { "name": "adminUserId", "description": "Admin UID" }
           ]
         }
       },
@@ -354,12 +368,9 @@
           "schema": {
             "$ref": "#/backend/entities/RWManagementMember"
           },
-          "description": "Publicly accessible profiles of RW management team members. Read access is open to all users, while write access is restricted to authenticated administrators. No denormalized authorization fields are required for read access.",
+          "description": "Public management members.",
           "params": [
-            {
-              "name": "memberId",
-              "description": "The unique identifier for an RW Management Member."
-            }
+            { "name": "memberId", "description": "Member ID" }
           ]
         }
       },
@@ -370,12 +381,9 @@
           "schema": {
             "$ref": "#/backend/entities/Announcement"
           },
-          "description": "Master collection for administrators to manage all announcements, regardless of status (Draft, Published, Archived). Full read/write/delete access is restricted to administrators. The 'authorAdminUserId' field is for data integrity, not primary authorization. No denormalized authorization fields are required as access is based on the requesting user's global admin role.",
+          "description": "Master collection for announcements.",
           "params": [
-            {
-              "name": "announcementId",
-              "description": "The unique identifier for an Announcement."
-            }
+            { "name": "announcementId", "description": "Announcement ID" }
           ]
         }
       },
@@ -386,12 +394,9 @@
           "schema": {
             "$ref": "#/backend/entities/Announcement"
           },
-          "description": "Publicly accessible collection containing only announcements with 'Published' status. Read access is open to all users. Write access (for publishing/updating) is restricted to administrators. Documents in this collection are denormalized (copied) from '/announcements_management' when an announcement is published, ensuring QAPs for public list operations.",
+          "description": "Published announcements.",
           "params": [
-            {
-              "name": "announcementId",
-              "description": "The unique identifier for a published Announcement."
-            }
+            { "name": "announcementId", "description": "Announcement ID" }
           ]
         }
       },
@@ -402,12 +407,9 @@
           "schema": {
             "$ref": "#/backend/entities/ResidentFeedback"
           },
-          "description": "Collection for storing resident feedback and reports. Anonymous users or residents can create new feedback. Read/update/delete access is strictly restricted to administrators. The 'assignedToRWManagementMemberId' field is for workflow, not primary authorization. No denormalized authorization fields are required as access is based on the requesting user's global admin role.",
+          "description": "Resident feedback submissions.",
           "params": [
-            {
-              "name": "feedbackId",
-              "description": "The unique identifier for a Resident Feedback submission."
-            }
+            { "name": "feedbackId", "description": "Feedback ID" }
           ]
         }
       },
@@ -418,16 +420,26 @@
           "schema": {
             "$ref": "#/backend/entities/ImportantContact"
           },
-          "description": "Publicly accessible list of important local contacts. Read access is open to all users. Write access is restricted to administrators. No denormalized authorization fields are required for read access.",
+          "description": "Important local contacts.",
           "params": [
-            {
-              "name": "contactId",
-              "description": "The unique identifier for an Important Contact."
-            }
+            { "name": "contactId", "description": "Contact ID" }
+          ]
+        }
+      },
+      {
+        "path": "/admin_services/{serviceId}",
+        "definition": {
+          "entityName": "AdminService",
+          "schema": {
+            "$ref": "#/backend/entities/AdminService"
+          },
+          "description": "Information about administrative services (KK, KTP, etc).",
+          "params": [
+            { "name": "serviceId", "description": "Service ID" }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure for Banjarsari Connect prioritizes secure, scalable, and debuggable authorization by strictly adhering to the core design principles. The primary strategy involves **Structural Segregation** and **Authorization Independence via Denormalization**.\n\n1.  **Authorization Independence (CRITICAL):** Authorization is never dependent on fetching parent documents. For administrators, roles are explicitly stored in a dedicated top-level collection (`/admin_roles/{adminUserId}`). This allows security rules to use the efficient `exists(/databases/$(database)/documents/admin_roles/$(request.auth.uid))` check, completely avoiding `get()` calls and enabling atomic operations.\n\n2.  **Structural Segregation (Homogeneous Security Posture):** Data with different security requirements are housed in separate collections. This simplifies security rules immensely, as all documents within a given collection share the same access patterns:\n    *   **Public Data:** Collections like `/rw_management_members`, `/announcements_public`, and `/important_contacts` are designed for public read access. This makes `list` operations for residents (`QAPs`) inherently secure and performant.\n    *   **Admin-Only Data:** Collections like `/admin_roles`, `/announcements_management`, and `/resident_feedback` are strictly for administrative access (read/write), ensuring sensitive data is protected.\n\n3.  **Denormalization for QAPs and Atomic Operations:**\n    *   **Admin Roles:** The existence of a document in `/admin_roles/{adminUserId}` denormalizes an administrator's status, allowing direct authorization checks without complex lookups.\n    *   **Announcements:** To satisfy the requirement for both public news feeds and private administrative management, `Announcement` data is logically segregated. The `/announcements_management/{announcementId}` collection serves as the single source of truth for administrators to create, update, and manage all announcements (drafts, published, archived). When an announcement's status changes to 'Published', it is **denormalized (copied)** to the `/announcements_public/{announcementId}` collection. This ensures that the `/announcements_public` collection contains *only* published announcements, allowing any resident to securely `list` and `read` them without complex rule logic or performance overhead, directly addressing the QAPs principle. Administrators manage the master record in `/announcements_management` and trigger the replication to `/announcements_public` upon publish, enabling atomic updates to the public view.\n\n4.  **Access Modeling:**\n    *   **Global Roles (DBAC):** Implemented via `/admin_roles/{adminUserId}` for administrator authorization.\n    *   **Public Data:** Collections like `/rw_management_members` and `/important_contacts` are public read.\n    *   **Private Data:** `ResidentFeedback` and `Announcements_Management` are private to administrators.\n\nThis design minimizes rule complexity, maximizes security, and ensures that `list` operations (QAPs) are efficient and naturally adhere to security policies through structural clarity, rather than relying on complex in-rule filtering or cross-document checks."
+    "reasoning": "Standard structure with added /admin_services for dynamic document administration info."
   }
 }

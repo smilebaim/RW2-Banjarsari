@@ -1,49 +1,38 @@
 
 'use client';
 
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { FeedbackForm } from '@/components/feedback/FeedbackForm';
 import { 
   MessageSquare, 
   ShieldCheck, 
-  Heart, 
   Zap, 
   ArrowRight, 
   FileText, 
   CreditCard, 
   Users, 
   ClipboardList,
-  Baby
+  Baby,
+  Loader2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
+const ICON_MAP: Record<string, any> = {
+  Users,
+  CreditCard,
+  ClipboardList,
+  Baby,
+  FileText,
+  ShieldCheck,
+  Heart: Zap
+};
+
 export default function FeedbackPage() {
-  const adminServices = [
-    {
-      title: "Kartu Keluarga (KK)",
-      description: "Pengurusan KK baru, penambahan anggota keluarga, atau perbaikan data.",
-      icon: Users,
-      color: "bg-blue-500/10 text-blue-600"
-    },
-    {
-      title: "KTP-el & KIA",
-      description: "Informasi perekaman KTP-el atau pembuatan Kartu Identitas Anak (KIA).",
-      icon: CreditCard,
-      color: "bg-green-500/10 text-green-600"
-    },
-    {
-      title: "Surat Pengantar RW",
-      description: "Pembuatan surat pengantar untuk berbagai keperluan administrasi kelurahan.",
-      icon: ClipboardList,
-      color: "bg-orange-500/10 text-orange-600"
-    },
-    {
-      title: "Akta Kelahiran/Kematian",
-      description: "Panduan persyaratan pelaporan kelahiran dan kematian warga.",
-      icon: Baby,
-      color: "bg-purple-500/10 text-purple-600"
-    }
-  ];
+  const db = useFirestore();
+  const servicesQuery = useMemoFirebase(() => query(collection(db, 'admin_services'), orderBy('createdAt', 'asc')), [db]);
+  const { data: adminServices, isLoading } = useCollection(servicesQuery);
 
   return (
     <div className="flex flex-col min-h-screen pb-32">
@@ -114,28 +103,37 @@ export default function FeedbackPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {adminServices.map((service, idx) => (
-                  <Card key={idx} className="border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white border border-secondary/20">
-                    <CardContent className="p-8">
-                      <div className={`w-14 h-14 ${service.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                        <service.icon className="w-7 h-7" />
-                      </div>
-                      <h3 className="text-lg font-black text-primary uppercase tracking-tighter mb-3 leading-none">
-                        {service.title}
-                      </h3>
-                      <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                        {service.description}
-                      </p>
-                      <div className="mt-6 pt-6 border-t border-secondary/50">
-                        <Badge variant="ghost" className="text-[8px] font-black uppercase tracking-widest p-0 text-primary/40 group-hover:text-primary transition-colors">
-                          Siapkan Berkas <ArrowRight className="inline ml-1 w-3 h-3" />
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {isLoading ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {adminServices?.map((service, idx) => {
+                    const IconComp = ICON_MAP[service.icon || 'FileText'] || FileText;
+                    return (
+                      <Card key={idx} className="border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:-translate-y-2 transition-all duration-500 bg-white border border-secondary/20">
+                        <CardContent className="p-8">
+                          <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform", service.color || "bg-blue-500/10 text-blue-600")}>
+                            <IconComp className="w-7 h-7" />
+                          </div>
+                          <h3 className="text-lg font-black text-primary uppercase tracking-tighter mb-3 leading-none">
+                            {service.title}
+                          </h3>
+                          <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                            {service.description}
+                          </p>
+                          <div className="mt-6 pt-6 border-t border-secondary/50">
+                            <Badge variant="ghost" className="text-[8px] font-black uppercase tracking-widest p-0 text-primary/40 group-hover:text-primary transition-colors">
+                              Siapkan Berkas <ArrowRight className="inline ml-1 w-3 h-3" />
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="bg-zinc-900 rounded-[3rem] p-10 md:p-14 text-white relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/30 transition-all duration-1000"></div>

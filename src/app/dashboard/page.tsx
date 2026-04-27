@@ -10,6 +10,7 @@ import { AdminNewsManager } from '@/components/admin/AdminNewsManager';
 import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
+import { AdminServiceManager } from '@/components/admin/AdminServiceManager';
 import { doc, setDoc, deleteDoc, collection, getDocs, query } from 'firebase/firestore';
 import { 
   Users, 
@@ -26,7 +27,8 @@ import {
   Zap,
   Menu,
   Trash2,
-  MessageCircle
+  MessageCircle,
+  FileText
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +58,7 @@ const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
   { id: 'map', label: 'Infrastruktur', icon: MapIcon },
   { id: 'news', label: 'Kelola Berita', icon: Newspaper },
+  { id: 'services', label: 'Layanan Dokumen', icon: FileText },
   { id: 'feedback', label: 'Kontrol Aspirasi', icon: MessageCircle },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Struktur Pengurus', icon: Users },
@@ -102,6 +105,7 @@ export default function DashboardPage() {
         'rw_management_members',
         'important_contacts',
         'resident_feedback',
+        'admin_services',
         'map_settings',
         'system_settings'
       ];
@@ -131,7 +135,6 @@ export default function DashboardPage() {
     if (!user) return;
     setIsProcessing(true);
     try {
-      // Step 1: Create Admin Role (ESSENTIAL FOR PERMISSIONS)
       const roleData = {
         id: user.uid,
         username: user.email?.split('@')[0] || 'admin',
@@ -143,7 +146,6 @@ export default function DashboardPage() {
       
       await setDoc(doc(db, 'admin_roles', user.uid), roleData);
 
-      // Step 2: Initialize Map Settings
       await setDoc(doc(db, 'map_settings', 'rw02_boundary'), {
         polygons: "[]",
         lines: "[]",
@@ -366,6 +368,7 @@ export default function DashboardPage() {
 
           {activeTab === 'map' && <MapControlView />}
           {activeTab === 'news' && <AdminNewsManager />}
+          {activeTab === 'services' && <AdminServiceManager />}
           {activeTab === 'contacts' && <ContactManager />}
           {activeTab === 'feedback' && <FeedbackAnalysisView />}
           {activeTab === 'users' && <ManagementMemberManager />}
