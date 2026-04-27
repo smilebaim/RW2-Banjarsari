@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { Home, Newspaper, Users, FileText, Phone, ShieldCheck } from 'lucide-react';
+import { Home, Newspaper, Users, FileText, Phone, ShieldCheck, MessageSquare } from 'lucide-react';
 
 const navItems = [
   { label: 'Beranda', href: '/', icon: Home },
   { label: 'Berita', href: '/news', icon: Newspaper },
   { label: 'Layanan Dokumen', href: '/services', icon: FileText },
-  { label: 'Pengurus & Aspirasi', href: '/directory', icon: Users },
+  { label: 'Pengurus', href: '/directory', icon: Users },
+  { label: 'Aspirasi', href: '/feedback', icon: MessageSquare },
   { label: 'Kontak', href: '/contacts', icon: Phone },
 ];
 
