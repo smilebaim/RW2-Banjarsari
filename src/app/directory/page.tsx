@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -17,7 +16,7 @@ export default function DirectoryPage() {
 
   const MemberCard = ({ person, idx }: { person: any, idx: number }) => (
     <div className="group relative">
-      <div className="relative h-[480px] w-full overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-secondary/20">
+      <div className="relative h-[350px] w-full overflow-hidden rounded-[2.5rem] shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 bg-secondary/20">
         <img
           src={person.profilePictureUrl || PlaceHolderImages[idx % PlaceHolderImages.length].imageUrl}
           alt={person.name}
@@ -29,18 +28,18 @@ export default function DirectoryPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
         
-        <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
-          <div className="mb-4">
-            <Badge className="bg-accent text-accent-foreground text-[9px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border-none">
+        <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
+          <div className="mb-3">
+            <Badge className="bg-accent text-accent-foreground text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-none">
               {person.role}
             </Badge>
           </div>
           
-          <h3 className="text-2xl font-black mb-2 tracking-tighter group-hover:text-accent transition-colors">
+          <h3 className="text-xl font-black mb-1 tracking-tighter group-hover:text-accent transition-colors">
             {person.name}
           </h3>
           
-          <p className="text-[11px] text-white/60 font-medium mb-6 line-clamp-2 italic">
+          <p className="text-[10px] text-white/60 font-medium mb-4 line-clamp-2 italic">
             "{person.description || 'Siap melayani untuk lingkungan yang lebih baik.'}"
           </p>
           
@@ -49,13 +48,13 @@ export default function DirectoryPage() {
               href={person.contactNumber ? `https://wa.me/${person.contactNumber.replace(/[^0-9]/g, '')}` : '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center gap-3 hover:bg-accent hover:text-accent-foreground transition-all group/wa"
+              className="flex-1 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center gap-3 hover:bg-accent hover:text-accent-foreground transition-all group/wa"
             >
-              <MessageCircle className="w-5 h-5 text-accent group-hover/wa:text-accent-foreground" />
-              <span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
+              <MessageCircle className="w-4 h-4 text-accent group-hover/wa:text-accent-foreground" />
+              <span className="text-[9px] font-black uppercase tracking-widest">WhatsApp</span>
             </a>
-            <div className="w-12 h-12 bg-white text-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
-              <ArrowUpRight className="w-5 h-5" />
+            <div className="w-10 h-10 bg-white text-primary rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-45 transition-transform duration-500 shrink-0">
+              <ArrowUpRight className="w-4 h-4" />
             </div>
           </div>
         </div>
@@ -111,7 +110,7 @@ export default function DirectoryPage() {
                     <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest">Pimpinan Tingkat Rukun Warga</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                   {rwMembers.map((person, idx) => (
                     <MemberCard key={person.id} person={person} idx={idx} />
                   ))}
@@ -132,7 +131,7 @@ export default function DirectoryPage() {
                     <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest">Pimpinan Tingkat Rukun Tetangga</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                   {rtMembers.map((person, idx) => (
                     <MemberCard key={person.id} person={person} idx={idx + rwMembers.length} />
                   ))}
