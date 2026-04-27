@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -8,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Users, Plus, Edit, Trash, Loader2, UserCircle, Phone, Mail, Image as ImageIcon, Link as LinkIcon, Info } from 'lucide-react';
+import { Users, Plus, Edit, Trash, Loader2, UserCircle, Phone, Mail, Image as ImageIcon, Link as LinkIcon, Info, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
@@ -99,11 +98,11 @@ export function ManagementMemberManager() {
               <Plus className="w-5 h-5" /> Pejabat Baru
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md rounded-[2.5rem] p-8 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-md rounded-[2.5rem] p-8 max-h-[90vh] overflow-y-auto border-none shadow-2xl">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Profil' : 'Tambah Pejabat Pamong'}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-6 py-4">
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nama Lengkap</label>
                 <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="Nama dengan gelar..." />
@@ -112,24 +111,48 @@ export function ManagementMemberManager() {
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Jabatan</label>
                 <Input value={role} onChange={e => setRole(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="Contoh: Ketua RW" />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL Foto Profil (HTTPS)</label>
-                <div className="relative">
-                  <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
-                  <Input 
-                    value={profilePictureUrl} 
-                    onChange={e => setProfilePictureUrl(e.target.value)} 
-                    className="pl-12 bg-secondary/50 border-none h-12 rounded-xl" 
-                    placeholder="https://..." 
-                  />
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL Foto Profil (HTTPS)</label>
+                  <div className="relative">
+                    <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-40" />
+                    <Input 
+                      value={profilePictureUrl} 
+                      onChange={e => setProfilePictureUrl(e.target.value)} 
+                      className="pl-12 bg-secondary/50 border-none h-12 rounded-xl font-medium" 
+                      placeholder="https://..." 
+                    />
+                  </div>
                 </div>
-                <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-xl mt-2">
-                  <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-blue-700 italic">
-                    Gunakan tautan langsung (akhiran .jpg atau .png). Hindari tautan "Share" dari Google Photos karena tidak bisa ditampilkan sebagai gambar.
+
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Peringatan Tautan</span>
+                  </div>
+                  <p className="text-[10px] text-red-800 leading-relaxed font-medium">
+                    Jangan gunakan tautan <span className="font-bold underline">Google Photos</span> atau <span className="font-bold underline">Drive</span> secara langsung. Gunakan layanan seperti <span className="font-bold">Imgur</span> atau pastikan tautan berakhiran <span className="font-bold">.jpg / .png</span> agar foto dapat muncul.
                   </p>
                 </div>
+
+                {profilePictureUrl && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block text-center">Pratinjau Foto</label>
+                    <div className="relative h-44 w-44 mx-auto rounded-[2rem] overflow-hidden border-4 border-white shadow-2xl bg-secondary/20">
+                      <img 
+                        src={profilePictureUrl} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/400?text=Tautan+Gambar+Salah';
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">No. WhatsApp</label>
@@ -144,17 +167,6 @@ export function ManagementMemberManager() {
                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Biografi Singkat</label>
                 <Input value={description} onChange={e => setDescription(e.target.value)} className="bg-secondary/50 border-none h-12 rounded-xl" placeholder="Siap melayani warga..." />
               </div>
-
-              {profilePictureUrl && (
-                <div className="mt-4">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 block">Pratinjau Foto</label>
-                  <div className="relative h-40 w-40 mx-auto rounded-3xl overflow-hidden border-4 border-secondary shadow-inner bg-secondary/20">
-                    <img src={profilePictureUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/200?text=Format+Salah';
-                    }} />
-                  </div>
-                </div>
-              )}
             </div>
             <DialogFooter className="gap-2">
               <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Batal</Button>
@@ -177,7 +189,14 @@ export function ManagementMemberManager() {
                 <div className="relative w-32 h-32 mx-auto mb-6">
                   <div className="w-full h-full rounded-[2.5rem] bg-white border-4 border-white shadow-xl overflow-hidden flex items-center justify-center relative">
                     {member.profilePictureUrl ? (
-                      <img src={member.profilePictureUrl} alt={member.name} className="w-full h-full object-cover" />
+                      <img 
+                        src={member.profilePictureUrl} 
+                        alt={member.name} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://placehold.co/400?text=Error';
+                        }}
+                      />
                     ) : (
                       <UserCircle className="w-20 h-20 text-secondary" />
                     )}
