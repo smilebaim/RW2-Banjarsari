@@ -10,7 +10,7 @@ import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
 import { AdminServiceManager } from '@/components/admin/AdminServiceManager';
-import { doc, setDoc, deleteDoc, collection, getDocs, query } from 'firebase/firestore';
+import { doc, setDoc, collection, query } from 'firebase/firestore';
 import { 
   Users, 
   Newspaper, 
@@ -21,11 +21,9 @@ import {
   Loader2,
   ShieldCheck,
   Map as MapIcon,
-  Database,
   Lock,
   Zap,
   Menu,
-  Trash2,
   FileText
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,17 +38,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Ringkasan', icon: LayoutDashboard },
@@ -93,42 +80,7 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-  const clearAllData = async () => {
-    setIsProcessing(true);
-    try {
-      const collections = [
-        'announcements_management',
-        'announcements_public',
-        'rw_management_members',
-        'important_contacts',
-        'resident_feedback',
-        'admin_services',
-        'map_settings',
-        'system_settings'
-      ];
-
-      for (const colName of collections) {
-        const querySnapshot = await getDocs(collection(db, colName));
-        const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
-        await Promise.all(deletePromises);
-      }
-
-      toast({
-        title: "Data Dihapus",
-        description: "Semua data telah berhasil dihapus.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Gagal Menghapus",
-        description: error.message,
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleImportDummyData = async () => {
+  const handleInitializeAdmin = async () => {
     if (!user) return;
     setIsProcessing(true);
     try {
@@ -187,10 +139,10 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-4">
               <h1 className="text-3xl font-black text-primary uppercase tracking-tighter">Inisialisasi Sistem</h1>
-              <p className="text-muted-foreground font-medium text-sm italic">Aktifkan dashboard Anda untuk mulai mengelola infrastruktur dan informasi wilayah RW 02.</p>
+              <p className="text-muted-foreground font-medium text-sm italic">Aktifkan dashboard Anda untuk mulai mengelola infrastruktur dan informasi wilayah RW 02 Banjarsari.</p>
             </div>
             <Button 
-              onClick={handleImportDummyData} 
+              onClick={handleInitializeAdmin} 
               disabled={isProcessing}
               className="w-full h-18 rounded-[1.5rem] bg-primary text-white text-lg font-black uppercase tracking-widest shadow-2xl shadow-primary/30 gap-4 transition-all hover:scale-105 py-6"
             >
@@ -238,28 +190,7 @@ export default function DashboardPage() {
         ))}
       </nav>
 
-      <div className="pt-10 border-t border-secondary/50 space-y-5">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button className="w-full flex items-center gap-5 px-6 py-4 rounded-[1.5rem] text-orange-600 hover:bg-orange-50 font-black transition-all group">
-              <Trash2 className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-              <span className="text-[10px] uppercase tracking-widest">Kosongkan Data</span>
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="rounded-[3rem] p-12 border-none shadow-2xl">
-            <AlertDialogHeader className="space-y-4">
-              <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter">Hapus Seluruh Data?</AlertDialogTitle>
-              <AlertDialogDescription className="font-medium text-sm italic">
-                Tindakan ini permanen. Semua berita, kontak, profil pengurus, dan data infrastruktur peta akan dihapus secara menyeluruh.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="mt-10 gap-4">
-              <AlertDialogCancel className="rounded-2xl h-14 font-black uppercase tracking-widest text-[10px]">Batal</AlertDialogCancel>
-              <AlertDialogAction onClick={clearAllData} className="rounded-2xl h-14 bg-red-600 hover:bg-red-700 font-black uppercase tracking-widest text-[10px] text-white">Hapus Permanen</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
+      <div className="pt-10 border-t border-secondary/50">
         <Button 
           variant="ghost" 
           onClick={handleLogout}
@@ -300,9 +231,6 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-6 lg:gap-10">
             <div className="flex gap-3">
-              <Button size="icon" variant="ghost" className="rounded-2xl bg-secondary/80 w-12 h-12 shadow-sm hidden md:flex" onClick={handleImportDummyData} disabled={isProcessing}>
-                <Database className={`w-6 h-6 text-primary ${isProcessing ? 'animate-spin' : ''}`} />
-              </Button>
               <Button size="icon" variant="ghost" className="rounded-2xl bg-secondary/80 w-12 h-12 shadow-sm">
                 <Settings className="w-6 h-6 text-muted-foreground" />
               </Button>
