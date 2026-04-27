@@ -13,9 +13,7 @@ import {
   Activity,
   MapPin,
   Zap,
-  Layers,
-  Plus,
-  Minus
+  Layers
 } from 'lucide-react';
 import {
   Tooltip,
@@ -129,9 +127,6 @@ export default function Home() {
       return next;
     });
   };
-
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 1, 19));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 1, 5));
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-[#020403]">
@@ -292,36 +287,6 @@ export default function Home() {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                size="icon" 
-                onClick={handleZoomIn}
-                className="w-11 h-11 rounded-xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/40 hover:bg-primary hover:text-white transition-all duration-500 group"
-              >
-                <Plus className="w-5 h-5 transition-transform group-hover:scale-125" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
-              Zoom In
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                size="icon" 
-                onClick={handleZoomOut}
-                className="w-11 h-11 rounded-xl bg-black/50 backdrop-blur-3xl shadow-2xl border border-white/10 text-white/40 hover:bg-primary hover:text-white transition-all duration-500 group"
-              >
-                <Minus className="w-5 h-5 transition-transform group-hover:scale-125" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/95 text-white border border-white/10 font-black text-[8px] uppercase tracking-widest ml-3 px-3 py-1.5 rounded-lg shadow-2xl">
-              Zoom Out
-            </TooltipContent>
-          </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
