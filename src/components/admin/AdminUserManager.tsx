@@ -12,6 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { ShieldCheck, UserPlus, Search, Edit3, Trash2, Loader2, ShieldAlert, Lock, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const ROLE_OPTIONS = [
   { value: 'SuperAdmin', label: 'Super Admin', desc: 'Akses penuh ke seluruh sistem dan manajemen admin.' },
