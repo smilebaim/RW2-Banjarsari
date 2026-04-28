@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { ShieldCheck, UserPlus, Search, Edit3, Trash2, Loader2, ShieldAlert, Lock, Info, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, UserPlus, Search, Edit3, Trash2, Loader2, ShieldAlert, Lock, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -53,6 +53,16 @@ export function AdminUserManager() {
   const handleSave = () => {
     if (!adminUid || !email || !username) {
       toast({ variant: "destructive", title: "Data tidak lengkap", description: "UID, Email, dan Nama Pengguna wajib diisi." });
+      return;
+    }
+
+    // Basic validation to prevent using email as UID
+    if (adminUid.includes('@')) {
+      toast({ 
+        variant: "destructive", 
+        title: "UID Tidak Valid", 
+        description: "User ID (UID) biasanya berupa rangkaian karakter acak, bukan alamat email. Periksa Firebase Console." 
+      });
       return;
     }
 
@@ -126,13 +136,25 @@ export function AdminUserManager() {
             </DialogHeader>
             <div className="space-y-6 py-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">User ID (Firebase UID)</label>
+                <div className="flex items-center justify-between px-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">User ID (Firebase UID)</label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertCircle className="w-3 h-3 text-amber-500 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-zinc-900 text-white p-4 rounded-xl text-[10px] max-w-[200px]">
+                        UID adalah kode unik di Firebase Authentication. Jangan masukkan Email di sini.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Input 
                   value={adminUid} 
                   onChange={e => setAdminUid(e.target.value)} 
                   disabled={!!editingId}
                   className="bg-secondary/50 border-none h-14 rounded-xl font-mono text-xs" 
-                  placeholder="Masukkan UID pengguna..." 
+                  placeholder="Contoh: aWH15p65P8h4ieyxnS..." 
                 />
               </div>
 
@@ -201,9 +223,10 @@ export function AdminUserManager() {
                         <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
                           <ShieldCheck className="w-10 h-10" />
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-black text-xl mb-1 tracking-tighter uppercase text-gray-900 leading-none">{admin.username}</h4>
-                          <p className="text-[11px] font-medium text-muted-foreground mb-3">{admin.email}</p>
+                          <p className="text-[11px] font-medium text-muted-foreground mb-1">{admin.email}</p>
+                          <p className="text-[9px] font-mono text-muted-foreground/50 mb-3 truncate max-w-[200px]">UID: {admin.id}</p>
                           <Badge className="bg-accent/20 text-accent-foreground border-none font-black text-[9px] px-3 uppercase tracking-widest">
                             {admin.role}
                           </Badge>

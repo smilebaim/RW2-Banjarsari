@@ -25,7 +25,8 @@ service cloud.firestore {
     match /admin_roles/{adminUserId} {
       allow get: if isOwner(adminUserId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(adminUserId);
+      // Allow creation if the user is creating their own role (init) OR if they are an existing admin
+      allow create: if isOwner(adminUserId) || isAdmin();
       allow update: if isAdmin() && (request.resource.data.id == resource.data.id);
       allow delete: if isAdmin();
     }
