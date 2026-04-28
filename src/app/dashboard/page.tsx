@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -60,18 +61,20 @@ export default function DashboardPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const newsRef = useMemoFirebase(() => user ? query(collection(db, 'announcements_management')) : null, [db, user]);
+  // First, get the current user's role to check if they are an admin
+  const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
+  const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
+
+  // Only fetch these collections if the user is confirmed as an admin to avoid permission errors
+  const newsRef = useMemoFirebase(() => (user && adminRole) ? query(collection(db, 'announcements_management')) : null, [db, user, adminRole]);
   const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
   const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
-  const adminsRef = useMemoFirebase(() => query(collection(db, 'admin_roles')), [db]);
+  const adminsRef = useMemoFirebase(() => (user && adminRole) ? query(collection(db, 'admin_roles')) : null, [db, user, adminRole]);
 
   const { data: newsItems } = useCollection(newsRef);
   const { data: contactItems } = useCollection(contactsRef);
   const { data: memberItems } = useCollection(membersRef);
   const { data: adminItems } = useCollection(adminsRef);
-
-  const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
-  const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
