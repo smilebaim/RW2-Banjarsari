@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -85,6 +85,232 @@ const CATEGORIES = {
   marker: ['Keamanan (Pos)', 'Kesehatan', 'Ibadah', 'Pendidikan', 'Niaga/Warung', 'Sosial/Budaya', 'Infrastruktur IT', 'Lainnya']
 };
 
+/**
+ * Standalone component for Object Card to prevent re-renders losing focus
+ */
+const ObjectCard = memo(({ 
+  item, 
+  type, 
+  isFocused, 
+  onFocus, 
+  onRemove, 
+  onUpdate 
+}: { 
+  item: MapObject, 
+  type: 'polygon' | 'line' | 'marker',
+  isFocused: boolean,
+  onFocus: (coords: any, id: string) => void,
+  onRemove: (type: any, id: string) => void,
+  onUpdate: (type: any, id: string, property: keyof MapObject, value: any) => void
+}) => {
+  const Icon = type === 'polygon' ? Hexagon : type === 'line' ? Route : MapPin;
+  const accentColor = type === 'polygon' ? 'text-green-600' : type === 'line' ? 'text-blue-600' : 'text-red-600';
+
+  return (
+    <Card 
+      className={cn(
+        "rounded-[2.5rem] border-2 transition-all duration-500 overflow-hidden bg-white",
+        isFocused ? "border-primary shadow-2xl ring-4 ring-primary/5" : "border-secondary hover:border-primary/20 shadow-sm"
+      )}
+    >
+      <CardContent className="p-0">
+        <div className={cn("p-6 flex items-center justify-between border-b", isFocused ? "bg-primary/5 border-primary/10" : "bg-secondary/5 border-secondary")}>
+          <div className="flex items-center gap-4">
+            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner bg-white")}>
+              <Icon className={cn("w-6 h-6", accentColor)} />
+            </div>
+            <div>
+              <span className={cn("text-[9px] font-black uppercase tracking-widest block leading-none mb-1 opacity-70")}>
+                {type === 'polygon' ? 'Area Wilayah' : type === 'line' ? 'Infrastruktur Jalur' : 'Titik Fasilitas'}
+              </span>
+              <p className="text-sm font-black uppercase tracking-tighter text-gray-900 leading-none">{item.name || 'Tanpa Nama'}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => onFocus(item.coords, item.id)} 
+              size="icon" 
+              variant="ghost" 
+              className="h-10 w-10 rounded-xl bg-white shadow-sm hover:bg-primary hover:text-white transition-all"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </Button>
+            <Button 
+              onClick={() => onRemove(type, item.id)} 
+              size="icon" 
+              variant="ghost" 
+              className="h-10 w-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white shadow-sm transition-all"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <Tabs defaultValue="info" className="w-full">
+          <TabsList className="w-full h-14 bg-secondary/30 rounded-none border-b border-secondary p-0">
+            <TabsTrigger value="info" className="flex-1 h-full rounded-none data-[state=active]:bg-white data-[state=active]:text-primary font-black uppercase text-[9px] tracking-widest gap-2">
+              <Type className="w-3.5 h-3.5" /> Detail
+            </TabsTrigger>
+            <TabsTrigger value="style" className="flex-1 h-full rounded-none data-[state=active]:bg-white data-[state=active]:text-primary font-black uppercase text-[9px] tracking-widest gap-2">
+              <Palette className="w-3.5 h-3.5" /> Gaya
+            </TabsTrigger>
+            <TabsTrigger value="media" className="flex-1 h-full rounded-none data-[state=active]:bg-white data-[state=active]:text-primary font-black uppercase text-[9px] tracking-widest gap-2">
+              <ImageIcon className="w-3.5 h-3.5" /> Media
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="p-8">
+            <TabsContent value="info" className="mt-0 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-2">
+                    <Tag className="w-3 h-3" /> Label Nama Objek
+                  </label>
+                  <Input 
+                    value={item.name} 
+                    onChange={(e) => onUpdate(type, item.id, 'name', e.target.value)}
+                    className="bg-secondary/40 border-none h-12 text-xs font-bold rounded-xl focus:ring-primary shadow-inner"
+                    placeholder="Contoh: Balai Warga RW 02"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-2">
+                    <Layers className="w-3 h-3" /> Kategori
+                  </label>
+                  <Select 
+                    value={item.category || 'Lainnya'} 
+                    onValueChange={(val) => onUpdate(type, item.id, 'category', val)}
+                  >
+                    <SelectTrigger className="h-12 bg-secondary/40 border-none text-xs font-bold rounded-xl shadow-inner">
+                      <SelectValue placeholder="Pilih Kategori" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                      {CATEGORIES[type].map(cat => (
+                        <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-2">
+                    <Info className="w-3 h-3" /> Deskripsi Tambahan
+                  </label>
+                  <Textarea 
+                    value={item.description || ''} 
+                    onChange={(e) => onUpdate(type, item.id, 'description', e.target.value)}
+                    className="bg-secondary/40 border-none text-[11px] font-medium rounded-2xl min-h-[100px] leading-relaxed p-4 shadow-inner"
+                    placeholder="Catatan kondisi, kapasitas, atau informasi lainnya..."
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="style" className="mt-0 space-y-6">
+              <div className="space-y-6">
+                <div className="p-5 bg-secondary/30 rounded-3xl space-y-4 shadow-inner">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                      <Palette className="w-3.5 h-3.5" /> Warna Identitas
+                    </label>
+                    <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {COLOR_PALETTE.map(color => (
+                      <button
+                        key={color.value}
+                        onClick={() => onUpdate(type, item.id, 'color', color.value)}
+                        className={cn(
+                          "w-7 h-7 rounded-full border-2 transition-all hover:scale-110",
+                          item.color === color.value ? "border-white shadow-lg ring-2 ring-primary/20 scale-110" : "border-transparent opacity-60 hover:opacity-100"
+                        )}
+                        style={{ backgroundColor: color.value }}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {type === 'marker' && (
+                  <div className="p-5 bg-secondary/30 rounded-3xl space-y-4 shadow-inner">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5" /> Ikon Penanda
+                    </label>
+                    <div className="grid grid-cols-6 gap-2">
+                      {ICON_LIST.map((iconObj) => (
+                        <button
+                          key={iconObj.value}
+                          onClick={() => onUpdate('marker', item.id, 'icon', iconObj.value)}
+                          className={cn(
+                            "h-10 rounded-xl flex items-center justify-center transition-all border",
+                            item.icon === iconObj.value 
+                              ? "bg-primary text-white border-primary shadow-md" 
+                              : "bg-white/50 border-secondary text-muted-foreground hover:bg-white"
+                          )}
+                          title={iconObj.label}
+                        >
+                          <Crosshair className="w-4 h-4" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-4 border-2 border-dashed border-secondary rounded-2xl space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                    <Hash className="w-3 h-3" /> Data Koordinat (Auto)
+                  </div>
+                  <p className="text-[9px] font-mono text-muted-foreground leading-none truncate bg-white p-2 rounded border border-secondary shadow-inner">
+                    {JSON.stringify(item.coords)}
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="media" className="mt-0 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between px-1">
+                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                      <LinkIcon className="w-3 h-3" /> URL Foto Lapangan
+                    </label>
+                    {item.imageUrl && <Badge className="bg-green-500/10 text-green-600 text-[8px] border-none">Media Aktif</Badge>}
+                  </div>
+                  <Input 
+                    value={item.imageUrl || ''} 
+                    onChange={(e) => onUpdate(type, item.id, 'imageUrl', e.target.value)}
+                    className="bg-secondary/40 border-none h-12 text-[10px] font-bold rounded-xl shadow-inner"
+                    placeholder="Tempel tautan gambar (HTTPS)..."
+                  />
+                </div>
+                
+                {item.imageUrl ? (
+                  <div className="relative h-56 w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-secondary/10 group/img">
+                    <img 
+                      src={item.imageUrl} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover/img:scale-110"
+                      onError={(e) => (e.currentTarget.src = 'https://placehold.co/600x400?text=Tautan+Gambar+Salah')}
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                      <Maximize2 className="text-white w-8 h-8" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-56 w-full rounded-[2.5rem] bg-secondary/20 border-2 border-dashed border-secondary flex flex-col items-center justify-center text-muted-foreground gap-3">
+                    <ImageIcon className="w-10 h-10 opacity-20" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Belum ada foto</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+});
+ObjectCard.displayName = 'ObjectCard';
+
 export function MapControlView() {
   const db = useFirestore();
   const { toast } = useToast();
@@ -138,7 +364,7 @@ export function MapControlView() {
     });
   };
 
-  const updateObjectProperty = (type: 'line' | 'marker' | 'polygon', id: string, property: keyof MapObject, value: any) => {
+  const updateObjectProperty = useCallback((type: 'line' | 'marker' | 'polygon', id: string, property: keyof MapObject, value: any) => {
     setStateData(prev => {
       const target = type === 'polygon' ? 'polygons' : type === 'line' ? 'lines' : 'markers';
       return { 
@@ -146,17 +372,17 @@ export function MapControlView() {
         [target]: prev[target].map(obj => obj.id === id ? { ...obj, [property]: value } : obj) 
       };
     });
-  };
+  }, []);
 
-  const removeObject = (type: 'line' | 'marker' | 'polygon', id: string) => {
+  const removeObject = useCallback((type: 'line' | 'marker' | 'polygon', id: string) => {
     setStateData(prev => {
       const target = type === 'polygon' ? 'polygons' : type === 'line' ? 'lines' : 'markers';
       return { ...prev, [target]: prev[target].filter(obj => obj.id !== id) };
     });
     if (selectedObjectId === id) setSelectedObjectId(null);
-  };
+  }, [selectedObjectId]);
 
-  const focusOnObject = (coords: any, id: string) => {
+  const focusOnObject = useCallback((coords: any, id: string) => {
     if (!coords) return;
     let target: [number, number];
     if (Array.isArray(coords[0])) {
@@ -166,219 +392,7 @@ export function MapControlView() {
     }
     setFocusTrigger({ coords: target, zoom: 19 });
     setSelectedObjectId(id);
-  };
-
-  const ObjectCard = ({ item, type }: { item: MapObject, type: 'polygon' | 'line' | 'marker' }) => {
-    const isFocused = selectedObjectId === item.id;
-    const Icon = type === 'polygon' ? Hexagon : type === 'line' ? Route : MapPin;
-    const accentColor = type === 'polygon' ? 'text-green-600' : type === 'line' ? 'text-blue-600' : 'text-red-600';
-    const bgAccent = type === 'polygon' ? 'bg-green-50' : type === 'line' ? 'bg-blue-50' : 'bg-red-50';
-
-    return (
-      <Card 
-        className={cn(
-          "rounded-[2.5rem] border-2 transition-all duration-500 overflow-hidden bg-white",
-          isFocused ? "border-primary shadow-2xl ring-4 ring-primary/5" : "border-secondary hover:border-primary/20 shadow-sm"
-        )}
-      >
-        <CardContent className="p-0">
-          <div className={cn("p-6 flex items-center justify-between border-b", isFocused ? "bg-primary/5 border-primary/10" : "bg-secondary/5 border-secondary")}>
-            <div className="flex items-center gap-4">
-              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner bg-white")}>
-                <Icon className={cn("w-6 h-6", accentColor)} />
-              </div>
-              <div>
-                <span className={cn("text-[9px] font-black uppercase tracking-widest block leading-none mb-1 opacity-70")}>
-                  {type === 'polygon' ? 'Area Wilayah' : type === 'line' ? 'Infrastruktur Jalur' : 'Titik Fasilitas'}
-                </span>
-                <p className="text-sm font-black uppercase tracking-tighter text-gray-900 leading-none">{item.name || 'Tanpa Nama'}</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => focusOnObject(item.coords, item.id)} 
-                size="icon" 
-                variant="ghost" 
-                className="h-10 w-10 rounded-xl bg-white shadow-sm hover:bg-primary hover:text-white transition-all"
-              >
-                <Maximize2 className="w-4 h-4" />
-              </Button>
-              <Button 
-                onClick={() => removeObject(type, item.id)} 
-                size="icon" 
-                variant="ghost" 
-                className="h-10 w-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white shadow-sm transition-all"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-0">
-            <Tabs defaultValue="info" className="w-full">
-              <TabsList className="w-full h-14 bg-secondary/30 rounded-none border-b border-secondary p-0">
-                <TabsTrigger value="info" className="flex-1 h-full rounded-none data-[state=active]:bg-white data-[state=active]:text-primary font-black uppercase text-[9px] tracking-widest gap-2">
-                  <Type className="w-3.5 h-3.5" /> Detail
-                </TabsTrigger>
-                <TabsTrigger value="style" className="flex-1 h-full rounded-none data-[state=active]:bg-white data-[state=active]:text-primary font-black uppercase text-[9px] tracking-widest gap-2">
-                  <Palette className="w-3.5 h-3.5" /> Gaya
-                </TabsTrigger>
-                <TabsTrigger value="media" className="flex-1 h-full rounded-none data-[state=active]:bg-white data-[state=active]:text-primary font-black uppercase text-[9px] tracking-widest gap-2">
-                  <ImageIcon className="w-3.5 h-3.5" /> Media
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="p-8">
-                <TabsContent value="info" className="mt-0 space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-2">
-                        <Tag className="w-3 h-3" /> Label Nama Objek
-                      </label>
-                      <Input 
-                        value={item.name} 
-                        onChange={(e) => updateObjectProperty(type, item.id, 'name', e.target.value)}
-                        className="bg-secondary/40 border-none h-12 text-xs font-bold rounded-xl focus:ring-primary shadow-inner"
-                        placeholder="Contoh: Balai Warga RW 02"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-2">
-                        <Layers className="w-3 h-3" /> Kategori
-                      </label>
-                      <Select 
-                        value={item.category || 'Lainnya'} 
-                        onValueChange={(val) => updateObjectProperty(type, item.id, 'category', val)}
-                      >
-                        <SelectTrigger className="h-12 bg-secondary/40 border-none text-xs font-bold rounded-xl shadow-inner">
-                          <SelectValue placeholder="Pilih Kategori" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-2xl">
-                          {CATEGORIES[type].map(cat => (
-                            <SelectItem key={cat} value={cat} className="text-xs font-medium">{cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] px-1 flex items-center gap-2">
-                        <Info className="w-3 h-3" /> Deskripsi Tambahan
-                      </label>
-                      <Textarea 
-                        value={item.description || ''} 
-                        onChange={(e) => updateObjectProperty(type, item.id, 'description', e.target.value)}
-                        className="bg-secondary/40 border-none text-[11px] font-medium rounded-2xl min-h-[100px] leading-relaxed p-4 shadow-inner"
-                        placeholder="Catatan kondisi, kapasitas, atau informasi lainnya..."
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="style" className="mt-0 space-y-6">
-                  <div className="space-y-6">
-                    <div className="p-5 bg-secondary/30 rounded-3xl space-y-4 shadow-inner">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <Palette className="w-3.5 h-3.5" /> Warna Identitas
-                        </label>
-                        <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
-                      </div>
-                      <div className="flex flex-wrap gap-2.5">
-                        {COLOR_PALETTE.map(color => (
-                          <button
-                            key={color.value}
-                            onClick={() => updateObjectProperty(type, item.id, 'color', color.value)}
-                            className={cn(
-                              "w-7 h-7 rounded-full border-2 transition-all hover:scale-110",
-                              item.color === color.value ? "border-white shadow-lg ring-2 ring-primary/20 scale-110" : "border-transparent opacity-60 hover:opacity-100"
-                            )}
-                            style={{ backgroundColor: color.value }}
-                            title={color.label}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {type === 'marker' && (
-                      <div className="p-5 bg-secondary/30 rounded-3xl space-y-4 shadow-inner">
-                        <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5" /> Ikon Penanda
-                        </label>
-                        <div className="grid grid-cols-6 gap-2">
-                          {ICON_LIST.map((iconObj) => (
-                            <button
-                              key={iconObj.value}
-                              onClick={() => updateObjectProperty('marker', item.id, 'icon', iconObj.value)}
-                              className={cn(
-                                "h-10 rounded-xl flex items-center justify-center transition-all border",
-                                item.icon === iconObj.value 
-                                  ? "bg-primary text-white border-primary shadow-md" 
-                                  : "bg-white/50 border-secondary text-muted-foreground hover:bg-white"
-                              )}
-                              title={iconObj.label}
-                            >
-                              <Crosshair className="w-4 h-4" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="p-4 border-2 border-dashed border-secondary rounded-2xl space-y-2">
-                      <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                        <Hash className="w-3 h-3" /> Data Koordinat (Auto)
-                      </div>
-                      <p className="text-[9px] font-mono text-muted-foreground leading-none truncate bg-white p-2 rounded border border-secondary shadow-inner">
-                        {JSON.stringify(item.coords)}
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="media" className="mt-0 space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between px-1">
-                        <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <LinkIcon className="w-3 h-3" /> URL Foto Lapangan
-                        </label>
-                        {item.imageUrl && <Badge className="bg-green-500/10 text-green-600 text-[8px] border-none">Media Aktif</Badge>}
-                      </div>
-                      <Input 
-                        value={item.imageUrl || ''} 
-                        onChange={(e) => updateObjectProperty(type, item.id, 'imageUrl', e.target.value)}
-                        className="bg-secondary/40 border-none h-12 text-[10px] font-bold rounded-xl shadow-inner"
-                        placeholder="Tempel tautan gambar (HTTPS)..."
-                      />
-                    </div>
-                    
-                    {item.imageUrl ? (
-                      <div className="relative h-56 w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-secondary/10 group/img">
-                        <img 
-                          src={item.imageUrl} 
-                          alt="Preview" 
-                          className="w-full h-full object-cover transition-transform duration-1000 group-hover/img:scale-110"
-                          onError={(e) => (e.currentTarget.src = 'https://placehold.co/600x400?text=Tautan+Gambar+Salah')}
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                          <Maximize2 className="text-white w-8 h-8" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="h-56 w-full rounded-[2.5rem] bg-secondary/20 border-2 border-dashed border-secondary flex flex-col items-center justify-center text-muted-foreground gap-3">
-                        <ImageIcon className="w-10 h-10 opacity-20" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Belum ada foto</p>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  }, []);
 
   return (
     <div className="space-y-12 pb-40">
@@ -386,7 +400,7 @@ export function MapControlView() {
         <div className="space-y-4">
           <div className="flex items-center gap-3 text-primary font-black text-[10px] uppercase tracking-[0.4em]">
             <span className="w-8 h-[2px] bg-primary"></span>
-            <Settings2 className="w-4 h-4 animate-spin-slow" /> Geospasial Intelligence
+            <Settings2 className="w-4 h-4" /> Geospasial Intelligence
           </div>
           <h1 className="text-4xl lg:text-6xl font-black text-primary uppercase tracking-tighter leading-none">Editor <span className="text-gray-900">Wilayah</span></h1>
           <p className="text-muted-foreground font-medium text-base italic border-l-4 border-accent pl-6 max-w-2xl leading-relaxed">
@@ -496,10 +510,39 @@ export function MapControlView() {
           </div>
 
           <div className="space-y-6 h-[850px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-secondary">
-             {/* List of Objects */}
-             {stateData.polygons.map(obj => <ObjectCard key={obj.id} item={obj} type="polygon" />)}
-             {stateData.lines.map(obj => <ObjectCard key={obj.id} item={obj} type="line" />)}
-             {stateData.markers.map(obj => <ObjectCard key={obj.id} item={obj} type="marker" />)}
+             {stateData.polygons.map(obj => (
+               <ObjectCard 
+                 key={obj.id} 
+                 item={obj} 
+                 type="polygon" 
+                 isFocused={selectedObjectId === obj.id}
+                 onFocus={focusOnObject}
+                 onRemove={removeObject}
+                 onUpdate={updateObjectProperty}
+               />
+             ))}
+             {stateData.lines.map(obj => (
+               <ObjectCard 
+                 key={obj.id} 
+                 item={obj} 
+                 type="line" 
+                 isFocused={selectedObjectId === obj.id}
+                 onFocus={focusOnObject}
+                 onRemove={removeObject}
+                 onUpdate={updateObjectProperty}
+               />
+             ))}
+             {stateData.markers.map(obj => (
+               <ObjectCard 
+                 key={obj.id} 
+                 item={obj} 
+                 type="marker" 
+                 isFocused={selectedObjectId === obj.id}
+                 onFocus={focusOnObject}
+                 onRemove={removeObject}
+                 onUpdate={updateObjectProperty}
+               />
+             ))}
 
              {stateData.polygons.length === 0 && stateData.lines.length === 0 && stateData.markers.length === 0 && (
                <div className="py-32 text-center bg-secondary/10 rounded-[4rem] border-4 border-dashed border-secondary/20">
@@ -541,4 +584,3 @@ export function MapControlView() {
     </div>
   );
 }
-
