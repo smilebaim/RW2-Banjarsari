@@ -60,9 +60,11 @@ const parseData = (val: any, fallback: any = []) => {
 export default function Home() {
   const db = useFirestore();
   
-  const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
-  const [hiddenLineIds, setHiddenLineIds] = useState<Record<string, boolean>>({});
-  const [hiddenMarkerIds, setHiddenMarkerIds] = useState<Record<string, boolean>>({});
+  // Menggunakan visibleIds untuk melacak apa yang DICENTANG. 
+  // Default {} berarti semua tidak tercentang (sembunyi).
+  const [visibleAreaIds, setVisibleAreaIds] = useState<Record<string, boolean>>({});
+  const [visibleLineIds, setVisibleLineIds] = useState<Record<string, boolean>>({});
+  const [visibleMarkerIds, setVisibleMarkerIds] = useState<Record<string, boolean>>({});
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
@@ -72,33 +74,32 @@ export default function Home() {
   const allLines = useMemo(() => parseData(mapSettings?.lines, []), [mapSettings]);
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
-  // Status "hidden" kosong di awal berarti SEMUA objek akan tampil secara default
-  const polygonsData = useMemo(() => allPolygons.filter((p: any) => !hiddenAreaIds[p.id]), [allPolygons, hiddenAreaIds]);
-  const linesData = useMemo(() => allLines.filter((l: any) => !hiddenLineIds[l.id]), [allLines, hiddenLineIds]);
-  const markersData = useMemo(() => allMarkers.filter((m: any) => !hiddenMarkerIds[m.id]), [allMarkers, hiddenMarkerIds]);
+  // Data yang dikirim ke peta hanya yang ID-nya ada dalam state visible
+  const polygonsData = useMemo(() => allPolygons.filter((p: any) => !!visibleAreaIds[p.id]), [allPolygons, visibleAreaIds]);
+  const linesData = useMemo(() => allLines.filter((l: any) => !!visibleLineIds[l.id]), [allLines, visibleLineIds]);
+  const markersData = useMemo(() => allMarkers.filter((m: any) => !!visibleMarkerIds[m.id]), [allMarkers, visibleMarkerIds]);
 
   const toggleAll = (type: 'area' | 'line' | 'marker', show: boolean) => {
     const next: Record<string, boolean> = {};
     const items = type === 'area' ? allPolygons : type === 'line' ? allLines : allMarkers;
     
-    // Jika show=false, maka masukkan semua ID ke daftar "hidden"
-    if (!show) {
+    if (show) {
       items.forEach((p: any) => { next[p.id] = true; });
     }
 
-    if (type === 'area') setHiddenAreaIds(next);
-    if (type === 'line') setHiddenLineIds(next);
-    if (type === 'marker') setHiddenMarkerIds(next);
+    if (type === 'area') setVisibleAreaIds(next);
+    if (type === 'line') setVisibleLineIds(next);
+    if (type === 'marker') setVisibleMarkerIds(next);
   };
 
   const toggleSingle = (type: 'area' | 'line' | 'marker', id: string, isChecked: boolean) => {
-    const setter = type === 'area' ? setHiddenAreaIds : type === 'line' ? setHiddenLineIds : setHiddenMarkerIds;
+    const setter = type === 'area' ? setVisibleAreaIds : type === 'line' ? setVisibleLineIds : setVisibleMarkerIds;
     setter(prev => {
       const next = { ...prev };
       if (isChecked) {
-        delete next[id]; // Hapus dari daftar sembunyi (tampilkan)
+        next[id] = true;
       } else {
-        next[id] = true; // Masukkan ke daftar sembunyi (sembunyikan)
+        delete next[id];
       }
       return next;
     });
@@ -201,7 +202,7 @@ export default function Home() {
                       {allPolygons.map((p: any) => (
                         <DropdownMenuCheckboxItem
                           key={p.id}
-                          checked={!hiddenAreaIds[p.id]}
+                          checked={!!visibleAreaIds[p.id]}
                           onCheckedChange={(checked) => toggleSingle('area', p.id, !!checked)}
                           className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer text-[9px] font-bold uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
@@ -229,7 +230,7 @@ export default function Home() {
                       {allLines.map((l: any) => (
                         <DropdownMenuCheckboxItem
                           key={l.id}
-                          checked={!hiddenLineIds[l.id]}
+                          checked={!!visibleLineIds[l.id]}
                           onCheckedChange={(checked) => toggleSingle('line', l.id, !!checked)}
                           className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer text-[9px] font-bold uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
@@ -257,7 +258,7 @@ export default function Home() {
                       {allMarkers.map((m: any) => (
                         <DropdownMenuCheckboxItem
                           key={m.id}
-                          checked={!hiddenMarkerIds[m.id]}
+                          checked={!!visibleMarkerIds[m.id]}
                           onCheckedChange={(checked) => toggleSingle('marker', m.id, !!checked)}
                           className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer text-[9px] font-bold uppercase text-white/50 focus:bg-white/5 data-[state=checked]:text-white transition-all group"
                         >
