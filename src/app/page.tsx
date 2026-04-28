@@ -63,7 +63,6 @@ export default function Home() {
   const [hiddenAreaIds, setHiddenAreaIds] = useState<Record<string, boolean>>({});
   const [hiddenLineIds, setHiddenLineIds] = useState<Record<string, boolean>>({});
   const [hiddenMarkerIds, setHiddenMarkerIds] = useState<Record<string, boolean>>({});
-  const [isInitialized, setIsInitialized] = useState(false);
   const [zoom, setZoom] = useState(INITIAL_ZOOM);
 
   const mapSettingsRef = useMemoFirebase(() => doc(db, 'map_settings', 'rw02_boundary'), [db]);
@@ -73,31 +72,7 @@ export default function Home() {
   const allLines = useMemo(() => parseData(mapSettings?.lines, []), [mapSettings]);
   const allMarkers = useMemo(() => parseData(mapSettings?.markers, []), [mapSettings]);
 
-  useEffect(() => {
-    if (!isInitialized && mapSettings && (allPolygons.length > 0 || allLines.length > 0 || allMarkers.length > 0)) {
-      // Initialize all objects as hidden (unchecked) by default
-      const initialHiddenAreas: Record<string, boolean> = {};
-      allPolygons.forEach((p: any) => {
-        initialHiddenAreas[p.id] = true;
-      });
-      
-      const initialHiddenLines: Record<string, boolean> = {};
-      allLines.forEach((l: any) => {
-        initialHiddenLines[l.id] = true;
-      });
-      
-      const initialHiddenMarkers: Record<string, boolean> = {};
-      allMarkers.forEach((m: any) => {
-        initialHiddenMarkers[m.id] = true;
-      });
-
-      setHiddenAreaIds(initialHiddenAreas);
-      setHiddenLineIds(initialHiddenLines);
-      setHiddenMarkerIds(initialHiddenMarkers);
-      setIsInitialized(true);
-    }
-  }, [mapSettings, allPolygons, allLines, allMarkers, isInitialized]);
-
+  // Status "hidden" kosong di awal berarti SEMUA objek akan tampil secara default
   const polygonsData = useMemo(() => allPolygons.filter((p: any) => !hiddenAreaIds[p.id]), [allPolygons, hiddenAreaIds]);
   const linesData = useMemo(() => allLines.filter((l: any) => !hiddenLineIds[l.id]), [allLines, hiddenLineIds]);
   const markersData = useMemo(() => allMarkers.filter((m: any) => !hiddenMarkerIds[m.id]), [allMarkers, hiddenMarkerIds]);
@@ -106,6 +81,7 @@ export default function Home() {
     const next: Record<string, boolean> = {};
     const items = type === 'area' ? allPolygons : type === 'line' ? allLines : allMarkers;
     
+    // Jika show=false, maka masukkan semua ID ke daftar "hidden"
     if (!show) {
       items.forEach((p: any) => { next[p.id] = true; });
     }
@@ -120,9 +96,9 @@ export default function Home() {
     setter(prev => {
       const next = { ...prev };
       if (isChecked) {
-        delete next[id]; 
+        delete next[id]; // Hapus dari daftar sembunyi (tampilkan)
       } else {
-        next[id] = true; 
+        next[id] = true; // Masukkan ke daftar sembunyi (sembunyikan)
       }
       return next;
     });
@@ -147,13 +123,13 @@ export default function Home() {
       </div>
 
       <TooltipProvider delayDuration={0}>
-        {/* Floating Header HUD (Top) - Responsive Lebar Edition */}
+        {/* Floating Header HUD (Top) */}
         <div className="absolute top-6 inset-x-0 z-20 flex justify-center px-4 pointer-events-none">
           <div className="w-full max-w-[420px] sm:w-fit sm:min-w-[420px] bg-black/60 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-white/10 rounded-[1.75rem] p-1.5 flex items-center justify-between pointer-events-auto transition-all hover:bg-black/80 hover:border-primary/50 group">
             <div className="flex items-center gap-4 sm:gap-12 px-4 sm:px-10 py-2">
               <div className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary shadow-[0_0_10px_rgba(var(--primary),1)]"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] leading-none mb-1.5">RW 02 Banjarsari</span>
@@ -187,7 +163,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Sidebar Controls (Left) - Minimalist HUD Toolbar */}
+        {/* Sidebar Controls (Left) */}
         <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
           <DropdownMenu>
             <Tooltip>
@@ -208,7 +184,7 @@ export default function Home() {
             
             <DropdownMenuContent side="right" align="center" className="bg-black/95 backdrop-blur-3xl border-white/10 rounded-[1.5rem] p-4 min-w-[300px] shadow-2xl animate-in zoom-in-95 duration-300">
               <div className="px-4 py-3 mb-3 border-b border-white/5">
-                <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Infrastruktur</p>
+                <p className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Infrastruktur Terdata</p>
               </div>
               
               <div className="space-y-4">
@@ -220,7 +196,7 @@ export default function Home() {
                       <Button variant="ghost" size="sm" onClick={() => toggleAll('area', false)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-red-500/20 rounded">Reset</Button>
                     </div>
                   </div>
-                  <ScrollArea className="h-[140px]">
+                  <ScrollArea className="h-[120px]">
                     <div className="space-y-0.5">
                       {allPolygons.map((p: any) => (
                         <DropdownMenuCheckboxItem
@@ -233,6 +209,7 @@ export default function Home() {
                           <span className="truncate flex-1">{p.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
+                      {allPolygons.length === 0 && <p className="text-[8px] text-white/20 italic px-4 py-2">Belum ada data area.</p>}
                     </div>
                   </ScrollArea>
                 </div>
@@ -242,7 +219,10 @@ export default function Home() {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between px-2 mb-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Jalur & Drainase</span>
-                    <Button variant="ghost" size="sm" onClick={() => toggleAll('line', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary rounded">Aktifkan</Button>
+                    <div className="flex gap-1.5">
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary rounded">Aktifkan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('line', false)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-red-500/20 rounded">Matikan</Button>
+                    </div>
                   </div>
                   <ScrollArea className="h-[100px]">
                     <div className="space-y-0.5">
@@ -257,6 +237,7 @@ export default function Home() {
                           <span className="truncate flex-1">{l.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
+                      {allLines.length === 0 && <p className="text-[8px] text-white/20 italic px-4 py-2">Belum ada data jalur.</p>}
                     </div>
                   </ScrollArea>
                 </div>
@@ -266,7 +247,10 @@ export default function Home() {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between px-2 mb-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Titik Fasilitas</span>
-                    <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary rounded">Tampilkan</Button>
+                    <div className="flex gap-1.5">
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', true)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-primary rounded">Tampilkan</Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleAll('marker', false)} className="h-5 px-2 text-[7px] font-black uppercase bg-white/5 hover:bg-red-500/20 rounded">Reset</Button>
+                    </div>
                   </div>
                   <ScrollArea className="h-[100px]">
                     <div className="space-y-0.5">
@@ -281,6 +265,7 @@ export default function Home() {
                           <span className="truncate flex-1">{m.name}</span>
                         </DropdownMenuCheckboxItem>
                       ))}
+                      {allMarkers.length === 0 && <p className="text-[8px] text-white/20 italic px-4 py-2">Belum ada titik fasilitas.</p>}
                     </div>
                   </ScrollArea>
                 </div>
