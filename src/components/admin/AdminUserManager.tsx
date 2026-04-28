@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,9 +34,14 @@ export function AdminUserManager() {
   const [username, setUsername] = useState('');
   const [role, setRole] = useState('ContentManager');
 
+  // Strict check for current user's role before fetching admin list
+  const adminRoleRef = useMemoFirebase(() => currentUser ? doc(db, 'admin_roles', currentUser.uid) : null, [db, currentUser]);
+  const { data: adminRole } = useDoc(adminRoleRef);
+
   const adminsQuery = useMemoFirebase(() => {
+    if (!currentUser || !adminRole) return null;
     return query(collection(db, 'admin_roles'), orderBy('createdAt', 'desc'));
-  }, [db]);
+  }, [db, currentUser, adminRole]);
 
   const { data: admins, isLoading } = useCollection(adminsQuery);
 

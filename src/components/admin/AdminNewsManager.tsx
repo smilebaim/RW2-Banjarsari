@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,10 +31,14 @@ export function AdminNewsManager() {
   const [status, setStatus] = useState('Published');
   const [imageUrl, setImageUrl] = useState('');
 
+  // Strict check for adminRole before fetching
+  const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
+  const { data: adminRole } = useDoc(adminRoleRef);
+
   const newsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !adminRole) return null;
     return query(collection(db, 'announcements_management'), orderBy('createdAt', 'desc'));
-  }, [db, user]);
+  }, [db, user, adminRole]);
 
   const { data: news, isLoading } = useCollection(newsQuery);
 
@@ -137,7 +142,7 @@ export function AdminNewsManager() {
             <div className="space-y-6 py-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Judul Utama Warta</label>
-                <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-secondary/50 border-none h-14 rounded-xl font-bold" placeholder="Masukkan judul..." />
+                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-secondary/50 border-none h-14 rounded-xl font-bold px-4" placeholder="Masukkan judul..." />
               </div>
 
               <div className="space-y-2">
@@ -164,7 +169,7 @@ export function AdminNewsManager() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Kategori</label>
-                  <Input value={category} onChange={e => setCategory(e.target.value)} className="bg-secondary/50 border-none h-14 rounded-xl font-bold" />
+                  <input value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-secondary/50 border-none h-14 rounded-xl font-bold px-4" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Status Publikasi</label>

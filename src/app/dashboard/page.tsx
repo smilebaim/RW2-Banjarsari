@@ -67,9 +67,11 @@ export default function DashboardPage() {
 
   // Only fetch these collections if the user is confirmed as an admin to avoid permission errors
   const newsRef = useMemoFirebase(() => (user && adminRole) ? query(collection(db, 'announcements_management')) : null, [db, user, adminRole]);
+  const adminsRef = useMemoFirebase(() => (user && adminRole) ? query(collection(db, 'admin_roles')) : null, [db, user, adminRole]);
+  
+  // Publicly readable collections (list: true) don't strictly need adminRole check for loading, but it's safer
   const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
   const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
-  const adminsRef = useMemoFirebase(() => (user && adminRole) ? query(collection(db, 'admin_roles')) : null, [db, user, adminRole]);
 
   const { data: newsItems } = useCollection(newsRef);
   const { data: contactItems } = useCollection(contactsRef);
