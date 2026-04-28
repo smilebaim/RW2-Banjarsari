@@ -213,7 +213,8 @@ export default function LeafletMap({
     if (mapInstance.current) {
       if (tileLayerInstance.current) mapInstance.current.removeLayer(tileLayerInstance.current);
       tileLayerInstance.current = L.tileLayer(TILE_LAYERS[layer], {
-        maxZoom: 19,
+        maxZoom: 22, // Mengizinkan zoom maksimal dengan metode scaling
+        maxNativeZoom: 18, // Berhenti memuat data ubin baru di level 18 dan mulai memperbesar ubin yang ada
       }).addTo(mapInstance.current);
     }
   }, [layer]);
