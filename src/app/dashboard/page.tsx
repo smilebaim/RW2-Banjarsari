@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -10,6 +9,7 @@ import { ContactManager } from '@/components/admin/ContactManager';
 import { MapControlView } from '@/components/admin/MapControlView';
 import { ManagementMemberManager } from '@/components/admin/ManagementMemberManager';
 import { AdminServiceManager } from '@/components/admin/AdminServiceManager';
+import { AdminUserManager } from '@/components/admin/AdminUserManager';
 import { doc, setDoc, collection, query } from 'firebase/firestore';
 import { 
   Users, 
@@ -24,7 +24,8 @@ import {
   Lock,
   Zap,
   Menu,
-  FileText
+  FileText,
+  ShieldAlert
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,7 @@ const NAV_ITEMS = [
   { id: 'services', label: 'Administrasi Kependudukan', icon: FileText },
   { id: 'contacts', label: 'Kontak Penting', icon: Phone },
   { id: 'users', label: 'Struktur Pejabat Pamong', icon: Users },
+  { id: 'admins', label: 'Pengaturan Akses', icon: ShieldAlert },
 ];
 
 export default function DashboardPage() {
@@ -61,10 +63,12 @@ export default function DashboardPage() {
   const newsRef = useMemoFirebase(() => user ? query(collection(db, 'announcements_management')) : null, [db, user]);
   const contactsRef = useMemoFirebase(() => query(collection(db, 'important_contacts')), [db]);
   const membersRef = useMemoFirebase(() => query(collection(db, 'rw_management_members')), [db]);
+  const adminsRef = useMemoFirebase(() => query(collection(db, 'admin_roles')), [db]);
 
   const { data: newsItems } = useCollection(newsRef);
   const { data: contactItems } = useCollection(contactsRef);
   const { data: memberItems } = useCollection(membersRef);
+  const { data: adminItems } = useCollection(adminsRef);
 
   const adminRoleRef = useMemoFirebase(() => user ? doc(db, 'admin_roles', user.uid) : null, [db, user]);
   const { data: adminRole, isLoading: isAdminRoleLoading } = useDoc(adminRoleRef);
@@ -261,7 +265,7 @@ export default function DashboardPage() {
                   { label: 'Total Pamong', value: memberItems?.length || 0, sub: 'Anggota Aktif', icon: Users, color: 'bg-blue-600' },
                   { label: 'Informasi Terbit', value: newsItems?.length || 0, sub: 'Warta Wilayah', icon: Newspaper, color: 'bg-primary' },
                   { label: 'Kontak Publik', value: contactItems?.length || 0, sub: 'Instansi Terdaftar', icon: Phone, color: 'bg-green-600' },
-                  { label: 'Status Peta', value: 'OK', sub: 'Geospasial Aktif', icon: MapIcon, color: 'bg-orange-600' },
+                  { label: 'Total Admin', value: adminItems?.length || 0, sub: 'Pengelola Portal', icon: ShieldAlert, color: 'bg-zinc-900' },
                 ].map((stat, i) => (
                   <Card key={i} className="border-none shadow-2xl rounded-[3rem] overflow-hidden group hover:-translate-y-3 transition-all duration-700 bg-white">
                     <CardContent className="p-10">
@@ -285,6 +289,7 @@ export default function DashboardPage() {
           {activeTab === 'services' && <AdminServiceManager />}
           {activeTab === 'contacts' && <ContactManager />}
           {activeTab === 'users' && <ManagementMemberManager />}
+          {activeTab === 'admins' && <AdminUserManager />}
         </div>
       </main>
     </div>
