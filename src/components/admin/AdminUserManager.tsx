@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase, setDocumentNonBlocking, deleteDocumentNonBlocking, useUser, useDoc } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { ShieldCheck, UserPlus, Search, Edit3, Trash2, Loader2, ShieldAlert, Lock, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldCheck, UserPlus, Search, Edit3, Trash2, Loader2, ShieldAlert, Lock, Info, CheckCircle2, AlertCircle, RefreshCw, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -38,6 +38,7 @@ export function AdminUserManager() {
   const [adminUid, setAdminUid] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState('ContentManager');
 
   // Strict check for current user's role before fetching admin list
@@ -56,19 +57,22 @@ export function AdminUserManager() {
     item.username?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSave = () => {
-    if (!adminUid || !email || !username) {
-      toast({ variant: "destructive", title: "Data tidak lengkap", description: "UID, Email, dan Nama Pengguna wajib diisi." });
-      return;
-    }
+  // Generate random unique UID
+  const generateUid = () => {
+    const randomPart = Math.random().toString(36).substring(2, 15).toUpperCase();
+    setAdminUid(`RW2-${randomPart}`);
+  };
 
-    // Basic validation to prevent using email as UID
-    if (adminUid.includes('@')) {
-      toast({ 
-        variant: "destructive", 
-        title: "UID Tidak Valid", 
-        description: "User ID (UID) biasanya berupa rangkaian karakter acak, bukan alamat email. Periksa Firebase Console." 
-      });
+  // Effect to generate UID when dialog opens for a new admin
+  useEffect(() => {
+    if (isDialogOpen && !editingId) {
+      generateUid();
+    }
+  }, [isDialogOpen, editingId]);
+
+  const handleSave = () => {
+    if (!adminUid || !email || !username || (!editingId && !password)) {
+      toast({ variant: "destructive", title: "Data tidak lengkap", description: "UID, Email, Nama Pengguna, dan Password wajib diisi." });
       return;
     }
 
@@ -78,6 +82,7 @@ export function AdminUserManager() {
       email,
       username,
       role,
+      password: password || '', // Store initial password for prototype purposes
       updatedAt: new Date().toISOString(),
     };
 
@@ -110,6 +115,7 @@ export function AdminUserManager() {
     setAdminUid('');
     setEmail('');
     setUsername('');
+    setPassword('');
     setRole('ContentManager');
   };
 
@@ -118,6 +124,7 @@ export function AdminUserManager() {
     setAdminUid(admin.id);
     setEmail(admin.email);
     setUsername(admin.username);
+    setPassword(admin.password || '');
     setRole(admin.role);
     setIsDialogOpen(true);
   };
@@ -136,31 +143,37 @@ export function AdminUserManager() {
               <UserPlus className="w-6 h-6" /> Tambah Admin Baru
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md rounded-[3rem] p-10 border-none shadow-2xl">
+          <DialogContent className="max-w-md rounded-[3rem] p-10 border-none shadow-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{editingId ? 'Edit Izin Akses' : 'Daftarkan Admin'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-6 py-6">
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">User ID (Firebase UID)</label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <AlertCircle className="w-3 h-3 text-amber-500 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-zinc-900 text-white p-4 rounded-xl text-[10px] max-w-[200px]">
-                        UID adalah kode unik di Firebase Authentication. Jangan masukkan Email di sini.
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">User ID (Otomatis)</label>
+                  <div className="flex items-center gap-2">
+                    {!editingId && (
+                      <Button variant="ghost" size="icon" onClick={generateUid} className="h-6 w-6 rounded-full hover:bg-secondary">
+                        <RefreshCw className="w-3 h-3 text-primary" />
+                      </Button>
+                    )}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertCircle className="w-3 h-3 text-amber-500 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-zinc-900 text-white p-4 rounded-xl text-[10px] max-w-[200px]">
+                          UID dihasilkan secara otomatis untuk keamanan sistem.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
                 <Input 
                   value={adminUid} 
-                  onChange={e => setAdminUid(e.target.value)} 
-                  disabled={!!editingId}
-                  className="bg-secondary/50 border-none h-14 rounded-xl font-mono text-xs" 
-                  placeholder="Contoh: aWH15p65P8h4ieyxnS..." 
+                  readOnly
+                  className="bg-secondary/50 border-none h-14 rounded-xl font-mono text-xs opacity-80 cursor-not-allowed" 
+                  placeholder="Menghasilkan UID..." 
                 />
               </div>
 
@@ -172,6 +185,21 @@ export function AdminUserManager() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Nama Pengguna / Panggilan</label>
                 <Input value={username} onChange={e => setUsername(e.target.value)} className="bg-secondary/50 border-none h-14 rounded-xl font-bold" placeholder="Contoh: Budi Sekretaris" />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-1">
+                  <Key className="w-3 h-3 text-primary" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password Awal</label>
+                </div>
+                <Input 
+                  type="text"
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  className="bg-secondary/50 border-none h-14 rounded-xl font-bold" 
+                  placeholder="Tentukan password pengelola..." 
+                />
+                <p className="text-[9px] text-muted-foreground italic px-1">Berikan kredensial ini kepada pengelola yang bersangkutan.</p>
               </div>
 
               <div className="space-y-2">
@@ -273,7 +301,7 @@ export function AdminUserManager() {
               </div>
               <h3 className="text-2xl font-black uppercase tracking-tighter text-accent leading-none">Keamanan & Peran</h3>
               <p className="text-xs text-white/70 leading-relaxed font-medium italic border-l-2 border-accent/30 pl-6">
-                Pastikan Anda hanya memberikan akses kepada personil terpercaya. UID (User ID) dapat ditemukan di Firebase Authentication Console setelah pengguna melakukan login pertama kali.
+                UID dihasilkan secara otomatis untuk menjaga integritas basis data. Harap catat kredensial (Email & Password) pengelola baru sebelum menutup dialog.
               </p>
             </div>
           </Card>
